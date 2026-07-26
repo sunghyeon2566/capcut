@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+:root {
+  --color-navy-950: #0b1a30;
+  --color-navy-900: #0f2545;
+  --color-navy-800: #15335f;
+  --color-navy-700: #1c4180;
+  --color-navy-600: #2554a3;
+  --color-navy-100: #e7edf8;
+  --color-navy-50: #f4f7fc;
+  --color-accent-600: #c9622a;
+  --color-accent-500: #e07a3d;
+  --color-accent-100: #fbe7d8;
+  --background: #ffffff;
+  --foreground: var(--color-navy-950);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-navy-950: var(--color-navy-950);
+  --color-navy-900: var(--color-navy-900);
+  --color-navy-800: var(--color-navy-800);
+  --color-navy-700: var(--color-navy-700);
+  --color-navy-600: var(--color-navy-600);
+  --color-navy-100: var(--color-navy-100);
+  --color-navy-50: var(--color-navy-50);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-100: var(--color-accent-100);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container-x {
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-accent-600);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  transition: background-color 0.15s ease;
+}
+.btn-primary:hover {
+  background-color: var(--color-accent-500);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-navy-100);
+  background-color: #fff;
+  color: var(--color-navy-900);
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+  border-color: var(--color-navy-600);
+  color: var(--color-navy-700);
+}
+
+.card {
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-navy-100);
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 37, 69, 0.04);
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-accent-600);
+  text-transform: uppercase;
+}
+
+.input-field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  outline: none;
+  background-color: #fff;
+  color: var(--color-navy-950);
+}
+.input-field:focus {
+  border-color: var(--color-navy-600);
+  box-shadow: 0 0 0 3px var(--color-navy-100);
+}

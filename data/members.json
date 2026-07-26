@@ -1,0 +1,26 @@
+{
+  "members": [
+    { "id": "seed-1", "name": "김도윤", "email": "member01@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "서울특별시", "createdAt": "2025-11-02T01:00:00.000Z" },
+    { "id": "seed-2", "name": "이서연", "email": "member02@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "서울특별시", "createdAt": "2025-11-03T01:00:00.000Z" },
+    { "id": "seed-3", "name": "박지훈", "email": "member03@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경기도", "createdAt": "2025-11-05T01:00:00.000Z" },
+    { "id": "seed-4", "name": "최수아", "email": "member04@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경기도", "createdAt": "2025-11-06T01:00:00.000Z" },
+    { "id": "seed-5", "name": "정민준", "email": "member05@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경기도", "createdAt": "2025-11-07T01:00:00.000Z" },
+    { "id": "seed-6", "name": "강하은", "email": "member06@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "부산광역시", "createdAt": "2025-11-08T01:00:00.000Z" },
+    { "id": "seed-7", "name": "조은우", "email": "member07@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "인천광역시", "createdAt": "2025-11-09T01:00:00.000Z" },
+    { "id": "seed-8", "name": "윤서준", "email": "member08@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "대구광역시", "createdAt": "2025-11-10T01:00:00.000Z" },
+    { "id": "seed-9", "name": "임채원", "email": "member09@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "대전광역시", "createdAt": "2025-11-11T01:00:00.000Z" },
+    { "id": "seed-10", "name": "한지호", "email": "member10@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "광주광역시", "createdAt": "2025-11-12T01:00:00.000Z" },
+    { "id": "seed-11", "name": "오유진", "email": "member11@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경상남도", "createdAt": "2025-11-13T01:00:00.000Z" },
+    { "id": "seed-12", "name": "서지안", "email": "member12@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경상북도", "createdAt": "2025-11-14T01:00:00.000Z" },
+    { "id": "seed-13", "name": "장하람", "email": "member13@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "전라남도", "createdAt": "2025-11-15T01:00:00.000Z" },
+    { "id": "seed-14", "name": "신도현", "email": "member14@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "전북특별자치도", "createdAt": "2025-11-16T01:00:00.000Z" },
+    { "id": "seed-15", "name": "권나윤", "email": "member15@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "충청남도", "createdAt": "2025-11-17T01:00:00.000Z" },
+    { "id": "seed-16", "name": "황시우", "email": "member16@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "충청북도", "createdAt": "2025-11-18T01:00:00.000Z" },
+    { "id": "seed-17", "name": "안소율", "email": "member17@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "강원도", "createdAt": "2025-11-19T01:00:00.000Z" },
+    { "id": "seed-18", "name": "송예준", "email": "member18@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "제주특별자치도", "createdAt": "2025-11-20T01:00:00.000Z" },
+    { "id": "seed-19", "name": "노은서", "email": "member19@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "울산광역시", "createdAt": "2025-11-21T01:00:00.000Z" },
+    { "id": "seed-20", "name": "문가온", "email": "member20@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "세종특별자치시", "createdAt": "2025-11-22T01:00:00.000Z" },
+    { "id": "seed-21", "name": "배아윤", "email": "member21@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "경기도", "createdAt": "2025-11-23T01:00:00.000Z" },
+    { "id": "seed-22", "name": "홍준서", "email": "member22@example.com", "passwordHash": "$2b$10$.WRVszcBRbdZs3zhWmnL9.K9IGCY1mgSXgwn3mRgiLgiVu.aI0Ojy", "region": "서울특별시", "createdAt": "2025-11-24T01:00:00.000Z" }
+  ]
+}
