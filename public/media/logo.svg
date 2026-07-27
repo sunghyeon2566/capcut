@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="사단법인 한국콘텐츠능률협회 KCMA 로고">
+  <title>사단법인 한국콘텐츠능률협회 (KCMA)</title>
+
+  <!--
+    협회 로고를 벡터로 재현한 파일입니다.
+    원본 로고 이미지 파일(logo.png)을 받으면 이 파일을 대체하고,
+    src/lib/assets.ts 의 ASSETS.logo 경로만 바꾸면 사이트 전체에 반영됩니다.
+  -->
+
+  <defs>
+    <!-- 원형 배지 테두리에 두르는 아치 텍스트 경로 -->
+    <path id="arcTop" d="M 23,100 A 77,77 0 0 1 177,100" fill="none" />
+    <path id="arcBottom" d="M 26.5,100 A 73.5,73.5 0 0 0 173.5,100" fill="none" />
+  </defs>
+
+  <!-- 외곽 네이비 링 -->
+  <circle cx="100" cy="100" r="97" fill="#164077" />
+  <circle cx="100" cy="100" r="89" fill="#ffffff" />
+  <!-- 내곽 네이비 링 -->
+  <circle cx="100" cy="100" r="64" fill="#164077" />
+  <circle cx="100" cy="100" r="57.5" fill="#ffffff" />
+
+  <!-- 링 사이 영문 / 국문 명칭 -->
+  <g fill="#164077" font-family="Helvetica Neue, Arial, sans-serif" font-weight="700">
+    <text font-size="10.2" letter-spacing="0.3">
+      <textPath href="#arcTop" startOffset="50%" text-anchor="middle">
+        KOREA CONTENT MANAGEMENT ASSOCIATION
+      </textPath>
+    </text>
+  </g>
+  <g fill="#164077" font-family="Apple SD Gothic Neo, Malgun Gothic, Noto Sans KR, sans-serif" font-weight="700">
+    <text font-size="14.5" letter-spacing="2.2">
+      <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">
+        한국콘텐츠능률협회
+      </textPath>
+    </text>
+  </g>
+
+  <!-- 중앙 마크: 5색 아치와 회색 기단 -->
+  <g fill="none" stroke-width="5.6" stroke-linecap="butt">
+    <path d="M 70,110 A 30,30 0 0 1 130,110" stroke="#d6402f" />
+    <path d="M 76.5,110 A 23.5,23.5 0 0 1 123.5,110" stroke="#f2a93b" />
+    <path d="M 83,110 A 17,17 0 0 1 117,110" stroke="#2c86c8" />
+    <path d="M 89.5,110 A 10.5,10.5 0 0 1 110.5,110" stroke="#4e9a3e" />
+  </g>
+  <rect x="65" y="109.5" width="78" height="6.5" rx="1.2" fill="#6b7075" />
+
+  <!-- 약칭 -->
+  <text x="100" y="132" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="16.5" font-weight="700" letter-spacing="0.6" fill="#10171f">KCMA</text>
+</svg>

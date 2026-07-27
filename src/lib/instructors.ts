@@ -1,93 +1,46 @@
 // 강사진 데이터
-// TODO: i.pravatar.cc 임시 이미지를 실제 강사 프로필 사진으로 교체해 주세요.
+//
+// [순서]
+// 아래 배열 순서가 메인 화면 강사 소개 라인에 보이는 순서입니다.
+// 전달받은 사진 순서를 그대로 따랐습니다.
+//
+// [사진]
+// photo 는 public/media/instructor-0*.svg 자리표시 이미지를 가리킵니다.
+// 실제 사진을 같은 이름(확장자만 다르게)으로 넣고 경로만 바꾸면 반영됩니다.
+//
+// [직함·약력]
+// title 과 bio 는 비워 두었습니다. 실제 인물의 이력을 임의로 채우지 않기
+// 위한 것이며, 정보를 전달해 주시면 그대로 입력하겠습니다.
+// 값이 없으면 화면에는 성명만 표시되고 레이아웃은 그대로 유지됩니다.
+
 export interface Instructor {
   id: string;
+  /** 강사 상세 페이지 주소(/instructors/[slug]) 및 앵커에 사용 */
+  slug: string;
   name: string;
-  title: string;
-  specialty: string;
-  bio: string;
-  avatarSeed: number;
+  /** 직함 — 미정이면 비워 둡니다 */
+  title?: string;
+  /** 전문 분야 — 미정이면 비워 둡니다 */
+  specialty?: string;
+  /** 약력 — 미정이면 비워 둡니다 */
+  bio?: string;
+  /** 인물 사진 경로 */
+  photo: string;
 }
 
 export const INSTRUCTORS: Instructor[] = [
-  {
-    id: "ins-01",
-    name: "김도현",
-    title: "협회 수석강사 · AI 콘텐츠 전략",
-    specialty: "AI 콘텐츠 기획 / 생성형 AI 전략",
-    bio: "성균관대학교 미디어커뮤니케이션학과 겸임교수 출신으로, 국내 주요 홈쇼핑사 AI 콘텐츠팀장을 역임했습니다. 8년간 500여 개 브랜드의 AI 콘텐츠 전환 프로젝트를 자문했습니다.",
-    avatarSeed: 12,
-  },
-  {
-    id: "ins-02",
-    name: "이하은",
-    title: "영상·이미지 생성 AI 전문강사",
-    specialty: "이미지 생성 AI 활용 / 영상 제작",
-    bio: "광고대행사 아트디렉터로 12년간 근무하며 다수의 브랜드 캠페인을 이끌었습니다. 현재는 생성형 이미지·영상 AI 툴을 활용한 실무형 커리큘럼을 개발하고 있습니다.",
-    avatarSeed: 47,
-  },
-  {
-    id: "ins-03",
-    name: "박준서",
-    title: "숏폼 콘텐츠 전문강사",
-    specialty: "숏폼 제작 / 바이럴 콘텐츠 기획",
-    bio: "구독자 80만 유튜브 채널을 직접 운영하며 축적한 실전 노하우를 강의에 담습니다. 삼성전자, LG전자 등 기업 숏폼 마케팅 자문 경력을 보유하고 있습니다.",
-    avatarSeed: 33,
-  },
-  {
-    id: "ins-04",
-    name: "정소율",
-    title: "프롬프트 엔지니어링 전문강사",
-    specialty: "프롬프트 엔지니어링 / 업무 자동화",
-    bio: "카이스트 전산학 석사 졸업 후 국내 대형 IT기업 AI연구소에서 근무했습니다. 현업 실무자를 위한 프롬프트 엔지니어링 교재를 두 권 출간했습니다.",
-    avatarSeed: 5,
-  },
-  {
-    id: "ins-05",
-    name: "최지안",
-    title: "인재양성 트랙 총괄강사",
-    specialty: "AI 콘텐츠 창업 / 커리어 코칭",
-    bio: "1인 미디어 창업 컨설턴트로 활동하며 200여 명의 수강생을 창업으로 이끌었습니다. 고용노동부 지정 직업훈련 강사 자격을 보유하고 있습니다.",
-    avatarSeed: 21,
-  },
-  {
-    id: "ins-06",
-    name: "한서준",
-    title: "AI 영상 편집 전문강사",
-    specialty: "AI 영상 편집 / 자동화 워크플로우",
-    bio: "방송사 영상편집팀 출신으로 방송용 편집 노하우를 AI 워크플로우에 결합한 실무 강의를 진행합니다. 기업 사내 교육 200회 이상 진행 경력이 있습니다.",
-    avatarSeed: 56,
-  },
-  {
-    id: "ins-07",
-    name: "오채원",
-    title: "브랜드 콘텐츠 기획 전문강사",
-    specialty: "브랜드 스토리텔링 / 콘텐츠 기획",
-    bio: "국내 주요 광고제 크리에이티브 부문 수상 경력을 보유하고 있습니다. 중소기업의 브랜드 콘텐츠 기획을 돕는 실전 워크숍을 다수 진행했습니다.",
-    avatarSeed: 29,
-  },
-  {
-    id: "ins-08",
-    name: "장민재",
-    title: "데이터 기반 콘텐츠 분석강사",
-    specialty: "콘텐츠 성과 분석 / 데이터 리터러시",
-    bio: "디지털 마케팅 에이전시에서 데이터 분석팀을 이끌었습니다. AI 콘텐츠의 성과를 정량적으로 측정하고 개선하는 방법론을 강의합니다.",
-    avatarSeed: 41,
-  },
-  {
-    id: "ins-09",
-    name: "윤서아",
-    title: "청소년·시니어 교육 전문강사",
-    specialty: "디지털 리터러시 / 세대별 맞춤 교육",
-    bio: "평생교육사 자격을 보유하고 있으며, 청소년과 시니어를 대상으로 한 맞춤형 AI 리터러시 교육을 300회 이상 진행했습니다.",
-    avatarSeed: 8,
-  },
-  {
-    id: "ins-10",
-    name: "임태윤",
-    title: "공모전·심사 전문강사",
-    specialty: "콘텐츠 심사 / 포트폴리오 코칭",
-    bio: "다수의 전국 단위 콘텐츠 공모전에서 심사위원으로 활동했습니다. 수강생의 작품을 실제 공모전 수상작 수준으로 완성시키는 코칭에 강점이 있습니다.",
-    avatarSeed: 64,
-  },
+  { id: "ins-01", slug: "lee-iria", name: "이리아", photo: "/media/instructor-01.jpg" },
+  { id: "ins-02", slug: "lee-sera", name: "이세라", photo: "/media/instructor-02.png" },
+  { id: "ins-03", slug: "jin-hawon", name: "진하원", photo: "/media/instructor-03.jpg" },
+  { id: "ins-04", slug: "yoo-hyunsim", name: "유현심", photo: "/media/instructor-04.jpg" },
+  { id: "ins-05", slug: "cho-jaehyung", name: "조재형", photo: "/media/instructor-05.jpg" },
+  { id: "ins-06", slug: "kim-jaemoon", name: "김재문", photo: "/media/instructor-06.jpg" },
+  { id: "ins-07", slug: "moon-hoseon", name: "문호선", photo: "/media/instructor-07.png" },
+  { id: "ins-08", slug: "sunghyeon", name: "성현쌤", photo: "/media/instructor-08.png" },
 ];
+
+/** 메인 화면 강사 소개 라인 — 8인 전원을 한 줄에 노출합니다 */
+export const FEATURED_INSTRUCTORS: Instructor[] = INSTRUCTORS;
+
+/** 강사 인원수 — 사이트 문구에서 공용으로 사용 */
+export const INSTRUCTOR_COUNT = INSTRUCTORS.length;

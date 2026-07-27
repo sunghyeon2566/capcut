@@ -1,15 +1,24 @@
 import Link from "next/link";
+import { ASSETS } from "@/lib/assets";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-navy-100 bg-navy-950 text-navy-100">
-      <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container-wide grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="mb-3 flex items-center gap-2 font-bold text-white">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-sm font-bold text-navy-900">
-              KC
+          <div className="mb-4 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={ASSETS.logo}
+              alt="한국콘텐츠능률협회 로고"
+              className="h-12 w-12 shrink-0 rounded-full bg-white p-0.5"
+            />
+            <span className="leading-tight">
+              <span className="block text-[0.65rem] tracking-wide text-navy-100/60">
+                사단법인
+              </span>
+              <span className="block font-bold text-white">한국콘텐츠능률협회</span>
             </span>
-            사단법인 한국콘텐츠능률협회
           </div>
           <p className="text-sm leading-relaxed text-navy-100/80">
             AI 콘텐츠 제작 교육과 인재 양성을 통해

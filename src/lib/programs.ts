@@ -50,7 +50,7 @@ export const CURRICULUM_TRACKS: CurriculumTrack[] = [
 ];
 
 export const PROGRAM_STATS = [
-  { label: "전담 강사", value: "10인" },
+  { label: "전담 강사", value: "8인" },
   { label: "연간 강의 횟수", value: "50회" },
   { label: "운영 기간", value: "연 50주" },
   { label: "커리큘럼 트랙", value: "5개 트랙" },

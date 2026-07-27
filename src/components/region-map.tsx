@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { REGIONS, REGION_GRID } from "@/lib/regions";
+import { REGION_MEMBER_COUNTS, TOTAL_MEMBERS } from "@/lib/member-stats";
 
-// 이 컴포넌트는 /api/members/by-region 을 통해 로컬 회원 데이터베이스를
-// 캐시 없이 매번 새로 조회합니다. 즉, 누군가 회원가입을 하면 이 지도에는
-// 새로고침 즉시(실시간으로) 반영됩니다.
+// 지역별 회원 수 = 협회 공식 집계(src/lib/member-stats.ts) + 온라인 신규 가입자
+//
+// 온라인 가입자는 /api/members/by-region 을 통해 캐시 없이 매번 새로 조회하므로,
+// 누군가 회원가입을 하면 새로고침 즉시 해당 지역 수치가 올라갑니다.
 
 function intensityClass(count: number, max: number) {
   if (max === 0 || count === 0) return "bg-navy-50 text-navy-800/50 border-navy-100";
@@ -17,8 +19,8 @@ function intensityClass(count: number, max: number) {
 }
 
 export function RegionMap() {
-  const [counts, setCounts] = useState<Record<string, number> | null>(null);
-  const [total, setTotal] = useState<number>(0);
+  const [online, setOnline] = useState<Record<string, number> | null>(null);
+  const [onlineTotal, setOnlineTotal] = useState<number>(0);
   const [hovered, setHovered] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,11 +28,22 @@ export function RegionMap() {
     fetch("/api/members/by-region", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        setCounts(data.counts ?? {});
-        setTotal(data.total ?? 0);
+        setOnline(data.counts ?? {});
+        setOnlineTotal(data.total ?? 0);
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // 공식 집계에 온라인 가입자를 더한 최종 지역별 인원
+  const counts = useMemo(() => {
+    const merged: Record<string, number> = {};
+    for (const region of REGIONS) {
+      merged[region] = REGION_MEMBER_COUNTS[region] + (online?.[region] ?? 0);
+    }
+    return merged;
+  }, [online]);
+
+  const total = TOTAL_MEMBERS + onlineTotal;
 
   const max = useMemo(() => {
     if (!counts) return 0;
@@ -47,7 +60,19 @@ export function RegionMap() {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm text-navy-800/70">
-          {loading ? "회원 현황을 불러오는 중입니다..." : `전체 회원 ${total.toLocaleString()}명`}
+          {loading ? (
+            "회원 현황을 불러오는 중입니다..."
+          ) : (
+            <>
+              <span className="font-bold text-navy-950">
+                전체 회원 {total.toLocaleString()}명
+              </span>
+              <span className="ml-2 text-navy-800/55">
+                (공식 집계 {TOTAL_MEMBERS.toLocaleString()}명 + 온라인 신규 가입{" "}
+                {onlineTotal.toLocaleString()}명)
+              </span>
+            </>
+          )}
         </p>
         {hovered && counts && (
           <p className="text-sm font-semibold text-navy-900">

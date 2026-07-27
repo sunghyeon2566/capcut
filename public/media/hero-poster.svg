@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="메인 비주얼">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#0a2242"/>
+      <stop offset="55%" stop-color="#0d2748"/>
+      <stop offset="100%" stop-color="#061529"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.68" cy="0.32" r="0.6">
+      <stop offset="0%" stop-color="#2465ad" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#2465ad" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#b8924e" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#cfa963" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#b8924e" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <line x1="-200" y1="0" x2="260" y2="1080"/>
+    <line x1="-90" y1="0" x2="370" y2="1080"/>
+    <line x1="20" y1="0" x2="480" y2="1080"/>
+    <line x1="130" y1="0" x2="590" y2="1080"/>
+    <line x1="240" y1="0" x2="700" y2="1080"/>
+    <line x1="350" y1="0" x2="810" y2="1080"/>
+    <line x1="460" y1="0" x2="920" y2="1080"/>
+    <line x1="570" y1="0" x2="1030" y2="1080"/>
+    <line x1="680" y1="0" x2="1140" y2="1080"/>
+    <line x1="790" y1="0" x2="1250" y2="1080"/>
+    <line x1="900" y1="0" x2="1360" y2="1080"/>
+    <line x1="1010" y1="0" x2="1470" y2="1080"/>
+    <line x1="1120" y1="0" x2="1580" y2="1080"/>
+    <line x1="1230" y1="0" x2="1690" y2="1080"/>
+    <line x1="1340" y1="0" x2="1800" y2="1080"/>
+    <line x1="1450" y1="0" x2="1910" y2="1080"/>
+    <line x1="1560" y1="0" x2="2020" y2="1080"/>
+    <line x1="1670" y1="0" x2="2130" y2="1080"/>
+    <line x1="1780" y1="0" x2="2240" y2="1080"/>
+    <line x1="1890" y1="0" x2="2350" y2="1080"/>
+    <line x1="2000" y1="0" x2="2460" y2="1080"/>
+    <line x1="2110" y1="0" x2="2570" y2="1080"/>
+    <line x1="2220" y1="0" x2="2680" y2="1080"/>
+    <line x1="2330" y1="0" x2="2790" y2="1080"/>
+  </g>
+  <g fill="none" stroke-width="3" opacity="0.5">
+    <path d="M 1160 700 A 260 260 0 0 1 1680 700" stroke="#d6402f" stroke-opacity="0.5"/>
+    <path d="M 1225 700 A 195 195 0 0 1 1615 700" stroke="#f2a93b" stroke-opacity="0.5"/>
+    <path d="M 1290 700 A 130 130 0 0 1 1550 700" stroke="#2c86c8" stroke-opacity="0.5"/>
+    <path d="M 1355 700 A 65 65 0 0 1 1485 700" stroke="#4e9a3e" stroke-opacity="0.5"/>
+  </g>
+  <rect x="1130" y="700" width="580" height="4" fill="#8b9099" opacity="0.4"/>
+  <rect x="160" y="812" width="420" height="2" fill="url(#goldline)"/>
+</svg>
