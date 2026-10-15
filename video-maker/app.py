@@ -8,6 +8,8 @@
 import json
 import os
 import re
+import socket
+import sys
 import threading
 import time
 import webbrowser
@@ -16,13 +18,18 @@ from flask import Flask, jsonify, render_template, request
 
 import maker
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):   # exe로 실행할 때: 작업파일은 exe 옆에, 화면 파일은 exe 안에
+    BASE = os.path.dirname(sys.executable)
+    TEMPLATES = os.path.join(sys._MEIPASS, "templates")
+else:
+    BASE = os.path.dirname(os.path.abspath(__file__))
+    TEMPLATES = os.path.join(BASE, "templates")
 WORK_DIR = os.path.join(BASE, "작업파일")          # 올린 파일이 저장되는 곳 (지우면 캡컷에서 그림이 안 보여요)
 SETTINGS = os.path.join(BASE, "settings.json")
 DEFAULT_DRAFTS = os.path.join(os.environ.get("LOCALAPPDATA", ""), "CapCut", "User Data",
                               "Projects", "com.lveditor.draft")
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=TEMPLATES)
 app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 ** 3   # 최대 4GB 업로드
 
 jobs = {}   # 작업 진행 상황 저장
@@ -109,6 +116,20 @@ def status(job_id):
     return jsonify(jobs.get(job_id, {"error": "작업을 찾을 수 없습니다.", "done": True}))
 
 
+def already_running(port: int) -> bool:
+    with socket.socket() as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
 if __name__ == "__main__":
-    threading.Timer(1.5, lambda: webbrowser.open("http://127.0.0.1:5000")).start()
+    URL = "http://127.0.0.1:5000"
+    if already_running(5000):   # 이미 켜져 있으면 화면만 다시 열기
+        webbrowser.open(URL)
+        sys.exit()
+    print("=" * 50)
+    print(" 민담 영상 자동 제작기가 켜졌어요!")
+    print(f" 인터넷 창이 안 열리면 주소창에 {URL} 을 입력하세요.")
+    print(" 이 검은 창을 닫으면 프로그램이 꺼져요.")
+    print("=" * 50)
+    threading.Timer(1.5, lambda: webbrowser.open(URL)).start()
     app.run(host="127.0.0.1", port=5000)
