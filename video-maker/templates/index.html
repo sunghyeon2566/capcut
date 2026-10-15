@@ -14,6 +14,7 @@
   .hint { color: #7a6a58; font-size: 14px; margin: 4px 0 0; }
   input[type=text], input[type=number] { width: 100%; box-sizing: border-box; padding: 10px; font-size: 16px; border: 1px solid #ccb; border-radius: 8px; }
   input[type=file] { font-size: 16px; }
+  textarea { width: 100%; box-sizing: border-box; padding: 10px; font-size: 15px; border: 1px solid #ccb; border-radius: 8px; font-family: inherit; }
   .count { color: #8a3b12; font-weight: bold; margin-left: 8px; }
   button { width: 100%; padding: 16px; font-size: 20px; font-weight: bold; color: #fff; background: #8a3b12; border: 0; border-radius: 12px; cursor: pointer; }
   button:disabled { background: #b9a999; cursor: wait; }
@@ -43,10 +44,11 @@
       <p class="hint">한 줄에 15자가 넘으면 자동으로 나눠서 한 줄씩 보여줘요.</p>
     </div>
     <div class="card">
-      <label>④ 장면표 (선택)</label>
-      <input type="file" name="scene_list" accept=".txt,.csv">
-      <p class="hint">"몇 번 이미지는 몇 번 자막부터" 적은 메모장 파일이에요. 한 줄에 <b>이미지번호 자막번호</b> (예: <code>3 12</code>).<br>
-      일부만 적어도 되고, 안 넣으면 자동으로 나눠요. 예시는 <code>장면표_예시.txt</code> 를 보세요.</p>
+      <label>④ 이미지 번호 표시한 대본 (선택)</label>
+      <textarea name="script" id="script" rows="10" placeholder="[1] 옛날 옛적, 조선 시대 어느 산골 마을에...&#10;[2] 하루는 할머니가 고개를 넘는데...&#10;[3] 커다란 호랑이가 나타났어요!"></textarea>
+      <p class="hint">대본을 복사해서 붙여넣으세요. <b>[번호]</b> 뒤의 문장이 나올 때 그 번호 이미지로 바뀌어요.<br>
+      메모장 파일로 넣으려면: <input type="file" id="scriptFile" accept=".txt"><br>
+      비워 두면 나레이션 길이에 맞춰 자동으로 나눠요.</p>
     </div>
     <div class="card">
       <label>영상(초안) 이름</label>
@@ -70,6 +72,13 @@ const logBox = document.getElementById("log");
 const imgInput = document.getElementById("images");
 const folderInput = document.getElementById("imgFolder");
 let folderFiles = [];
+document.getElementById("scriptFile").onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const buf = await f.arrayBuffer();
+  let text = new TextDecoder("utf-8").decode(buf);
+  if (text.includes("\uFFFD")) text = new TextDecoder("euc-kr").decode(buf);  // 메모장 ANSI(한글) 저장 파일
+  document.getElementById("script").value = text;
+};
 
 function showCount(n) { document.getElementById("imgCount").textContent = n ? `${n}장 선택됨` : ""; }
 imgInput.onchange = () => { folderFiles = []; folderInput.value = ""; showCount(imgInput.files.length); };
@@ -97,7 +106,7 @@ form.onsubmit = async (e) => {
     if (s.error) return finish(`<span class="err">❌ 오류: ${s.error}</span>`);
     const r = s.result, m = r.motions;
     finish(`<span class="ok">✅ 완성! 이미지 ${r.images}장 · 자막 ${r.subtitles}줄 · ${r.seconds}초
-${r.scene_list ? `장면표: ${r.scene_list}장 시작 시점 맞춤 (나머지 자동)` : "장면표 없음: 자동으로 나눔"}
+${r.matched ? `대본 맞춤: ${r.matched}장 (나머지 자동)` : "대본 없음: 나레이션 길이에 맞춰 자동으로 나눔"}
 움직임: 줌인 ${m["줌인"]} · 줌아웃 ${m["줌아웃"]} · 좌→우 ${m["좌→우"]}
 
 👉 캡컷을 열고 '${r.draft_name}' 초안 → 내보내기 (1080p, 30fps)</span>`);

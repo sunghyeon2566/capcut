@@ -6,7 +6,7 @@
   2. 이미지마다 줌인 / 줌아웃 / 왼쪽→오른쪽 움직임 넣기 (랜덤, 같은 효과 연속 X)
   3. 나레이션(음성) 넣기
   4. 자막(SRT)을 한 줄 15자 이내로 잘라서 넣기 (흰 글씨 + 검정 외곽선, 화면 아래)
-  5. (선택) 장면표가 있으면 "몇 번 이미지는 몇 번 자막부터" 정확히 맞춰서 컷 편집
+  5. (선택) 대본에 [1] [2] 처럼 이미지 번호를 표시해 주면, 그 문장이 나올 때 정확히 장면 전환
   6. 캡컷 '초안(프로젝트)'으로 저장 → 캡컷에서 열고 '내보내기'만 누르면 mp4 완성
 """
 
@@ -153,49 +153,81 @@ def natural_key(path: str):
     return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", name)]
 
 
-def read_scene_list(path: str, cues: List[Cue], count: int) -> dict:
-    """장면표 읽기. 한 줄에 '이미지번호 자막번호' (예: 3 12 → 3번 이미지는 12번 자막부터).
-    자막번호 대신 시간(예: 3 01:25)을 써도 됩니다. 일부 이미지만 적어도 되고,
-    안 적은 이미지는 앞뒤 사이에서 자동으로 나눕니다.
+def parse_script(text: str) -> List[tuple]:
+    """이미지 번호가 표시된 대본 읽기.
+    [1] 옛날 옛적 ...   ← 1번 이미지는 이 문장부터
+    [2] 하루는 ...      ← 2번 이미지는 이 문장부터
+    [이미지 3], [장면 3], [그림 3번] 처럼 써도 됩니다. 첫 표시 앞의 글(제목 등)은 무시해요.
+    결과: [(이미지번호, 그 이미지 구간의 대본), ...]"""
+    parts = re.split(r"\[\s*(?:이미지|장면|그림|씬|scene)?\s*(\d+)\s*번?\s*\]", text, flags=re.I)
+    result = [(int(parts[i]), parts[i + 1].strip()) for i in range(1, len(parts) - 1, 2)]
+    if not result:
+        raise ValueError("대본에서 [1], [2] 같은 이미지 번호 표시를 찾지 못했습니다.")
+    return result
+
+
+def _norm(text: str) -> str:
+    """비교용: 띄어쓰기, 문장부호를 빼고 글자만 남기기"""
+    return re.sub(r"[^0-9A-Za-z가-힣]", "", text)
+
+
+def script_anchors(script: str, cues: List[Cue], count: int, log=print) -> dict:
+    """대본의 이미지 표시 위치를 자막(SRT)에서 찾아서 이미지 시작 시간을 정합니다.
+    나레이션/자막을 다른 곳에서 만들어서 글자가 조금 달라도 비슷한 부분을 찾아 맞춰요.
     결과: {이미지 순서(0부터): 시작 시간}"""
-    raw = open(path, "rb").read()
-    for enc in ("utf-8-sig", "cp949"):
-        try:
-            content = raw.decode(enc)
-            break
-        except UnicodeDecodeError:
-            continue
-    else:
-        raise ValueError("장면표 글자 인코딩을 읽을 수 없습니다. UTF-8로 저장해 주세요.")
+    from difflib import SequenceMatcher
 
-    start_of = {}
-    for c in cues:
-        start_of.setdefault(c.num, c.start)
+    # 자막 글자 하나하나가 몇 초에 나오는지 (자막 구간 안에서 글자 수로 나눔)
+    srt_chars, char_time, char_cue, cue_first = [], [], [], []
+    for ci, c in enumerate(cues):
+        t = _norm(c.text)
+        cue_first.append(len(srt_chars))
+        for k, ch in enumerate(t):
+            srt_chars.append(ch)
+            char_time.append(c.start + (c.end - c.start) * k // max(1, len(t)))
+            char_cue.append(ci)
+    srt_text = "".join(srt_chars)
 
-    anchors = {}
-    for line_no, line in enumerate(content.splitlines(), 1):
-        line = line.split("#")[0].strip()
-        m = re.match(r"^\D*?(\d+)\D*?[\s,=\t]+\D*?([\d:.,]*\d)\D*$", line)
-        if not line or not m:
-            continue  # 빈 줄, 제목 줄은 건너뛰기
-        img, value = int(m.group(1)), m.group(2)
+    # 대본 글자 이어붙이기 + 각 이미지가 시작하는 글자 위치 기억
+    script_text, marks = "", []
+    for img, part in parse_script(script):
         if not 1 <= img <= count:
-            raise ValueError(f"장면표 {line_no}번째 줄: {img}번 이미지가 없습니다. (이미지는 {count}장)")
-        if ":" in value:
-            anchors[img - 1] = _parse_time(value)
-        else:
-            sub = int(value.split(",")[0].split(".")[0])
-            if sub not in start_of:
-                raise ValueError(f"장면표 {line_no}번째 줄: {sub}번 자막이 자막 파일에 없습니다.")
-            anchors[img - 1] = start_of[sub]
-    if not anchors:
-        raise ValueError("장면표에서 '이미지번호 자막번호' 줄을 찾지 못했습니다. 예시: 3 12")
+            raise ValueError(f"대본에 [{img}] 표시가 있는데 이미지는 {count}장입니다.")
+        marks.append((img, len(script_text)))
+        script_text += _norm(part)
+
+    matcher = SequenceMatcher(None, script_text, srt_text, autojunk=False)
+    blocks = [m for m in matcher.get_matching_blocks() if m.size >= 2]
+    ratio = sum(m.size for m in blocks) / max(1, len(script_text))
+    log(f"대본과 자막 일치율: {ratio * 100:.0f}%")
+    if ratio < 0.5:
+        raise ValueError("대본과 자막 내용이 너무 많이 다릅니다. 같은 이야기의 대본과 SRT인지 확인해 주세요.")
+
+    def srt_pos(p: int) -> Optional[int]:
+        for m in blocks:            # p가 일치 구간 안이면 그 위치, 아니면 바로 다음 일치 구간 시작
+            if p < m.a + m.size:
+                return m.b + max(0, p - m.a)
+        return None
+
+    anchors, last = {}, -1
+    for img, p in marks:
+        q = srt_pos(p)
+        if q is None or q >= len(srt_text):
+            log(f"⚠ {img}번 이미지 문장을 자막에서 못 찾아서 자동으로 배치해요")
+            continue
+        ci = char_cue[q]
+        # 자막 줄 맨 앞(2글자 이내)에서 시작하면 그 자막 시작 시간에 딱 맞추기
+        t = cues[ci].start if q - cue_first[ci] <= 2 else char_time[q]
+        if t <= last:
+            log(f"⚠ {img}번 이미지 위치가 앞 이미지보다 빨라서 자동으로 배치해요")
+            continue
+        anchors[img - 1], last = t, t
     return anchors
 
 
 def image_times(count: int, total: int, cues: List[Cue], anchors: Optional[dict] = None) -> List[int]:
     """이미지 바뀌는 시점 목록(count+1개).
-    장면표(anchors)에 적힌 이미지는 그 시점에 정확히 바꾸고,
+    대본에 표시된(anchors) 이미지는 그 시점에 정확히 바꾸고,
     나머지는 사이 구간을 똑같이 나누되 가까운 자막 시작 시점에 맞춰
     문장 중간에 장면이 바뀌지 않게 합니다."""
     anchors = dict(anchors or {})
@@ -205,8 +237,8 @@ def image_times(count: int, total: int, cues: List[Cue], anchors: Optional[dict]
     for a, b in zip(keys, keys[1:]):
         if anchors[b] <= anchors[a]:
             if b == count:
-                raise ValueError(f"{a + 1}번 이미지 시작 시점이 나레이션 끝보다 늦습니다. 장면표를 확인해 주세요.")
-            raise ValueError(f"{b + 1}번 이미지 시작 시점이 {a + 1}번 이미지보다 빠르거나 같습니다. 장면표를 확인해 주세요.")
+                raise ValueError(f"{a + 1}번 이미지 시작 시점이 나레이션 끝보다 늦습니다. 대본을 확인해 주세요.")
+            raise ValueError(f"{b + 1}번 이미지 시작 시점이 {a + 1}번 이미지보다 빠르거나 같습니다. 대본을 확인해 주세요.")
 
     starts = sorted({c.start for c in cues})
     times = [0] * (count + 1)
@@ -263,7 +295,7 @@ def apply_motion(seg: cc.VideoSegment, motion: str, duration: int) -> None:
 
 # ── 캡컷 초안 만들기 ────────────────────────────────────────
 def make_draft(images: List[str], narration: str, srt: str, drafts_folder: str,
-               draft_name: str, *, scene_list: Optional[str] = None, seed: Optional[int] = None,
+               draft_name: str, *, script_text: Optional[str] = None, seed: Optional[int] = None,
                subtitle_size: float = SUBTITLE_SIZE, log=print) -> dict:
     if not os.path.isdir(drafts_folder):
         raise FileNotFoundError(f"캡컷 초안 폴더를 찾을 수 없습니다: {drafts_folder}")
@@ -288,9 +320,9 @@ def make_draft(images: List[str], narration: str, srt: str, drafts_folder: str,
 
     # 1) 이미지 + 움직임
     anchors = None
-    if scene_list:
-        anchors = read_scene_list(scene_list, original_cues, len(images))
-        log(f"장면표 적용: {len(anchors)}개 이미지 시작 시점 지정 (나머지는 자동)")
+    if script_text and script_text.strip():
+        anchors = script_anchors(script_text, original_cues, len(images), log)
+        log(f"대본 맞춤: {len(anchors)}장 이미지를 대본 위치에 맞춤 (나머지는 자동)")
     times = image_times(len(images), total, cues, anchors)
     write_scene_report(images, times, original_cues,
                        os.path.join(os.path.dirname(srt), "장면_확인표.txt"))
@@ -323,6 +355,6 @@ def make_draft(images: List[str], narration: str, srt: str, drafts_folder: str,
         "images": len(images),
         "subtitles": len(cues),
         "seconds": round(total / SEC, 1),
-        "scene_list": len(anchors) if anchors else 0,
+        "matched": len(anchors) if anchors else 0,
         "motions": {m: motions.count(m) for m in MOTIONS},
     }
