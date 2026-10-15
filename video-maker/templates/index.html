@@ -43,6 +43,12 @@
       <p class="hint">한 줄에 15자가 넘으면 자동으로 나눠서 한 줄씩 보여줘요.</p>
     </div>
     <div class="card">
+      <label>④ 장면표 (선택)</label>
+      <input type="file" name="scene_list" accept=".txt,.csv">
+      <p class="hint">"몇 번 이미지는 몇 번 자막부터" 적은 메모장 파일이에요. 한 줄에 <b>이미지번호 자막번호</b> (예: <code>3 12</code>).<br>
+      일부만 적어도 되고, 안 넣으면 자동으로 나눠요. 예시는 <code>장면표_예시.txt</code> 를 보세요.</p>
+    </div>
+    <div class="card">
       <label>영상(초안) 이름</label>
       <input type="text" name="draft_name" value="{{ default_name }}">
       <label style="margin-top:14px">자막 글자 크기</label>
@@ -91,6 +97,7 @@ form.onsubmit = async (e) => {
     if (s.error) return finish(`<span class="err">❌ 오류: ${s.error}</span>`);
     const r = s.result, m = r.motions;
     finish(`<span class="ok">✅ 완성! 이미지 ${r.images}장 · 자막 ${r.subtitles}줄 · ${r.seconds}초
+${r.scene_list ? `장면표: ${r.scene_list}장 시작 시점 맞춤 (나머지 자동)` : "장면표 없음: 자동으로 나눔"}
 움직임: 줌인 ${m["줌인"]} · 줌아웃 ${m["줌아웃"]} · 좌→우 ${m["좌→우"]}
 
 👉 캡컷을 열고 '${r.draft_name}' 초안 → 내보내기 (1080p, 30fps)</span>`);

@@ -60,6 +60,7 @@ def make():
     images = request.files.getlist("images")
     narration = request.files.get("narration")
     srt = request.files.get("srt")
+    scene = request.files.get("scene_list")
 
     if not images or not narration or not srt or not narration.filename or not srt.filename:
         return jsonify(error="이미지, 나레이션, 자막 파일을 모두 넣어 주세요."), 400
@@ -81,6 +82,10 @@ def make():
     srt_path = os.path.join(folder, safe_name(srt.filename))
     narration.save(narration_path)
     srt.save(srt_path)
+    scene_path = None
+    if scene and scene.filename:
+        scene_path = os.path.join(folder, safe_name(scene.filename))
+        scene.save(scene_path)
 
     job_id = str(int(time.time() * 1000))
     jobs[job_id] = {"log": [], "done": False, "error": None, "result": None}
@@ -89,7 +94,8 @@ def make():
         job = jobs[job_id]
         try:
             job["result"] = maker.make_draft(image_paths, narration_path, srt_path, drafts_folder,
-                                             draft_name, subtitle_size=subtitle_size,
+                                             draft_name, scene_list=scene_path,
+                                             subtitle_size=subtitle_size,
                                              log=job["log"].append)
         except Exception as e:  # 오류 내용을 화면에 보여주기
             job["error"] = str(e)
