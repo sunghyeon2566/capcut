@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>민담 영상 자동 제작기</title>
+<style>
+  body { font-family: "Malgun Gothic", sans-serif; background: #f4efe6; color: #2b2118; margin: 0; }
+  main { max-width: 720px; margin: 40px auto; padding: 0 16px; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  p.sub { color: #6b5a48; margin-top: 0; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 24px; margin: 16px 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  label { display: block; font-weight: bold; font-size: 17px; margin-bottom: 6px; }
+  .hint { color: #7a6a58; font-size: 14px; margin: 4px 0 0; }
+  input[type=text], input[type=number] { width: 100%; box-sizing: border-box; padding: 10px; font-size: 16px; border: 1px solid #ccb; border-radius: 8px; }
+  input[type=file] { font-size: 16px; }
+  .count { color: #8a3b12; font-weight: bold; margin-left: 8px; }
+  button { width: 100%; padding: 16px; font-size: 20px; font-weight: bold; color: #fff; background: #8a3b12; border: 0; border-radius: 12px; cursor: pointer; }
+  button:disabled { background: #b9a999; cursor: wait; }
+  #log { white-space: pre-wrap; background: #2b2118; color: #f4efe6; padding: 16px; border-radius: 12px; min-height: 60px; display: none; }
+  .ok { color: #9fe39f; } .err { color: #ff9b9b; }
+</style>
+</head>
+<body>
+<main>
+  <h1>📜 민담 영상 자동 제작기</h1>
+  <p class="sub">이미지 + 나레이션 + 자막을 넣으면 캡컷 초안을 자동으로 만들어 드려요.</p>
+
+  <form id="form">
+    <div class="card">
+      <label>① 이미지 (약 140장)<span class="count" id="imgCount"></span></label>
+      <input type="file" name="images" id="images" accept="image/*" multiple>
+      <p class="hint">파일 이름 순서(1, 2, 3 … 140)대로 들어가요. 폴더째 고르려면 아래 버튼을 쓰세요.</p>
+      <input type="file" id="imgFolder" webkitdirectory style="margin-top:8px">
+    </div>
+    <div class="card">
+      <label>② 나레이션 (mp3, wav 등)</label>
+      <input type="file" name="narration" accept="audio/*">
+    </div>
+    <div class="card">
+      <label>③ 자막 파일 (.srt)</label>
+      <input type="file" name="srt" accept=".srt">
+      <p class="hint">한 줄에 15자가 넘으면 자동으로 나눠서 한 줄씩 보여줘요.</p>
+    </div>
+    <div class="card">
+      <label>영상(초안) 이름</label>
+      <input type="text" name="draft_name" value="{{ default_name }}">
+      <label style="margin-top:14px">자막 글자 크기</label>
+      <input type="number" name="subtitle_size" value="10" step="0.5" min="3" max="20">
+      <label style="margin-top:14px">캡컷 초안 폴더 위치</label>
+      <input type="text" name="drafts_folder" value="{{ settings.drafts_folder }}">
+      <p class="hint">캡컷 → 설정 → 초안 위치에 나오는 주소를 붙여넣으세요. (한 번 넣으면 기억해요)</p>
+    </div>
+    <button type="submit" id="btn">🎬 영상 만들기</button>
+  </form>
+
+  <div class="card" style="padding:0;background:none;box-shadow:none"><div id="log"></div></div>
+</main>
+
+<script>
+const form = document.getElementById("form");
+const btn = document.getElementById("btn");
+const logBox = document.getElementById("log");
+const imgInput = document.getElementById("images");
+const folderInput = document.getElementById("imgFolder");
+let folderFiles = [];
+
+function showCount(n) { document.getElementById("imgCount").textContent = n ? `${n}장 선택됨` : ""; }
+imgInput.onchange = () => { folderFiles = []; folderInput.value = ""; showCount(imgInput.files.length); };
+folderInput.onchange = () => {
+  folderFiles = [...folderInput.files].filter(f => /\.(png|jpe?g|webp|bmp)$/i.test(f.name));
+  imgInput.value = ""; showCount(folderFiles.length);
+};
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const data = new FormData(form);
+  if (folderFiles.length) { data.delete("images"); folderFiles.forEach(f => data.append("images", f, f.name)); }
+  btn.disabled = true; btn.textContent = "⏳ 만드는 중... (파일 올리는 중)";
+  logBox.style.display = "block"; logBox.textContent = "파일을 올리는 중입니다...\n";
+
+  const res = await fetch("/make", { method: "POST", body: data });
+  const json = await res.json();
+  if (!res.ok) { return finish(`<span class="err">❌ ${json.error}</span>`); }
+
+  const timer = setInterval(async () => {
+    const s = await (await fetch(`/status/${json.job_id}`)).json();
+    logBox.textContent = (s.log || []).join("\n");
+    if (!s.done) return;
+    clearInterval(timer);
+    if (s.error) return finish(`<span class="err">❌ 오류: ${s.error}</span>`);
+    const r = s.result, m = r.motions;
+    finish(`<span class="ok">✅ 완성! 이미지 ${r.images}장 · 자막 ${r.subtitles}줄 · ${r.seconds}초
+움직임: 줌인 ${m["줌인"]} · 줌아웃 ${m["줌아웃"]} · 좌→우 ${m["좌→우"]}
+
+👉 캡컷을 열고 '${r.draft_name}' 초안 → 내보내기 (1080p, 30fps)</span>`);
+  }, 1000);
+};
+
+function finish(html) {
+  logBox.innerHTML += "\n" + html;
+  btn.disabled = false; btn.textContent = "🎬 영상 만들기";
+}
+</script>
+</body>
+</html>
