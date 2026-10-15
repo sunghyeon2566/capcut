@@ -2,9 +2,10 @@
 chcp 65001 > nul
 cd /d "%~dp0"
 echo [1/2] 프로그램 설치 공간을 만드는 중...
-python -m venv .venv
-if errorlevel 1 (
-  echo 파이썬이 설치되어 있지 않아요. 사용설명서 1단계를 먼저 해 주세요.
+python -m venv .venv 2> nul
+if not exist .venv\Scripts\python.exe py -m venv .venv
+if not exist .venv\Scripts\python.exe (
+  echo 파이썬을 찾을 수 없어요. 사용설명서 1단계를 먼저 해 주세요.
   pause
   exit /b
 )
