@@ -54,9 +54,9 @@
   .card {
     display: block; width: 100%; text-align: left; color: inherit;
     background: var(--card); border: 1px solid var(--line); border-radius: 24px;
-    padding: 36px 24px; cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .2s;
+    padding: 36px 24px; cursor: pointer; transition: border-color .2s, box-shadow .2s, background-color .2s, transform .2s;
   }
-  .card:hover, .card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
+  .card:hover, .card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: #2b230a; }
   .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
   .card:active { transform: scale(0.99); }
   .hero { padding-block: 44px; border-color: #3a3220; background: linear-gradient(160deg, #1b1607 0%, var(--card) 60%); }
