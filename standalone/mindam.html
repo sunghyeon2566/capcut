@@ -52,13 +52,19 @@
   .sound:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
 
   .card {
+    -webkit-tap-highlight-color: transparent;
     display: block; width: 100%; text-align: left; color: inherit;
     background: var(--card); border: 1px solid var(--line); border-radius: 24px;
     padding: 36px 24px; cursor: pointer; transition: border-color .2s, box-shadow .2s, background-color .2s, transform .2s;
   }
-  .card:hover, .card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: #2b230a; }
+  /* PC(마우스): 올리면 두꺼운 테두리 + 노란빛 바탕 */
+  @media (hover: hover) {
+    .card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: #2b230a; }
+  }
+  .card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: #2b230a; }
+  /* 휴대폰(손가락): 누르는 순간 노란 테두리가 번쩍 + 살짝 눌리는 느낌 */
+  .card:active { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent); transform: scale(0.97); }
   .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
-  .card:active { transform: scale(0.99); }
   .hero { padding-block: 44px; border-color: #3a3220; background: linear-gradient(160deg, #1b1607 0%, var(--card) 60%); }
   .card h1, .card h2 { font-family: var(--display); font-weight: 400; line-height: 1.25; margin: 0; text-wrap: balance; }
   .card h1 { font-size: clamp(34px, 8.4vw, 54px); }
@@ -517,6 +523,9 @@
       result: ["최종 영상"]
     }
   ];
+
+  // 아이폰에서도 누르는 순간(:active) 효과가 보이도록
+  document.addEventListener("touchstart", function () {}, { passive: true });
 
   // 맨 위 소개 영상: 처음엔 소리 없이 자동 재생, 버튼을 누르면 소리 켜고 처음부터
   const introVideo = document.getElementById("intro-video");
