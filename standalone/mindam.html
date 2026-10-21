@@ -169,6 +169,11 @@
   .nav button:disabled { opacity: .3; cursor: default; }
   .nav button:focus-visible, .back:focus-visible, .copy:focus-visible, .flow button:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
+  .choices { display: flex; flex-direction: column; gap: 16px; }
+  .choices .card { padding-block: 28px; }
+  .box-lead { margin: 0; font-size: 19px; color: #e8e8e8; }
+  .sub { font-weight: 900; font-size: 16px; color: var(--muted); margin-top: 6px; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -176,13 +181,13 @@
 <main id="home" class="wrap">
   <div class="brand"><b>딥마크온 클래스</b><span>시니어 유튜브 수익화</span></div>
 
-  <a class="card hero" data-link="programForm" href="#">
+  <button class="card hero" type="button" data-open="program">
     <h1>컷편집 프로그램,<br>민담 자동 편집기<br>프로그램 받기</h1>
     <span class="btn">민담 각종 주제 600개와 민담 지침 스킬을 함께 드려요
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-  </a>
+  </button>
 
-  <button class="card" type="button" id="open-guide">
+  <button class="card" type="button" data-deck="guide">
     <h2>민담 제작 방법 보기</h2>
     <p>민담 영상을 만드는 9단계를 한 장씩 차례대로 보여 드려요. 프롬프트는 버튼 한 번으로 복사할 수 있어요.</p>
     <span class="btn">제작 방법 슬라이드 보기
@@ -209,7 +214,7 @@
 <section id="guide" class="deck" hidden>
   <div class="deck-top">
     <div class="deck-top-row">
-      <button type="button" class="back" id="close-guide">← 처음 화면으로</button>
+      <button type="button" class="back" id="deck-back">← 처음 화면으로</button>
       <span class="count" id="count">1 / 1</span>
     </div>
     <div class="dots" id="dots"></div>
@@ -220,6 +225,36 @@
     <button type="button" class="next" id="next">다음 →</button>
   </div>
 </section>
+
+<!-- 프로그램 받기: 설명서 / 신청 고르기 -->
+<section id="program" class="deck" hidden>
+  <div class="deck-top">
+    <div class="deck-top-row">
+      <button type="button" class="back" data-open="home">← 처음 화면으로</button>
+    </div>
+  </div>
+  <div class="slide">
+    <span class="step-tag">프로그램 받기</span>
+    <h2>컷편집 프로그램,
+민담 자동 편집기</h2>
+    <p class="lead">처음이시면 사용 설명서를 먼저 보시고, 준비가 되셨으면 신청서를 작성해 주세요.</p>
+    <div class="choices">
+      <button class="card" type="button" data-deck="manual">
+        <h2>프로그램 사용 설명서</h2>
+        <p>설치부터 영상 내보내기까지, 민담 영상 자동 제작기 쓰는 법을 한 장씩 알려 드려요.</p>
+        <span class="btn">설명서 보기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </button>
+      <a class="card" data-link="programForm" href="#">
+        <h2>프로그램 신청</h2>
+        <p>민담 각종 주제 600개와 민담 지침 스킬을 함께 드려요.</p>
+        <span class="btn">신청서 작성하러 가기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
 
 <script>
   // ───────────────────────────────────────────────
@@ -238,7 +273,8 @@
     vrew: { name: "브루 (Vrew)", url: "https://vrew.ai/" },
     flow: { name: "구글 플로우", url: "https://flow.google.com/" },
     auto: { name: "민담 자동 편집 프로그램" },
-    capcut: { name: "캡컷" }
+    capcut: { name: "캡컷" },
+    capcutpc: { name: "캡컷 PC 버전" }
   };
 
   const SCENE_PROMPT = `첨부 해 준 자료는 영상 대본과 그 대본에 맞는 이미지 프롬프트를 준비했어
@@ -442,16 +478,196 @@
   });
 
   // ───────────────────────────────────────────────
-  // 슬라이드: 0 = 전체 흐름, 1~9 = 단계, 10 = 마무리
+  // 민담 영상 자동 제작기 사용 설명서
   // ───────────────────────────────────────────────
-  const TOTAL = STEPS.length + 2;
-  const home = document.getElementById("home");
-  const guide = document.getElementById("guide");
+  const SCRIPT_EXAMPLE = `[1] 옛날 옛적, 조선 시대 어느 깊은 산골 마을에...
+[2] 할머니는 매일 고개를 넘어 장에 떡을 팔러 다녔지요.
+[3] 첫 번째 고개를 넘는데, 커다란 호랑이가 나타났어요!`;
+
+  const MANUAL_STEPS = [
+    {
+      phase: "처음 한 번만",
+      title: "압축 풀기",
+      short: "찾기 쉬운 곳에 폴더 두기",
+      lead: "받은 압축 파일을 풀어서, 프로그램 폴더를 찾기 쉬운 곳에 둡니다.",
+      attach: ["받은 압축 파일"],
+      how: [
+        "받은 압축 파일에 마우스를 올리고 오른쪽 버튼을 누릅니다.",
+        "[모두 압축 풀기]를 누릅니다.",
+        "압축을 푼 폴더를 바탕화면이나 D 드라이브처럼 찾기 쉬운 곳에 둡니다."
+      ],
+      path: ["마우스 오른쪽 버튼", "모두 압축 풀기"],
+      warn: "'Program Files' 폴더 안에는 두지 마세요.",
+      result: ["프로그램 폴더"]
+    },
+    {
+      phase: "처음 한 번만",
+      title: "프로그램 실행하기",
+      short: "파란 창이 떠도 괜찮아요",
+      lead: "폴더 안의 [민담영상제작기.exe]를 더블클릭해서 켭니다.",
+      how: [
+        "폴더 안의 [민담영상제작기.exe]를 더블클릭합니다.",
+        "파란 창 \"Windows의 PC 보호\"가 뜨면 [추가 정보]를 누르고 [실행]을 누릅니다.",
+        "백신 프로그램이 막으면 '허용' 또는 '예외'로 해 주세요."
+      ],
+      path: ["Windows의 PC 보호", "추가 정보", "실행"],
+      tip: "파란 창은 새로 받은 프로그램이면 늘 나오는 안내예요. 바이러스라는 뜻이 아니니 안심하고 [추가 정보]를 눌러 주세요."
+    },
+    {
+      phase: "처음 한 번만",
+      title: "수강생 인증하기",
+      short: "기기 코드 보내고 인증키 받기",
+      lead: "처음 켜면 🔒 수강생 인증 화면이 나와요. 강사님께 인증키를 받아 넣으면 됩니다.",
+      how: [
+        "화면에 나온 [기기 코드]를 복사합니다.",
+        "복사한 기기 코드를 강사님께 보냅니다.",
+        "강사님께 받은 [인증키]를 붙여 넣습니다.",
+        "[인증하기]를 누릅니다."
+      ],
+      path: ["기기 코드 복사", "강사님께 보내기", "인증키 붙여 넣기", "인증하기"],
+      warn: "인증키는 이 컴퓨터에서만 쓸 수 있어요. 컴퓨터를 바꾸면 인증키를 다시 받아야 합니다.",
+      result: ["인증 완료"]
+    },
+    {
+      phase: "처음 한 번만",
+      title: "캡컷 초안 폴더 맞추기",
+      short: "캡컷 설정의 '초안 위치'와 같게",
+      lead: "인터넷 창에 제작 화면이 열려요. 맨 아래 [캡컷 초안 폴더 위치]가 맞는지 확인합니다.",
+      tools: ["capcutpc"],
+      how: [
+        "캡컷을 켜고 설정(톱니바퀴)에서 '초안 위치'에 나오는 주소를 봅니다.",
+        "제작 화면 맨 아래 [캡컷 초안 폴더 위치]와 같으면 그대로 두면 됩니다.",
+        "다르면 캡컷에 나온 주소를 복사해서 붙여 넣습니다. 한 번 넣으면 프로그램이 기억해요.",
+        "주소 맨 끝에 날짜 같은 숫자(예: \\1016)가 붙어 있으면 그 부분은 빼 주세요."
+      ],
+      path: ["캡컷", "설정 (톱니바퀴)", "초안 위치"],
+      tip: "이 주소가 맞아야 만든 영상이 캡컷에 나타나요. 처음 한 번만 맞춰 두면 다음부터는 신경 쓰지 않으셔도 됩니다.",
+      result: ["설치 끝! 이제 영상을 만들 수 있어요"]
+    },
+    {
+      phase: "영상 만들 때마다",
+      title: "프로그램 켜기",
+      short: "검은 창은 닫지 않기",
+      lead: "[민담영상제작기.exe]를 더블클릭하면 제작 화면이 열립니다.",
+      how: [
+        "[민담영상제작기.exe]를 더블클릭합니다.",
+        "인터넷 창에 제작 화면이 열립니다."
+      ],
+      warn: "함께 뜨는 검은 창은 닫지 마세요. 닫으면 프로그램이 꺼져요."
+    },
+    {
+      phase: "영상 만들 때마다",
+      title: "이미지 · 나레이션 · 자막 넣기",
+      short: "① ② ③ 칸 채우기",
+      lead: "제작 화면의 ① 이미지, ② 나레이션, ③ 자막(.srt) 칸에 파일을 넣습니다.",
+      attach: ["본문 이미지 140장", "본문 나레이션 mp3", "본문 srt"],
+      how: [
+        "① 이미지 칸에 본문 이미지를 넣습니다.",
+        "② 나레이션 칸에 나레이션 파일을 넣습니다.",
+        "③ 자막 칸에 .srt 파일을 넣습니다."
+      ],
+      path: ["① 이미지", "② 나레이션", "③ 자막(.srt)"],
+      warn: "이미지 이름은 1.png, 2.png … 140.png처럼 숫자 순서로 되어 있어야 해요."
+    },
+    {
+      phase: "영상 만들 때마다",
+      title: "대본 넣기 (선택)",
+      short: "[이미지 번호] 붙인 맞춤 대본",
+      lead: "④ 대본 칸에 [이미지 번호]를 붙인 맞춤 대본을 넣으면, 그 문장이 나레이션에 나올 때 그 이미지로 바뀌어요.",
+      attach: ["맞춤 대본 ([1]~[140])"],
+      how: [
+        "맞춤 대본을 열어 전체를 복사합니다.",
+        "④ 대본 칸에 붙여 넣습니다.",
+        "대본 칸을 비워 두면 나레이션 길이에 맞춰 이미지를 자동으로 나눠요."
+      ],
+      prompt: { title: "대본 넣는 예시 (대본_예시.txt)", text: SCRIPT_EXAMPLE },
+      tip: "[1], [이미지 1], [장면 1], [그림 1번] 모두 알아들어요. 맞춤 대본은 제작 방법 6단계에서 만들 수 있어요."
+    },
+    {
+      phase: "영상 만들 때마다",
+      title: "영상 만들기",
+      short: "\"✅ 완성!\"까지 기다리기",
+      lead: "[🎬 영상 만들기]를 누르고 \"✅ 완성!\"이 나올 때까지 기다립니다.",
+      how: [
+        "[🎬 영상 만들기]를 누릅니다.",
+        "\"✅ 완성!\"이 나올 때까지 기다립니다."
+      ],
+      result: ["캡컷 초안"]
+    },
+    {
+      phase: "영상 만들 때마다",
+      title: "캡컷에서 내보내기",
+      short: "1080p, 30fps로 mp4 만들기",
+      lead: "캡컷을 켜면 새 초안이 보여요. 초안을 열고 [내보내기]만 누르면 mp4 영상이 완성됩니다.",
+      tools: ["capcutpc"],
+      how: [
+        "캡컷을 켜면 새 초안이 보입니다. 안 보이면 캡컷을 껐다 켜 주세요.",
+        "초안을 엽니다.",
+        "오른쪽 위 [내보내기]를 누릅니다.",
+        "1080p, 30fps로 맞추고 [내보내기]를 누릅니다."
+      ],
+      path: ["초안 열기", "내보내기", "1080p · 30fps", "내보내기"],
+      result: ["본문 영상 mp4"]
+    }
+  ];
+
+  function manualOverviewHTML(deck) {
+    return '<span class="step-tag">사용 설명서</span>' +
+      "<h2>민담 영상\n자동 제작기</h2>" +
+      '<p class="lead">이미지 + 나레이션 + 자막(SRT)을 넣으면 캡컷 초안을 자동으로 만들어 줍니다. 캡컷에서 초안을 열고 [내보내기]만 누르면 mp4 영상이 완성돼요.</p>' +
+      '<div class="grid2">' +
+      '<div class="box"><h3>자동으로 해 주는 것</h3>' + list("ul", [
+        "이미지를 나레이션에 맞춰 배치 (컷 편집)",
+        "이미지마다 줌인 · 줌아웃 · 왼쪽→오른쪽 움직임 (랜덤, 같은 효과 연속 없음)",
+        "나레이션 넣기",
+        "자막을 한 줄 15자 이내로 나눠 흰 글씨 + 굵은 검정 외곽선으로 화면 아래에",
+        "화면 1920×1080, 30fps"
+      ]) + "</div>" +
+      '<div class="box"><h3>필요한 것</h3>' + list("ul", [
+        "윈도우 컴퓨터",
+        "캡컷 PC 버전 (9.5, 9.6 버전에서 확인됨)"
+      ]) + '<div class="note warn"><b>⚠️</b><span>웹 버전 캡컷은 안 돼요.</span></div></div>' +
+      "</div>" +
+      '<div class="note warn"><b>⚠️ 꼭!</b><span>본 프로그램은 딥마크온클래스 수강생 전용입니다. 무단 양도 또는 배포 시 민·형사상 불이익을 받을 수 있습니다.</span></div>' +
+      flowHTML(deck);
+  }
+
+  function manualEndHTML() {
+    return '<span class="step-tag">꼭 알아두세요</span>' +
+      "<h2>영상이 완성되었습니다</h2>" +
+      '<p class="lead">아래 내용만 기억해 두시면 문제없이 계속 쓰실 수 있어요.</p>' +
+      '<div class="box"><h3>꼭 알아두세요</h3>' + list("ul", [
+        "[작업파일] 폴더는 지우지 마세요. 캡컷이 여기 있는 이미지와 음성을 써요. mp4로 내보낸 다음에는 지워도 돼요.",
+        "작업파일 → 초안이름 → 장면_확인표.txt 에서 이미지마다 언제 나오는지 확인할 수 있어요.",
+        "작업파일 → 초안이름 → 자막이름_15자.srt 는 15자로 나눈 자막이에요. 유튜브 자막으로 쓰시면 돼요.",
+        "자막 크기는 제작 화면의 [자막 글자 크기] 숫자로 바꿀 수 있어요.",
+        "같은 이름으로 다시 만들면 이전 초안을 덮어써요.",
+        "캡컷 업데이트 후 안 되면 강사님께 알려 주세요."
+      ]) + "</div>" +
+      '<div class="end-links">' +
+      '<a href="' + LINKS.programForm + '" target="_blank" rel="noopener">프로그램 신청서 작성하러 가기</a>' +
+      '<a class="kakao" href="' + LINKS.kakaoOpenChat + '" target="_blank" rel="noopener">딥마크온 클래스 단톡방 입장</a>' +
+      "</div>";
+  }
+
+  // ───────────────────────────────────────────────
+  // 슬라이드 묶음 2개: guide(제작 방법) · manual(사용 설명서)
+  // 각 묶음: 0 = 전체 흐름, 1~N = 단계, 마지막 = 마무리
+  // ───────────────────────────────────────────────
+  const DECKS = {
+    guide: { steps: STEPS, back: "home", backLabel: "← 처음 화면으로", unit: "단계", overview: guideOverviewHTML, end: guideEndHTML },
+    manual: { steps: MANUAL_STEPS, back: "program", backLabel: "← 이전 화면으로", unit: "순서", overview: manualOverviewHTML, end: manualEndHTML }
+  };
+
   const slideEl = document.getElementById("slide");
   const dotsEl = document.getElementById("dots");
   const prev = document.getElementById("prev");
   const next = document.getElementById("next");
+  const deckBack = document.getElementById("deck-back");
+  let deck = DECKS.guide;
   let index = 0;
+
+  function total() { return deck.steps.length + 2; }
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
@@ -474,13 +690,10 @@
     return '<div class="ui-path">' + items.map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("<i>→</i>") + "</div>";
   }
 
-  function overviewHTML() {
-    let html = '<span class="step-tag">한눈에 보기</span>' +
-      "<h2>민담 영상,\n9단계면 완성됩니다</h2>" +
-      '<p class="lead">단계를 누르면 그 설명으로 바로 이동해요. 처음이시면 [다음]을 눌러 1단계부터 차례대로 보세요.</p>' +
-      '<div class="flow">';
+  function flowHTML(d) {
+    let html = '<div class="flow">';
     let lastPhase = "";
-    STEPS.forEach(function (s, i) {
+    d.steps.forEach(function (s, i) {
       if (s.phase !== lastPhase) { html += '<p class="phase">' + esc(s.phase) + "</p>"; lastPhase = s.phase; }
       html += '<button type="button" data-jump="' + (i + 1) + '"><span class="n">' + (i + 1) + '</span><span class="t">' +
         esc(s.title) + "<small>" + esc(s.short) + '</small></span><span class="go">›</span></button>';
@@ -488,9 +701,26 @@
     return html + "</div>";
   }
 
+  function guideOverviewHTML(d) {
+    return '<span class="step-tag">한눈에 보기</span>' +
+      "<h2>민담 영상,\n9단계면 완성됩니다</h2>" +
+      '<p class="lead">단계를 누르면 그 설명으로 바로 이동해요. 처음이시면 [다음]을 눌러 1단계부터 차례대로 보세요.</p>' +
+      flowHTML(d);
+  }
+
+  function guideEndHTML() {
+    return '<span class="step-tag">수고하셨습니다</span>' +
+      "<h2>민담 영상 한 편이\n완성되었습니다</h2>" +
+      '<p class="lead">처음에는 시간이 걸려도 두세 번 반복하면 금방 손에 익어요. 막히는 단계가 있으면 강의와 단톡방에서 함께 해결해요.</p>' +
+      '<div class="end-links">' +
+      '<a href="' + LINKS.lectureForm + '" target="_blank" rel="noopener">민담 유튜브 강의 신청서 작성</a>' +
+      '<a class="kakao" href="' + LINKS.kakaoOpenChat + '" target="_blank" rel="noopener">딥마크온 클래스 단톡방 입장</a>' +
+      "</div>";
+  }
+
   function stepHTML(i) {
-    const s = STEPS[i];
-    let html = '<span class="step-tag"><span class="num">' + (i + 1) + "</span>STEP " + (i + 1) + " / " + STEPS.length + "</span>" +
+    const s = deck.steps[i];
+    let html = '<span class="step-tag"><span class="num">' + (i + 1) + "</span>" + esc(s.phase) + " · " + (i + 1) + " / " + deck.steps.length + "</span>" +
       "<h2>" + esc(s.title) + "</h2>" +
       '<p class="lead">' + esc(s.lead) + "</p>";
 
@@ -501,7 +731,7 @@
 
     if (s.warn) html += '<div class="note warn"><b>⚠️ 꼭!</b><span>' + esc(s.warn) + "</span></div>";
     html += '<div class="box"><h3>따라 하기</h3>' + list("ol", s.how) + "</div>";
-    if (s.path) html += '<div class="box"><h3>설정 순서</h3>' + arrowRow(s.path) + "</div>";
+    if (s.path) html += '<div class="box"><h3>누르는 순서</h3>' + arrowRow(s.path) + "</div>";
     if (s.order) html += '<div class="box"><h3>이어 붙이는 순서</h3>' + arrowRow(s.order) + "</div>";
     if (s.prompt) {
       html += '<div class="prompt"><div class="prompt-head"><span>' + esc(s.prompt.title) +
@@ -509,51 +739,61 @@
         esc(s.prompt.text) + "</pre></div>";
     }
     if (s.tip) html += '<div class="note tip"><b>💡 도움말</b><span>' + esc(s.tip) + "</span></div>";
-    html += '<div class="box result"><h3>이 단계가 끝나면 생기는 것</h3>' + files(s.result) + "</div>";
+    if (s.result) html += '<div class="box result"><h3>이 단계가 끝나면 생기는 것</h3>' + files(s.result) + "</div>";
     return html;
   }
 
-  function endHTML() {
-    return '<span class="step-tag">수고하셨습니다</span>' +
-      "<h2>민담 영상 한 편이\n완성되었습니다</h2>" +
-      '<p class="lead">처음에는 시간이 걸려도 두세 번 반복하면 금방 손에 익어요. 막히는 단계가 있으면 강의와 단톡방에서 함께 해결해요.</p>' +
-      '<div class="end-links">' +
-      '<a href="' + LINKS.lectureForm + '" target="_blank" rel="noopener">민담 유튜브 강의 신청서 작성</a>' +
-      '<a class="kakao" href="' + LINKS.kakaoOpenChat + '" target="_blank" rel="noopener">딥마크온 클래스 단톡방 입장</a>' +
-      "</div>";
-  }
-
   function render() {
-    if (index === 0) slideEl.innerHTML = overviewHTML();
-    else if (index === TOTAL - 1) slideEl.innerHTML = endHTML();
+    const last = total() - 1;
+    if (index === 0) slideEl.innerHTML = deck.overview(deck);
+    else if (index === last) slideEl.innerHTML = deck.end();
     else slideEl.innerHTML = stepHTML(index - 1);
 
     document.getElementById("count").textContent =
-      index === 0 ? "전체 흐름" : index === TOTAL - 1 ? "완성" : index + " / " + STEPS.length + " 단계";
+      index === 0 ? "전체 흐름" : index === last ? "마무리" : index + " / " + deck.steps.length + " " + deck.unit;
     dotsEl.innerHTML = "";
-    for (let d = 0; d < TOTAL; d++) {
+    for (let d = 0; d <= last; d++) {
       const b = document.createElement("button");
       b.type = "button";
-      b.setAttribute("aria-label", d === 0 ? "전체 흐름" : d === TOTAL - 1 ? "완성" : d + "단계");
+      b.setAttribute("aria-label", d === 0 ? "전체 흐름" : d === last ? "마무리" : d + deck.unit);
       if (d < index) b.className = "done";
       if (d === index) b.className = "on";
       b.addEventListener("click", function () { go(d); });
       dotsEl.appendChild(b);
     }
     prev.disabled = index === 0;
-    next.textContent = index === TOTAL - 1 ? "처음 화면으로" : index === 0 ? "1단계부터 시작 →" : "다음 →";
+    next.textContent = index === last ? deckBack.textContent.replace("← ", "") : index === 0 ? "1번부터 시작 →" : "다음 →";
   }
 
-  function go(i) { index = Math.min(Math.max(i, 0), TOTAL - 1); render(); window.scrollTo(0, 0); }
-  function showGuide() { home.hidden = true; guide.hidden = false; go(0); }
-  function showHome() { guide.hidden = true; home.hidden = false; window.scrollTo(0, 0); }
+  function go(i) { index = Math.min(Math.max(i, 0), total() - 1); render(); window.scrollTo(0, 0); }
+
+  // 화면 전환: home(처음) · guide(슬라이드) · program(프로그램 받기)
+  const VIEWS = ["home", "guide", "program"];
+  function showView(name) {
+    VIEWS.forEach(function (v) { document.getElementById(v).hidden = v !== name; });
+    window.scrollTo(0, 0);
+  }
+  function openDeck(name) {
+    deck = DECKS[name];
+    deckBack.textContent = deck.backLabel;
+    showView("guide");
+    go(0);
+  }
+  function closeDeck() { showView(deck.back); }
+
+  document.querySelectorAll("[data-open]").forEach(function (b) {
+    b.addEventListener("click", function () { showView(b.dataset.open); });
+  });
+  document.querySelectorAll("[data-deck]").forEach(function (b) {
+    b.addEventListener("click", function () { openDeck(b.dataset.deck); });
+  });
 
   slideEl.addEventListener("click", function (e) {
     const jump = e.target.closest("[data-jump]");
     if (jump) { go(Number(jump.dataset.jump)); return; }
     const btn = e.target.closest("[data-copy]");
     if (!btn) return;
-    const text = STEPS[Number(btn.dataset.copy)].prompt.text;
+    const text = deck.steps[Number(btn.dataset.copy)].prompt.text;
     function done() { btn.textContent = "복사됨 ✓"; btn.classList.add("ok"); setTimeout(function () { btn.textContent = "복사하기"; btn.classList.remove("ok"); }, 2000); }
     function fallback() {
       const pre = document.getElementById("prompt-" + btn.dataset.copy);
@@ -566,18 +806,18 @@
     } catch (err) { fallback(); }
   });
 
-  document.getElementById("open-guide").addEventListener("click", showGuide);
-  document.getElementById("close-guide").addEventListener("click", showHome);
+  deckBack.addEventListener("click", closeDeck);
   prev.addEventListener("click", function () { go(index - 1); });
-  next.addEventListener("click", function () { if (index === TOTAL - 1) showHome(); else go(index + 1); });
+  next.addEventListener("click", function () { if (index === total() - 1) closeDeck(); else go(index + 1); });
 
   document.addEventListener("keydown", function (e) {
-    if (guide.hidden) return;
+    if (document.getElementById("guide").hidden) return;
     if (e.key === "ArrowRight" || e.key === "PageDown") go(index + 1);
     if (e.key === "ArrowLeft" || e.key === "PageUp") go(index - 1);
-    if (e.key === "Escape") showHome();
+    if (e.key === "Escape") closeDeck();
   });
 
-  // 링크 끝에 #guide 를 붙이면 슬라이드 화면부터 열립니다
-  if (location.hash === "#guide") showGuide();
+  // 링크 끝에 #guide · #manual · #program 을 붙이면 그 화면부터 열립니다
+  if (location.hash === "#guide" || location.hash === "#manual") openDeck(location.hash.slice(1));
+  if (location.hash === "#program") showView("program");
 </script>
