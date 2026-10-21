@@ -48,7 +48,6 @@ export default function MindamPage() {
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-12 sm:gap-8 sm:py-20">
         {/* 1. 프로그램 받기 */}
         <a href={MINDAM_LINKS.programForm} className={cardClass}>
-          <p className="text-sm font-semibold tracking-widest text-amber-300">01 · 무료 프로그램</p>
           <h1 className="mt-4 text-3xl font-extrabold leading-tight sm:text-5xl">
             컷편집 프로그램,
             <br />

@@ -4,11 +4,11 @@
 
 export const MINDAM_LINKS = {
   // 1) 컷편집 · 민담 자동 편집기 프로그램 받기 (구글 신청서)
-  programForm: "https://forms.gle/REPLACE_PROGRAM_FORM",
+  programForm: "https://forms.gle/oV8BBFkzPD9vWeVB7",
   // 3) 민담 유튜브 강의 신청서
-  lectureForm: "https://forms.gle/REPLACE_LECTURE_FORM",
+  lectureForm: "https://forms.gle/zMn1Rune3mNw6X1r8",
   // 4) 딥마크온 클래스 카카오톡 단톡방
-  kakaoOpenChat: "https://open.kakao.com/o/REPLACE_OPEN_CHAT",
+  kakaoOpenChat: "https://invite.kakao.com/tc/fhYIfPf8GG",
 };
 
 export type Slide = {
