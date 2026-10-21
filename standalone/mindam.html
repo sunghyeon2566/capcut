@@ -1,0 +1,267 @@
+<title>딥마크온 클래스 민담 안내</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 검정 바탕 한 장짜리 안내 페이지 — 위에서 아래로 칸 4개, 2번 칸은 슬라이드 화면으로 전환 */
+  :root {
+    --bg: #000000;
+    --card: #111111;
+    --line: #2a2a2a;
+    --fg: #ffffff;
+    --muted: #b5b5b5;
+    --accent: #f5c542;
+    --kakao: #fee500;
+    --on-accent: #111111;
+    --display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    font-family: var(--body);
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: keep-all;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── 메인 화면 ── */
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-block: 48px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+  .brand b { color: var(--fg); font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: 0.02em; }
+
+  .card {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 36px 24px;
+    cursor: pointer;
+    transition: border-color .2s, transform .2s;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+  }
+  .card:hover, .card:focus-visible { border-color: var(--accent); }
+  .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .card:active { transform: scale(0.99); }
+  .hero { padding-block: 44px; border-color: #3a3220; background: linear-gradient(160deg, #1b1607 0%, var(--card) 60%); }
+
+  .tag { font-size: 14px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); }
+  .card h1, .card h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 1.25;
+    margin: 14px 0 0;
+    text-wrap: balance;
+  }
+  .card h1 { font-size: clamp(34px, 8.4vw, 54px); }
+  .card h2 { font-size: clamp(30px, 7vw, 42px); }
+  .card p { margin: 14px 0 0; color: var(--muted); font-size: 19px; }
+
+  .btn {
+    margin-top: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 900;
+    font-size: 19px;
+    line-height: 1.4;
+  }
+  .btn.kakao { background: var(--kakao); }
+  .btn svg { flex: none; width: 22px; height: 22px; transition: transform .2s; }
+  .card:hover .btn svg { transform: translateX(4px); }
+
+  .foot { text-align: center; color: var(--muted); font-size: 15px; padding-top: 8px; }
+  .foot a { color: var(--fg); border-bottom: 1px solid var(--line); }
+
+  /* ── 슬라이드 화면 ── */
+  .deck { min-height: 100vh; display: flex; flex-direction: column; max-width: 960px; margin: 0 auto; }
+  .deck-top { display: flex; justify-content: space-between; align-items: center; padding-block: 18px; gap: 12px; }
+  .back { background: none; border: 0; color: var(--muted); font: inherit; font-size: 17px; cursor: pointer; padding: 6px 0; }
+  .back:hover { color: var(--fg); }
+  .count { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 17px; }
+  .bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+  .slide { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-block: 40px; }
+  .slide .tag { font-size: 15px; }
+  .slide h2 {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(34px, 8vw, 60px); line-height: 1.25; margin: 16px 0 0;
+    white-space: pre-line; text-wrap: balance;
+  }
+  .slide img { margin-top: 28px; max-height: 50vh; width: 100%; object-fit: contain; border-radius: 16px; }
+  .slide ul { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-direction: column; gap: 14px; }
+  .slide li { display: flex; gap: 14px; font-size: clamp(19px, 4.4vw, 26px); color: #e6e6e6; }
+  .slide li::before { content: ""; flex: none; width: 10px; height: 10px; margin-top: .6em; border-radius: 50%; background: var(--accent); }
+  .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-block: 8px 28px; }
+  .nav button {
+    font: inherit; font-weight: 900; font-size: 19px; padding: 16px; border-radius: 999px; cursor: pointer;
+    border: 1px solid #555; background: transparent; color: var(--fg);
+  }
+  .nav button.next { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .nav button:disabled { opacity: .3; cursor: default; }
+  .nav button:focus-visible, .back:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- 메인 화면 -->
+<main id="home" class="wrap">
+  <div class="brand"><b>딥마크온 클래스</b><span>시니어 유튜브 수익화</span></div>
+
+  <a class="card hero" data-link="programForm" href="#">
+    <span class="tag">무료 프로그램</span>
+    <h1>컷편집 프로그램,<br>민담 자동 편집기<br>프로그램 받기</h1>
+    <span class="btn">민담 각종 주제 600개와 민담 지침 스킬을 함께 드려요
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </a>
+
+  <button class="card" type="button" id="open-guide">
+    <span class="tag">제작 방법</span>
+    <h2>민담 제작 방법 보기</h2>
+    <p>민담 영상을 만드는 순서를 한 장씩 차례대로 보여 드려요.</p>
+    <span class="btn">제작 방법 슬라이드 보기
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </button>
+
+  <a class="card" data-link="lectureForm" href="#">
+    <span class="tag">특강 신청</span>
+    <h2>민담 유튜브 강의<br>신청서 작성</h2>
+    <span class="btn">신청서 작성하러 가기
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </a>
+
+  <a class="card" data-link="kakaoOpenChat" href="#">
+    <span class="tag">단톡방</span>
+    <h2>딥마크온 클래스<br>단톡방 입장</h2>
+    <p>딥마크온 클래스 무료특강과 다양한 자료를 신청서 없이 바로 받아 보실 수 있습니다</p>
+    <span class="btn kakao">카카오톡 단톡방 입장하기
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </a>
+
+  <p class="foot">딥마크온 클래스 · <a href="https://deep-mark-on.kr/">deep-mark-on.kr</a></p>
+</main>
+
+<!-- 슬라이드 화면 -->
+<section id="guide" class="deck" hidden>
+  <div class="deck-top">
+    <button type="button" class="back" id="close-guide">← 처음 화면으로</button>
+    <span class="count" id="count">1 / 1</span>
+  </div>
+  <div class="bar"><i id="bar-fill"></i></div>
+  <div class="slide" id="slide"></div>
+  <div class="nav">
+    <button type="button" id="prev">← 이전</button>
+    <button type="button" class="next" id="next">다음 →</button>
+  </div>
+</section>
+
+<script>
+  // ───────────────────────────────────────────────
+  // 링크 3개 — 여기만 바꾸면 버튼 주소가 바뀝니다
+  // ───────────────────────────────────────────────
+  const LINKS = {
+    programForm: "https://forms.gle/REPLACE_PROGRAM_FORM",     // 프로그램 받기 구글 신청서
+    lectureForm: "https://forms.gle/REPLACE_LECTURE_FORM",     // 민담 유튜브 강의 신청서
+    kakaoOpenChat: "https://open.kakao.com/o/REPLACE_OPEN_CHAT" // 카카오톡 단톡방
+  };
+
+  // 민담 제작 방법 슬라이드 — 아래는 예시 문구입니다
+  const SLIDES = [
+    { label: "민담 제작 방법", title: "민담 롱폼 영상,\n이렇게 만듭니다", points: ["주제 선정부터 업로드까지 순서대로 안내해 드려요."] },
+    { label: "STEP 1", title: "주제 고르기", points: ["함께 드리는 민담 주제 600개 중에서 하나를 고릅니다."] },
+    { label: "STEP 2", title: "대본 만들기", points: ["민담 지침 스킬로 대본 초안을 만들고 다듬습니다."] },
+    { label: "STEP 3", title: "음성 · 이미지 준비", points: ["대본에 맞춰 내레이션 음성과 장면 이미지를 준비합니다."] },
+    { label: "STEP 4", title: "자동 편집", points: ["민담 자동 편집기와 컷편집 프로그램으로 영상을 완성합니다."] },
+    { label: "STEP 5", title: "업로드", points: ["제목 · 썸네일을 정리해 유튜브에 올립니다."] }
+  ];
+
+  document.querySelectorAll("[data-link]").forEach(function (a) {
+    a.href = LINKS[a.dataset.link];
+    a.target = "_blank";
+    a.rel = "noopener";
+  });
+
+  const home = document.getElementById("home");
+  const guide = document.getElementById("guide");
+  const slideEl = document.getElementById("slide");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+  let index = 0;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+
+  function render() {
+    const s = SLIDES[index];
+    slideEl.innerHTML =
+      (s.label ? '<span class="tag">' + esc(s.label) + "</span>" : "") +
+      "<h2>" + esc(s.title) + "</h2>" +
+      (s.image ? '<img src="' + esc(s.image) + '" alt="' + esc(s.title) + '">' : "") +
+      (s.points ? "<ul>" + s.points.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>" : "");
+    document.getElementById("count").textContent = (index + 1) + " / " + SLIDES.length;
+    document.getElementById("bar-fill").style.width = ((index + 1) / SLIDES.length * 100) + "%";
+    prev.disabled = index === 0;
+    next.textContent = index === SLIDES.length - 1 ? "처음 화면으로" : "다음 →";
+  }
+
+  function go(i) { index = Math.min(Math.max(i, 0), SLIDES.length - 1); render(); }
+
+  function showGuide() { index = 0; render(); home.hidden = true; guide.hidden = false; window.scrollTo(0, 0); }
+  function showHome() { guide.hidden = true; home.hidden = false; window.scrollTo(0, 0); }
+
+  document.getElementById("open-guide").addEventListener("click", showGuide);
+  document.getElementById("close-guide").addEventListener("click", showHome);
+  prev.addEventListener("click", function () { go(index - 1); });
+  next.addEventListener("click", function () {
+    if (index === SLIDES.length - 1) showHome(); else go(index + 1);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (guide.hidden) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") go(index + 1);
+    if (e.key === "ArrowLeft" || e.key === "PageUp") go(index - 1);
+    if (e.key === "Escape") showHome();
+  });
+
+  let touchX = null;
+  guide.addEventListener("touchstart", function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+  guide.addEventListener("touchend", function (e) {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (dx < -50) go(index + 1);
+    if (dx > 50) go(index - 1);
+    touchX = null;
+  });
+
+  // 링크 끝에 #guide 를 붙이면 슬라이드 화면부터 열립니다
+  if (location.hash === "#guide") showGuide();
+</script>
