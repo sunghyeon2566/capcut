@@ -171,6 +171,12 @@
 
   .choices { display: flex; flex-direction: column; gap: 16px; }
   .choices .card { padding-block: 28px; }
+  .sets { display: flex; flex-direction: column; gap: 14px; }
+  .set { display: flex; flex-direction: column; gap: 4px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .set:last-child { border-bottom: 0; padding-bottom: 0; }
+  .set-name { font-weight: 900; font-size: 19px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .set-name span { font-weight: 700; font-size: 15px; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 2px 10px; }
+  .set-desc { font-size: 18px; color: #e0e0e0; }
   .box-lead { margin: 0; font-size: 19px; color: #e8e8e8; }
   .sub { font-weight: 900; font-size: 16px; color: var(--muted); margin-top: 6px; }
 
@@ -237,12 +243,18 @@
     <span class="step-tag">프로그램 받기</span>
     <h2>컷편집 프로그램,
 민담 자동 편집기</h2>
-    <p class="lead">처음이시면 사용 설명서를 먼저 보시고, 준비가 되셨으면 신청서를 작성해 주세요.</p>
+    <p class="lead">처음이시면 프로그램 사용 설명서를 먼저 보시고, 준비가 되셨으면 신청서를 작성해 주세요.</p>
     <div class="choices">
+      <button class="card" type="button" data-deck="cut">
+        <h2>컷 편집기 사용 설명서</h2>
+        <p>말소리만 남기고 나머지를 자동으로 잘라 주는 딥마크 컷 편집기 쓰는 법을 한 장씩 알려 드려요.</p>
+        <span class="btn">컷 편집기 설명서 보기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </button>
       <button class="card" type="button" data-deck="manual">
-        <h2>프로그램 사용 설명서</h2>
-        <p>설치부터 영상 내보내기까지, 민담 영상 자동 제작기 쓰는 법을 한 장씩 알려 드려요.</p>
-        <span class="btn">설명서 보기
+        <h2>민담 자동 편집기 사용 설명서</h2>
+        <p>이미지·나레이션·자막을 넣으면 캡컷 초안을 만들어 주는 민담 영상 자동 제작기 쓰는 법을 한 장씩 알려 드려요.</p>
+        <span class="btn">자동 편집기 설명서 보기
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </button>
       <a class="card" data-link="programForm" href="#">
@@ -651,12 +663,178 @@
   }
 
   // ───────────────────────────────────────────────
-  // 슬라이드 묶음 2개: guide(제작 방법) · manual(사용 설명서)
+  // 딥마크 컷 편집기 사용 설명서
+  // ───────────────────────────────────────────────
+  const CUT_STEPS = [
+    {
+      phase: "처음 한 번만",
+      title: "압축 풀기",
+      short: "찾기 쉬운 곳에 폴더 두기",
+      lead: "받은 압축 파일을 풀어서, 프로그램 폴더를 바탕화면이나 D 드라이브에 둡니다.",
+      attach: ["받은 압축 파일"],
+      how: [
+        "받은 압축 파일에 마우스를 올리고 오른쪽 버튼을 누릅니다.",
+        "[모두 압축 풀기]를 누릅니다.",
+        "압축을 푼 폴더를 바탕화면이나 D 드라이브에 둡니다."
+      ],
+      path: ["마우스 오른쪽 버튼", "모두 압축 풀기"],
+      warn: "'Program Files' 폴더 안에는 두지 마세요.",
+      result: ["프로그램 폴더"]
+    },
+    {
+      phase: "처음 한 번만",
+      title: "프로그램 실행하기",
+      short: "파란 창이 떠도 괜찮아요",
+      lead: "폴더 안의 [딥마크컷편집기.exe]를 더블클릭해서 켭니다.",
+      how: [
+        "폴더 안의 [딥마크컷편집기.exe]를 더블클릭합니다.",
+        "파란 창 \"Windows의 PC 보호\"가 뜨면 [추가 정보]를 누르고 [실행]을 누릅니다."
+      ],
+      path: ["Windows의 PC 보호", "추가 정보", "실행"],
+      tip: "파란 창은 새로 받은 프로그램이면 늘 나오는 안내예요. 바이러스라는 뜻이 아니니 안심하고 [추가 정보]를 눌러 주세요."
+    },
+    {
+      phase: "처음 한 번만",
+      title: "수강생 인증하기",
+      short: "기기 코드 보내고 인증키 받기",
+      lead: "🔒 수강생 인증 화면에서 강사님께 받은 인증키를 넣습니다.",
+      how: [
+        "화면에 나온 [기기 코드]를 복사해서 강사님께 보냅니다.",
+        "강사님께 받은 [인증키]를 붙여 넣습니다."
+      ],
+      path: ["기기 코드 복사", "강사님께 보내기", "인증키 붙여 넣기"],
+      result: ["인증 완료"]
+    },
+    {
+      phase: "처음 한 번만",
+      title: "캡컷 초안 폴더 맞추기",
+      short: "⚙️ 설정에서 확인 후 저장",
+      lead: "⚙️ 설정에서 캡컷 초안 폴더가 캡컷의 '초안 위치'와 같은지 확인하고 저장합니다.",
+      tools: ["capcutpc"],
+      how: [
+        "캡컷을 켜고 설정에서 '초안 위치'에 나오는 주소를 봅니다.",
+        "컷 편집기의 ⚙️ 설정을 엽니다.",
+        "캡컷 초안 폴더가 캡컷에 나온 주소와 같은지 확인합니다. 다르면 캡컷 주소로 바꿔 줍니다.",
+        "[설정 저장]을 누릅니다."
+      ],
+      path: ["캡컷", "설정", "초안 위치"],
+      tip: "이 주소가 맞아야 잘린 영상이 캡컷에 나타나요. 처음 한 번만 맞춰 두면 됩니다.",
+      result: ["설치 끝! 이제 영상을 자를 수 있어요"]
+    },
+    {
+      phase: "영상 자를 때마다",
+      title: "영상 고르기",
+      short: "여러 개면 순서대로 이어 붙여요",
+      lead: "[📂 영상 고르기]를 눌러 자를 영상을 고릅니다.",
+      attach: ["내가 찍은 영상"],
+      how: [
+        "[📂 영상 고르기]를 누릅니다.",
+        "자를 영상을 고릅니다.",
+        "여러 개를 고르면 순서대로 이어 붙여요. 순서는 ▲▼ 버튼으로 바꿀 수 있어요."
+      ]
+    },
+    {
+      phase: "영상 자를 때마다",
+      title: "초안 이름 쓰기",
+      short: "비워 두면 자동으로 정해져요",
+      lead: "캡컷에 만들어질 초안의 이름을 씁니다.",
+      how: [
+        "캡컷 초안 이름 칸에 알아보기 쉬운 이름을 씁니다.",
+        "비워 두면 \"첫 영상 이름 + _컷편집\"으로 정해져요."
+      ]
+    },
+    {
+      phase: "영상 자를 때마다",
+      title: "무음 자르기",
+      short: "버튼 하나로 캡컷 초안 만들기",
+      lead: "[✂️ 무음 자르고 캡컷 초안 만들기]를 누르면 말소리만 남기고 잘라서 캡컷 초안을 만들어 줘요.",
+      how: [
+        "[✂️ 무음 자르고 캡컷 초안 만들기]를 누릅니다.",
+        "끝날 때까지 기다립니다."
+      ],
+      tip: "영상 10분에 보통 10~30초 걸려요. webm, mkv 같은 형식은 mp4로 바꾸느라 조금 더 걸려요.",
+      result: ["캡컷 초안"]
+    },
+    {
+      phase: "영상 자를 때마다",
+      title: "캡컷에서 내보내기",
+      short: "확인하고 mp4로 내보내기",
+      lead: "캡컷에서 초안을 열어 확인하고 [내보내기]를 누르면 mp4가 완성됩니다.",
+      tools: ["capcutpc"],
+      how: [
+        "캡컷을 켭니다. 이미 켜져 있으면 껐다 켜 주세요.",
+        "초안을 엽니다.",
+        "잘린 곳을 확인합니다.",
+        "[내보내기]를 누릅니다."
+      ],
+      path: ["캡컷 켜기", "초안 열기", "확인", "내보내기"],
+      tip: "잘린 부분이 아쉬우면 캡컷에서 조각 끝을 끌어 늘리면 다시 살아나요. 원본은 그대로예요.",
+      result: ["컷편집된 영상 mp4"]
+    },
+    {
+      phase: "필요할 때",
+      title: "설정 바꾸기 (⚙️)",
+      short: "자르는 정도 · 줌 · 배경음악",
+      lead: "잘린 결과가 마음에 들지 않으면 ⚙️ 설정에서 숫자를 바꿔 다시 만들어 보세요.",
+      settings: [
+        ["자를 무음 길이", "기본 0.3초", "말이 이 길이 이상 끊기면 잘라요."],
+        ["말 앞뒤 여유", "기본 0.2초", "말 앞뒤로 이만큼 남겨요. 말끝이 잘리면 늘리세요."],
+        ["말소리 감도", "기본 보통", "작은 말소리가 잘리면 '높음', 잡음이 남으면 '낮음'으로 바꾸세요."],
+        ["컷 지점 자동 줌", "", "잘린 곳마다 번갈아 살짝 확대해서 툭 끊기는 느낌을 줄여요."],
+        ["배경음악", "음량 10~20% 추천", "음악 파일을 고르면 영상 전체에 깔아요."]
+      ],
+      tip: "처음에는 기본값 그대로 써 보시고, 말끝이 잘리거나 잡음이 남을 때만 하나씩 바꿔 보세요."
+    }
+  ];
+
+  function cutOverviewHTML(deck) {
+    return '<span class="step-tag">사용 설명서</span>' +
+      "<h2>딥마크\n컷 편집기</h2>" +
+      '<p class="lead">영상을 넣으면 사람 말소리만 남기고 나머지(조용한 곳, 음악·잡음만 있는 곳)를 잘라서 캡컷 초안으로 만들어 줘요. 캡컷에서 [내보내기]만 누르면 mp4 완성!</p>' +
+      '<div class="grid2">' +
+      '<div class="box"><h3>이런 점이 좋아요</h3>' + list("ul", [
+        "돈이 들지 않아요.",
+        "모든 처리는 내 컴퓨터 안에서만 해요.",
+        "말 없는 부분을 손으로 자르지 않아도 돼요."
+      ]) + "</div>" +
+      '<div class="box"><h3>필요한 것</h3>' + list("ul", [
+        "윈도우 컴퓨터",
+        "캡컷 PC 버전"
+      ]) + '<div class="note warn"><b>⚠️</b><span>웹 버전 캡컷은 안 돼요.</span></div></div>' +
+      "</div>" +
+      '<div class="note warn"><b>⚠️ 저작권</b><span>내가 찍은 영상이나 사용 허락을 받은 영상에만 쓰세요. 남의 영상을 그대로 올리면 저작권 경고를 받거나 수익이 막힐 수 있어요.</span></div>' +
+      '<div class="note warn"><b>⚠️ 꼭!</b><span>본 프로그램은 딥마크온클래스 수강생 전용입니다. 무단 양도 또는 배포 시 민·형사상 불이익을 받을 수 있습니다.</span></div>' +
+      flowHTML(deck);
+  }
+
+  function cutEndHTML() {
+    return '<span class="step-tag">알아 두기</span>' +
+      "<h2>영상 자르기 끝!</h2>" +
+      '<p class="lead">아래 내용만 기억해 두시면 문제없이 계속 쓰실 수 있어요.</p>' +
+      '<div class="box"><h3>알아 두기</h3>' + list("ul", [
+        "캡컷 초안은 원본 영상을 그대로 불러와요. 편집이 끝날 때까지 원본 영상을 옮기거나 지우지 마세요.",
+        "잘린 부분이 아쉬우면 캡컷에서 조각 끝을 끌어 늘리면 다시 살아나요. 원본은 그대로예요.",
+        "새 버전으로 바꿀 때는 새 폴더에 풀고 exe만 실행하면 돼요. 설정과 인증은 자동으로 이어져요.",
+        "작업파일은 처음 쓰던 폴더의 것을 그대로 써요. 예전 버전 폴더는 지우지 마세요."
+      ]) + "</div>" +
+      '<div class="box"><h3>사용한 공개 도구</h3>' + list("ul", [
+        "말소리 감지: Silero VAD (MIT 라이선스) · models 폴더",
+        "영상 처리: FFmpeg (GPL 라이선스) · ffmpeg 폴더"
+      ]) + "</div>" +
+      '<div class="end-links">' +
+      '<a href="' + LINKS.programForm + '" target="_blank" rel="noopener">프로그램 신청서 작성하러 가기</a>' +
+      '<a class="kakao" href="' + LINKS.kakaoOpenChat + '" target="_blank" rel="noopener">딥마크온 클래스 단톡방 입장</a>' +
+      "</div>";
+  }
+
+  // ───────────────────────────────────────────────
+  // 슬라이드 묶음 3개: guide(제작 방법) · manual(자동 제작기 설명서) · cut(컷 편집기 설명서)
   // 각 묶음: 0 = 전체 흐름, 1~N = 단계, 마지막 = 마무리
   // ───────────────────────────────────────────────
   const DECKS = {
     guide: { steps: STEPS, back: "home", backLabel: "← 처음 화면으로", unit: "단계", overview: guideOverviewHTML, end: guideEndHTML },
-    manual: { steps: MANUAL_STEPS, back: "program", backLabel: "← 이전 화면으로", unit: "순서", overview: manualOverviewHTML, end: manualEndHTML }
+    manual: { steps: MANUAL_STEPS, back: "program", backLabel: "← 이전 화면으로", unit: "순서", overview: manualOverviewHTML, end: manualEndHTML },
+    cut: { steps: CUT_STEPS, back: "program", backLabel: "← 이전 화면으로", unit: "순서", overview: cutOverviewHTML, end: cutEndHTML }
   };
 
   const slideEl = document.getElementById("slide");
@@ -730,7 +908,13 @@
     if (side.length) html += '<div class="grid2">' + side.join("") + "</div>";
 
     if (s.warn) html += '<div class="note warn"><b>⚠️ 꼭!</b><span>' + esc(s.warn) + "</span></div>";
-    html += '<div class="box"><h3>따라 하기</h3>' + list("ol", s.how) + "</div>";
+    if (s.how) html += '<div class="box"><h3>따라 하기</h3>' + list("ol", s.how) + "</div>";
+    if (s.settings) {
+      html += '<div class="box"><h3>설정 항목</h3><div class="sets">' + s.settings.map(function (r) {
+        return '<div class="set"><div class="set-name">' + esc(r[0]) + (r[1] ? '<span>' + esc(r[1]) + "</span>" : "") +
+          '</div><div class="set-desc">' + esc(r[2]) + "</div></div>";
+      }).join("") + "</div></div>";
+    }
     if (s.path) html += '<div class="box"><h3>누르는 순서</h3>' + arrowRow(s.path) + "</div>";
     if (s.order) html += '<div class="box"><h3>이어 붙이는 순서</h3>' + arrowRow(s.order) + "</div>";
     if (s.prompt) {
@@ -817,7 +1001,7 @@
     if (e.key === "Escape") closeDeck();
   });
 
-  // 링크 끝에 #guide · #manual · #program 을 붙이면 그 화면부터 열립니다
-  if (location.hash === "#guide" || location.hash === "#manual") openDeck(location.hash.slice(1));
+  // 링크 끝에 #guide · #manual · #cut · #program 을 붙이면 그 화면부터 열립니다
+  if (location.hash === "#guide" || location.hash === "#manual" || location.hash === "#cut") openDeck(location.hash.slice(1));
   if (location.hash === "#program") showView("program");
 </script>
