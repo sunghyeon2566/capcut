@@ -42,6 +42,15 @@
   .brand { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; color: var(--muted); font-size: 15px; letter-spacing: 0.04em; }
   .brand b { color: var(--fg); font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: 0.02em; }
 
+  .intro { border-radius: 24px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .intro video { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; }
+  .sound {
+    display: block; width: calc(100% - 24px); margin: 12px;
+    border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+    font-weight: 900; font-size: 18px; padding: 14px 20px; cursor: pointer;
+  }
+  .sound:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+
   .card {
     display: block; width: 100%; text-align: left; color: inherit;
     background: var(--card); border: 1px solid var(--line); border-radius: 24px;
@@ -186,6 +195,11 @@
 <!-- 메인 화면 -->
 <main id="home" class="wrap">
   <div class="brand"><b>딥마크온 클래스</b><span>시니어 유튜브 수익화</span></div>
+
+  <div class="intro">
+    <video id="intro-video" src="media/intro.mp4" poster="media/intro-poster.jpg" autoplay muted loop playsinline controls preload="metadata"></video>
+    <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
+  </div>
 
   <button class="card hero" type="button" data-open="program">
     <h1>컷편집 프로그램,<br>민담 자동 편집기<br>프로그램 받기</h1>
@@ -482,6 +496,18 @@
       result: ["최종 영상"]
     }
   ];
+
+  // 맨 위 소개 영상: 처음엔 소리 없이 자동 재생, 버튼을 누르면 소리 켜고 처음부터
+  const introVideo = document.getElementById("intro-video");
+  const soundOn = document.getElementById("sound-on");
+  soundOn.addEventListener("click", function () {
+    introVideo.muted = false;
+    introVideo.loop = false;
+    introVideo.currentTime = 0;
+    introVideo.play().catch(function () {});
+    soundOn.hidden = true;
+  });
+  introVideo.addEventListener("volumechange", function () { if (!introVideo.muted) soundOn.hidden = true; });
 
   document.querySelectorAll("[data-link]").forEach(function (a) {
     a.href = LINKS[a.dataset.link];
