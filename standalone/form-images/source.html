@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>신청서 이미지 원본</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<style>
+  /* 구글 신청서에 올릴 세로 이미지 5장 — 연회색 바탕 · 파란 굵은 제목 · 남색 카드 */
+  :root {
+    --bg-top: #eef2f8;
+    --bg-bottom: #d9e2f0;
+    --blue: #1565e0;
+    --blue-bright: #2b86ff;
+    --navy: #1b2f52;
+    --navy-deep: #14233f;
+    --line: #34507f;
+    --white: #ffffff;
+    --soft: #c9d6ec;
+    --gold: #ffd54a;
+    --red: #e53935;
+    --font: "Noto Sans KR", "WenQuanYi Zen Hei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-bottom); font-family: var(--font); word-break: keep-all; }
+  .sheet {
+    width: 1080px; padding: 90px 70px 100px; margin: 0 0 40px;
+    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    display: flex; flex-direction: column; gap: 44px; color: var(--navy);
+  }
+  .brand { text-align: center; font-weight: 900; font-size: 30px; letter-spacing: .14em; color: var(--blue); }
+  .big {
+    margin: 0; text-align: center; font-weight: 900; line-height: 1.12; color: var(--blue);
+    font-size: 118px; letter-spacing: -0.02em; transform: skewX(-8deg);
+  }
+  .big .dark { color: var(--navy); }
+  .big .sm { display: block; font-size: 76px; }
+  .lead { margin: 0; text-align: center; font-size: 40px; font-weight: 700; line-height: 1.5; color: var(--navy); }
+  .lead b { color: var(--blue); }
+
+  .card { background: var(--navy); border-radius: 26px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 18px 40px rgba(20, 35, 63, .25); }
+  .card-head {
+    background: var(--blue); color: var(--white); padding: 30px 40px; display: flex; gap: 22px; align-items: baseline;
+    font-size: 40px; font-weight: 700; line-height: 1.35;
+  }
+  .card-head .tag { flex: none; font-weight: 900; font-size: 50px; }
+  .card-head small { display: block; font-size: 30px; font-weight: 500; opacity: .9; margin-top: 4px; }
+  .card-body { padding: 40px 46px 44px; color: var(--white); }
+  .card-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 24px; }
+  .card-body li { display: flex; gap: 18px; font-size: 38px; font-weight: 700; line-height: 1.4; }
+  .card-body li::before { content: "•"; flex: none; }
+  .card-body .note { margin: 34px 0 0; padding-top: 30px; border-top: 2px solid var(--line); color: var(--soft); font-size: 30px; font-weight: 500; line-height: 1.6; }
+
+  .offline .card-head { background: linear-gradient(90deg, #e53935, #ff6f43); }
+  .offline .where { margin-top: 30px; display: grid; grid-template-columns: auto 1fr; gap: 14px 22px; font-size: 34px; font-weight: 700; }
+  .offline .where dt { color: var(--gold); }
+  .offline .where dd { margin: 0; }
+
+  .pill {
+    align-self: center; background: var(--navy-deep); color: var(--white); border: 3px solid var(--blue-bright);
+    border-radius: 999px; padding: 14px 40px; font-size: 38px; font-weight: 900;
+  }
+
+  /* 성과 숫자 */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .stat { background: var(--navy); border-radius: 26px; padding: 40px 30px; text-align: center; color: var(--white); border: 2px solid var(--line); }
+  .stat .n { font-size: 110px; font-weight: 900; line-height: 1; color: var(--white); transform: skewX(-8deg); }
+  .stat .n span { font-size: 56px; color: var(--blue-bright); }
+  .stat .t { margin-top: 18px; font-size: 34px; font-weight: 700; color: var(--soft); line-height: 1.4; }
+  .stat.wide { grid-column: 1 / -1; padding-block: 34px; }
+  .stat.wide .n { font-size: 64px; }
+
+  .classes { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .cls { background: var(--white); border-radius: 26px; padding: 36px 32px; border: 3px solid var(--blue); display: flex; flex-direction: column; gap: 14px; }
+  .cls .lv { align-self: flex-start; background: var(--blue); color: var(--white); border-radius: 999px; padding: 6px 22px; font-size: 28px; font-weight: 900; }
+  .cls h3 { margin: 0; font-size: 50px; font-weight: 900; color: var(--navy); transform: skewX(-6deg); }
+  .cls p { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.5; color: #3a4d70; }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .flow span { background: var(--white); border: 3px solid var(--blue); color: var(--navy); border-radius: 18px; padding: 16px 26px; font-size: 34px; font-weight: 900; white-space: nowrap; }
+  .flow i { font-style: normal; color: var(--blue); font-size: 40px; font-weight: 900; }
+
+  /* 혜택 */
+  .benefit { display: grid; grid-template-columns: 110px 1fr; gap: 28px; align-items: center; }
+  .benefit + .benefit { margin-top: 34px; padding-top: 34px; border-top: 2px solid var(--line); }
+  .benefit .no { width: 110px; height: 110px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-size: 54px; font-weight: 900; }
+  .benefit h4 { margin: 0; font-size: 42px; font-weight: 900; line-height: 1.35; color: var(--white); }
+  .benefit h4 em { font-style: normal; color: var(--gold); }
+  .benefit p { margin: 8px 0 0; font-size: 31px; font-weight: 500; color: var(--soft); line-height: 1.5; }
+  .banner {
+    background: linear-gradient(90deg, var(--blue), var(--blue-bright)); color: var(--white); border-radius: 26px; text-align: center;
+    padding: 40px 30px; font-size: 56px; font-weight: 900; transform: skewX(-6deg); box-shadow: 0 18px 40px rgba(21, 101, 224, .35);
+  }
+  .banner small { display: block; font-size: 32px; font-weight: 700; opacity: .9; margin-top: 6px; }
+
+  .sched { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .sched div { font-size: 38px; font-weight: 700; color: var(--navy); }
+  .sched b { color: var(--blue); }
+
+  /* 수강료 */
+  .price-card { background: var(--navy-deep); border-radius: 26px; padding: 44px 46px; border: 2px solid var(--blue-bright); box-shadow: 0 0 0 6px rgba(43, 134, 255, .15), 0 18px 40px rgba(20, 35, 63, .3); color: var(--white); }
+  .price-card .badge { display: inline-block; background: #000; border: 3px solid var(--blue-bright); border-radius: 999px; padding: 10px 30px; font-size: 36px; font-weight: 900; }
+  .price-card .desc { margin: 24px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .price-card .desc li { font-size: 32px; font-weight: 700; color: var(--soft); display: flex; gap: 14px; }
+  .price-card .desc li::before { content: "✓"; color: var(--blue-bright); font-weight: 900; }
+  .rows { margin-top: 26px; display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; border-top: 2px solid var(--line); padding-top: 18px; }
+  .row .k { font-size: 34px; font-weight: 700; color: var(--white); }
+  .row .k small { display: block; font-size: 27px; font-weight: 500; color: var(--soft); }
+  .row .v { font-size: 74px; font-weight: 900; white-space: nowrap; transform: skewX(-8deg); color: var(--white); }
+  .row .v span { font-size: 40px; color: var(--blue-bright); }
+  .price-card.top { border-color: var(--gold); box-shadow: 0 0 0 6px rgba(255, 213, 74, .18), 0 18px 40px rgba(20, 35, 63, .3); }
+  .price-card.top .badge { border-color: var(--gold); color: var(--gold); }
+  .price-card.top .v span { color: var(--gold); }
+  .foot { text-align: center; font-size: 28px; font-weight: 500; color: #4b5e80; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- 1. 강의 소개 (후킹) -->
+<section class="sheet" id="s1">
+  <div class="brand">딥마크온 클래스</div>
+  <h1 class="big"><span class="sm dark">야담 · 민담 · 설화</span>AI 영상으로<br>유튜브 수익화</h1>
+  <p class="lead">모든 것이 준비되어 있습니다.<br><b>실천만 하시면 누구나</b> 수익화할 수 있습니다.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="n">200<span>명</span></div><div class="t">챌린지 1기 · 2기<br>함께한 수강생</div></div>
+    <div class="stat"><div class="n">60<span>명</span></div><div class="t">상장과 상금을<br>받으신 분</div></div>
+    <div class="stat wide"><div class="n">애드센스 성공 🎉</div><div class="t">애드센스에 성공하신 분들이 벌써 많이 나오고 계십니다</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag">준비 완료</span><span>시작에 필요한 모든 것을<br>드립니다</span></div>
+    <div class="card-body">
+      <ul>
+        <li>업그레이드 버전 지침 스킬</li>
+        <li>영상 컨셉 주제별 100개씩, 600개 주제</li>
+        <li>컷편집 · 영상 자동 편집 프로그램 2종</li>
+        <li>매일 오전 10시 실시간 강의 챌린지</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flow"><span>주제 고르기</span><i>→</i><span>프로그램 제작</span><i>→</i><span>매일 실천</span></div>
+
+  <div class="pill">기초반 · 중급반 모집</div>
+  <div class="classes">
+    <div class="cls"><span class="lv">기초반</span><h3>쇼츠 챌린지</h3><p>매주 금요일 저녁 8시<br>4회 진행<br>11월 6일(금) 첫 강의</p></div>
+    <div class="cls"><span class="lv">중급반</span><h3>롱폼 수익화</h3><p>매주 목요일 저녁 8시<br>4회 + 오프라인 2회<br>11월 5일(목) 첫 강의</p></div>
+  </div>
+</section>
+
+<!-- 2. 강의 혜택 -->
+<section class="sheet" id="s2">
+  <div class="brand">딥마크온 클래스</div>
+  <h1 class="big">수강생 혜택<span class="sm dark">이렇게 드립니다</span></h1>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="benefit"><div class="no">1</div><div><h4>업그레이드 버전 <em>지침 스킬</em></h4><p>영상 컨셉 주제별 100개씩, 총 600개 주제 제공</p></div></div>
+      <div class="benefit"><div class="no">2</div><div><h4>프로그램 2종 <em>평생</em> 제공</h4><p>컷편집 프로그램 · 영상 자동 편집 프로그램</p></div></div>
+      <div class="benefit"><div class="no">3</div><div><h4>매일 오전 10시 <em>실시간 강의 챌린지</em></h4><p>매주 5회 진행 (목요일 · 금요일 제외)</p></div></div>
+      <div class="benefit"><div class="no">4</div><div><h4>차기 프로그램 <em>무료</em> 제공</h4><p>이미지 생성 · 나레이션 · 대본 자동화 프로그램</p></div></div>
+    </div>
+  </div>
+
+  <div class="banner">카드 결제 시 12개월 무이자<small>부담 없이 시작하세요</small></div>
+</section>
+
+<!-- 3. 커리큘럼 기초반 -->
+<section class="sheet" id="s3">
+  <div class="brand">딥마크온 클래스</div>
+  <h1 class="big">커리큘럼<span class="sm dark">기초반 · 쇼츠 챌린지</span></h1>
+  <div class="sched">
+    <div>챌린지 O.T <b>10월 31일 (토)</b></div>
+    <div>매주 <b>금요일 저녁 8시</b> · 4회 진행</div>
+    <div>첫 강의 <b>11월 6일 (금)</b></div>
+  </div>
+
+  <div class="card"><div class="card-head"><span class="tag">O.T</span><span>프로그램과 채널 준비<small>10월 31일 (토)</small></span></div>
+    <div class="card-body"><ul><li>자동 프로그램 사용 방법</li><li>유튜브 채널 세팅</li><li>영상 제작 방법</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">1회차</span><span>벤치마킹과 후킹 썸네일</span></div>
+    <div class="card-body"><ul><li>유튜브 벤치마킹 노하우</li><li>무조건 해야 하는 업로드 시 주의할 점</li><li>후킹 썸네일 제작 방법</li><li>이미지 제작 방법</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">2회차</span><span>차별화된 이미지 · 영상</span></div>
+    <div class="card-body"><ul><li>차별화된 이미지, 영상 제작하기</li><li>캡컷 컷편집 노하우</li><li>나레이션, SRT 제작</li><li>폴더 관리</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">3회차</span><span>채널 영상과 나만의 지침</span></div>
+    <div class="card-body"><ul><li>채널 소개 영상 제작</li><li>구독, 좋아요 영상 나레이션 제작</li><li>나만의 지침, 스킬 제작 노하우</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">4회차</span><span>롱폼으로 한 걸음 더</span></div>
+    <div class="card-body"><ul><li>롱폼 제작 방법</li><li>후킹, 본문 영상 제작 방법</li><li>업로드 시 주의할 점</li><li>썸네일 제작 방법</li></ul></div></div>
+</section>
+
+<!-- 4. 커리큘럼 중급반 -->
+<section class="sheet" id="s4">
+  <div class="brand">딥마크온 클래스</div>
+  <h1 class="big">커리큘럼<span class="sm dark">중급반 · 롱폼 수익화</span></h1>
+  <div class="sched">
+    <div>챌린지 O.T <b>10월 31일 (토)</b></div>
+    <div>매주 <b>목요일 저녁 8시</b> · 4회 진행</div>
+    <div>첫 강의 <b>11월 5일 (목)</b> · 오프라인 교육 2회</div>
+  </div>
+
+  <div class="card"><div class="card-head"><span class="tag">1회차</span><span>롱폼 자료 관리와 플랫폼 활용</span></div>
+    <div class="card-body"><ul><li>롱폼 이미지, 영상 등 각종 자료 관리</li><li>무조건 해야 하는 업로드 시 주의할 점</li><li>각종 플랫폼 활용 방법</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">2회차</span><span>시나리오부터 롱폼 완성까지</span></div>
+    <div class="card-body"><ul><li>시나리오 제작부터 롱폼 완성까지 풀 과정</li></ul></div></div>
+
+  <div class="card offline"><div class="card-head"><span class="tag">오프라인</span><span>시나리오부터 롱폼 완성까지<small>직접 만나 처음부터 끝까지 함께</small></span></div>
+    <div class="card-body">
+      <ul><li>시나리오 제작부터 롱폼 완성까지 풀 과정</li></ul>
+      <dl class="where"><dt>일시</dt><dd>11월 14일 (토) 오후 1시 ~ 저녁 7시</dd><dt>장소</dt><dd>의정부 신한대학교</dd><dt>교통</dt><dd>망월사역 1분 거리 · 강남에서 30분</dd></dl>
+    </div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">3회차</span><span>조회수와 맞춤 시나리오</span></div>
+    <div class="card-body"><ul><li>영상 업로드 후 1주일 조회수 올리는 노하우</li><li>클로드로 내 채널 안성맞춤 시나리오 만들기</li><li>내 채널 대상자 이해하기</li></ul></div></div>
+
+  <div class="card"><div class="card-head"><span class="tag">4회차</span><span>애드센스 다음은 쇼핑쇼츠</span></div>
+    <div class="card-body"><ul><li>애드센스 달성 후 쇼핑쇼츠 전환</li><li>쇼핑쇼츠 이해하기</li><li>내 고객이 좋아하는 상품 찾기</li><li>좋은 마진 상품 찾기</li></ul></div></div>
+
+  <div class="card offline"><div class="card-head"><span class="tag">오프라인</span><span>쇼핑쇼츠 실전<small>직접 만나 상품까지 함께 찾기</small></span></div>
+    <div class="card-body">
+      <ul><li>쇼핑쇼츠 이해하기</li><li>내 고객이 좋아하는 상품 찾기</li><li>좋은 마진 상품 찾기</li></ul>
+      <dl class="where"><dt>일시</dt><dd>11월 28일 (토) 오후 1시 ~ 저녁 7시</dd><dt>장소</dt><dd>의정부 신한대학교</dd><dt>교통</dt><dd>망월사역 1분 거리 · 강남에서 30분</dd></dl>
+    </div></div>
+</section>
+
+<!-- 5. 수강료 -->
+<section class="sheet" id="s5">
+  <div class="brand">딥마크온 클래스</div>
+  <h1 class="big">수강료 안내</h1>
+
+  <div class="price-card">
+    <span class="badge">프로그램만</span>
+    <ul class="desc"><li>자동화 프로그램 2종</li><li>지침 스킬 · 주제 선정 600개</li></ul>
+    <div class="rows">
+      <div class="row"><div class="k">3개월 이용권</div><div class="v">10<span>만원</span></div></div>
+      <div class="row"><div class="k">평생 이용권</div><div class="v">20<span>만원</span></div></div>
+    </div>
+  </div>
+
+  <div class="price-card">
+    <span class="badge">기초반</span>
+    <div class="rows">
+      <div class="row"><div class="k">매일 쇼츠 챌린지 + 강의</div><div class="v">10<span>만원</span></div></div>
+      <div class="row"><div class="k">챌린지 + 강의<small>+ 평생 프로그램</small></div><div class="v">30<span>만원</span></div></div>
+    </div>
+  </div>
+
+  <div class="price-card">
+    <span class="badge">중급반</span>
+    <ul class="desc"><li>매일 쇼츠 챌린지 + 강의 + 평생 프로그램</li><li>5종 유료 플랫폼 1년 이용권</li></ul>
+    <div class="rows">
+      <div class="row"><div class="k">중급반</div><div class="v">50<span>만원</span></div></div>
+    </div>
+  </div>
+
+  <div class="price-card top">
+    <span class="badge">고급반 (평생반)</span>
+    <ul class="desc"><li>1:1 코칭 (원하는 시간 고정)</li><li>온 · 오프라인 모두 가능</li><li>수익화될 때까지 코칭</li><li>모든 혜택 제공</li></ul>
+    <div class="rows">
+      <div class="row"><div class="k">고급반</div><div class="v">200<span>만원</span></div></div>
+    </div>
+  </div>
+
+  <div class="banner">카드 결제 시 12개월 무이자</div>
+</section>
+
+</body>
+</html>
