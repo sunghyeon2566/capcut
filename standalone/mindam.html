@@ -187,6 +187,22 @@
   .nav button:disabled { opacity: .3; cursor: default; }
   .nav button:focus-visible, .back:focus-visible, .copy:focus-visible, .flow button:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
+  .lecture-imgs { display: flex; flex-direction: column; gap: 0; margin-top: 8px; border-radius: 20px; overflow: hidden; }
+  .lecture-imgs img { display: block; width: 100%; max-width: 100%; height: auto; }
+  .lecture-end { text-align: center; padding-block: 40px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .lecture-end p { margin: 0; font-size: 21px; font-weight: 700; color: var(--fg); }
+  .apply {
+    display: block; text-align: center; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+    font-weight: 900; font-size: clamp(22px, 5.6vw, 28px); padding: 22px 20px; box-shadow: 0 0 0 4px rgba(245, 197, 66, .25);
+  }
+  .lecture-end .apply { font-size: clamp(24px, 6.4vw, 32px); padding-block: 28px; }
+  .apply-bar {
+    position: sticky; bottom: 0; z-index: 5; background: var(--bg);
+    padding-top: 12px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line);
+  }
+  .apply:active { transform: scale(0.97); }
+  .apply:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+
   .choices { display: flex; flex-direction: column; gap: 16px; }
   .choices .card { padding-block: 28px; }
   .sets { display: flex; flex-direction: column; gap: 14px; }
@@ -210,16 +226,16 @@
     <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
   </div>
 
-  <a class="card" data-link="lectureForm" href="#">
+  <button class="card" type="button" data-open="lecture">
     <h2>민담 유튜브 강의<br>신청서 작성</h2>
     <ul class="offer">
       <li>🎬 쇼츠 챌린지 (기초반)</li>
       <li>💰 롱폼 수익화 (중급반)</li>
       <li>🎁 신청하신 분들께 드리는 혜택이 궁금하시다면 신청서를 확인해 보세요</li>
     </ul>
-    <span class="btn">신청서 확인하러 가기
+    <span class="btn">강의 안내 보고 신청하기
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-  </a>
+  </button>
 
   <button class="card hero" type="button" data-open="program">
     <h1>컷편집 프로그램,<br>민담 자동 편집기<br>프로그램 받기</h1>
@@ -270,6 +286,29 @@
   <div class="nav">
     <button type="button" id="prev">← 이전</button>
     <button type="button" class="next" id="next">다음 →</button>
+  </div>
+</section>
+
+<!-- 강의 안내 이미지 + 신청서 -->
+<section id="lecture" class="deck" hidden>
+  <div class="deck-top">
+    <div class="deck-top-row">
+      <button type="button" class="back" data-open="home">← 처음 화면으로</button>
+    </div>
+  </div>
+  <div class="lecture-imgs">
+    <img src="media/lecture-01.png" alt="야담·민담·설화 AI 영상으로 유튜브 수익화 강의 소개" loading="lazy">
+    <img src="media/lecture-02.png" alt="수강생 혜택" loading="lazy">
+    <img src="media/lecture-03.png" alt="기초반 쇼츠 챌린지 커리큘럼" loading="lazy">
+    <img src="media/lecture-04.png" alt="중급반 롱폼 수익화 커리큘럼" loading="lazy">
+    <img src="media/lecture-05.png" alt="수강료 안내" loading="lazy">
+  </div>
+  <div class="lecture-end">
+    <p>강의 내용을 모두 보셨나요?<br>아래 버튼을 눌러 신청서를 작성해 주세요.</p>
+    <a class="apply" data-link="lectureForm" href="#">📝 강의 신청서 작성하기</a>
+  </div>
+  <div class="apply-bar">
+    <a class="apply" data-link="lectureForm" href="#">📝 강의 신청서 작성하기</a>
   </div>
 </section>
 
@@ -523,6 +562,14 @@
       result: ["최종 영상"]
     }
   ];
+
+  // 강의 안내: 맨 아래 큰 신청 버튼이 보이면 하단 고정 버튼은 숨김
+  const applyBar = document.querySelector(".apply-bar");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      applyBar.hidden = entries[0].isIntersecting;
+    }).observe(document.querySelector(".lecture-end"));
+  }
 
   // 아이폰에서도 누르는 순간(:active) 효과가 보이도록
   document.addEventListener("touchstart", function () {}, { passive: true });
@@ -1008,7 +1055,7 @@
   function go(i) { index = Math.min(Math.max(i, 0), total() - 1); render(); window.scrollTo(0, 0); }
 
   // 화면 전환: home(처음) · guide(슬라이드) · program(프로그램 받기)
-  const VIEWS = ["home", "guide", "program"];
+  const VIEWS = ["home", "guide", "program", "lecture"];
   function showView(name) {
     VIEWS.forEach(function (v) { document.getElementById(v).hidden = v !== name; });
     window.scrollTo(0, 0);
@@ -1059,5 +1106,5 @@
 
   // 링크 끝에 #guide · #manual · #cut · #program 을 붙이면 그 화면부터 열립니다
   if (location.hash === "#guide" || location.hash === "#manual" || location.hash === "#cut") openDeck(location.hash.slice(1));
-  if (location.hash === "#program") showView("program");
+  if (location.hash === "#program" || location.hash === "#lecture") showView(location.hash.slice(1));
 </script>
