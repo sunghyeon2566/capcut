@@ -65,6 +65,11 @@
   .thumb:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: var(--accent-soft); }
   .thumb:active { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent); transform: scale(0.97); }
 
+  .when { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .when span { background: var(--hot); color: #fff; border-radius: 999px; padding: 4px 16px; font-weight: 900; font-size: 16px; }
+  .when b { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 8vw, 42px); line-height: 1.2; color: var(--accent); }
+  .when small { color: var(--muted); font-size: 16px; font-weight: 700; }
+
   .foot { text-align: center; color: var(--muted); font-size: 15px; margin: 0; }
   .foot a { color: var(--fg); border-bottom: 1px solid var(--line); }
 
@@ -111,6 +116,8 @@
     <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
   </div>
 
+  <div class="when"><span>무료 특강</span><b>10월 22일 (목) 저녁 8시</b><small>줌(Zoom) 온라인 · 신청서 없이 바로 참여</small></div>
+
   <button type="button" class="thumb" id="open-landing" aria-label="무료 특강 소개 보기">
     <img src="media/free-thumb.jpg" alt="무료 특강 유튜브 1개월 챌린지 · 감동민담 · 야담 · 설화" width="966" height="483">
     <span class="label">누구나 1시간 안에 1시간짜리 영상, 무료 특강에서 공개합니다</span>
@@ -133,7 +140,7 @@
     <img src="media/free-06.png" alt="이번 특강에서 가져가실 것" loading="lazy">
   </div>
   <div class="end">
-    <p>지금 바로 들어오세요.<br><b>신청서 없이</b> 버튼 한 번이면 특강에 참여하실 수 있어요.</p>
+    <p><b>10월 22일 (목) 저녁 8시</b><br>신청서 없이 버튼 한 번이면 특강에 참여하실 수 있어요.</p>
     <a class="join" data-zoom href="#">🎥 특강 바로 참여하기</a>
     <small>버튼을 누르면 줌(Zoom)으로 바로 연결됩니다</small>
   </div>
