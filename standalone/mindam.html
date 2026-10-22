@@ -246,7 +246,7 @@
 
   <button class="card hero" type="button" data-open="program">
     <h1>컷편집 프로그램,<br>민담 자동 편집기<br>프로그램 받기</h1>
-    <p>두 프로그램의 사용 설명서를 먼저 보시고, 마음에 드시면 바로 신청하실 수 있어요.</p>
+    <p>어떤 프로그램인지, 왜 써야 하는지 먼저 보시고 사용 설명서까지 확인한 뒤 신청하실 수 있어요.</p>
     <ul class="offer">
       <li>📖 컷편집기 사용 설명서</li>
       <li>📖 민담 자동 편집기 사용 설명서</li>
@@ -326,11 +326,17 @@
       <button type="button" class="back" data-open="home">← 처음 화면으로</button>
     </div>
   </div>
+  <div class="lecture-imgs">
+    <img src="media/program-01.png" alt="영상 편집, 이제 프로그램이 대신 합니다">
+    <img src="media/program-02.png" alt="왜 프로그램을 써야 할까요" loading="lazy">
+    <img src="media/program-03.png" alt="딥마크온 클래스 컷편집기" loading="lazy">
+    <img src="media/program-04.png" alt="민담 영상 자동 제작기" loading="lazy">
+    <img src="media/program-05.png" alt="프로그램을 쓰면 이렇게 달라집니다" loading="lazy">
+  </div>
   <div class="slide">
-    <span class="step-tag">프로그램 받기</span>
-    <h2>컷편집 프로그램,
-민담 자동 편집기</h2>
-    <p class="lead">처음이시면 프로그램 사용 설명서를 먼저 보시고, 준비가 되셨으면 신청서를 작성해 주세요.</p>
+    <span class="step-tag">사용 설명서</span>
+    <h2>쓰는 법도
+한 장씩 알려 드려요</h2>
     <div class="choices">
       <button class="card" type="button" data-deck="cut">
         <h2>컷 편집기 사용 설명서</h2>
@@ -344,13 +350,14 @@
         <span class="btn">자동 편집기 설명서 보기
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </button>
-      <a class="card" data-link="programForm" href="#">
-        <h2>프로그램 신청</h2>
-        <p>민담 각종 주제 600개와 민담 지침 스킬을 함께 드려요.</p>
-        <span class="btn">신청서 작성하러 가기
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-      </a>
     </div>
+  </div>
+  <div class="lecture-end">
+    <p>프로그램 2종과 지침 스킬, 주제 600개를<br>지금 신청하세요.</p>
+    <a class="apply" data-link="programForm" href="#">📝 프로그램 신청서 작성하기</a>
+  </div>
+  <div class="apply-bar">
+    <a class="apply" data-link="programForm" href="#">📝 프로그램 신청서 작성하기</a>
   </div>
 </section>
 
@@ -571,11 +578,12 @@
   ];
 
   // 강의 안내: 맨 아래 큰 신청 버튼이 보이면 하단 고정 버튼은 숨김
-  const applyBar = document.querySelector(".apply-bar");
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) {
-      applyBar.hidden = entries[0].isIntersecting;
-    }).observe(document.querySelector(".lecture-end"));
+    document.querySelectorAll(".apply-bar").forEach(function (bar) {
+      new IntersectionObserver(function (entries) {
+        bar.hidden = entries[0].isIntersecting;
+      }).observe(bar.parentElement.querySelector(".lecture-end"));
+    });
   }
 
   // 아이폰에서도 누르는 순간(:active) 효과가 보이도록

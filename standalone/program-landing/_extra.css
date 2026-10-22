@@ -1,0 +1,38 @@
+  /* 무료 특강 랜딩 이미지 — 신청서 이미지와 같은 파란·남색 스타일, 문제 제기 → 해결 순서 */
+  .eyebrow { text-align: center; font-size: 34px; font-weight: 900; color: var(--red); letter-spacing: .04em; }
+  .q { margin: 0; text-align: center; font-size: 46px; font-weight: 700; line-height: 1.5; color: var(--navy); }
+  .q b { color: var(--blue); }
+  .checks { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 22px; }
+  .checks li {
+    background: var(--white); border-radius: 22px; padding: 28px 32px; display: grid; grid-template-columns: 64px 1fr; gap: 22px; align-items: start;
+    border: 2px solid #c6d3ea; box-shadow: 0 10px 24px rgba(20, 35, 63, .08);
+  }
+  .checks .x { width: 64px; height: 64px; border-radius: 50%; background: var(--red); color: var(--white); display: grid; place-items: center; font-size: 38px; font-weight: 900; }
+  .checks h4 { margin: 0; font-size: 40px; font-weight: 900; color: var(--navy); line-height: 1.35; }
+  .checks p { margin: 8px 0 0; font-size: 30px; font-weight: 500; color: #4b5e80; line-height: 1.5; }
+  .verdict { background: var(--navy); color: var(--white); border-radius: 26px; padding: 40px; text-align: center; font-size: 42px; font-weight: 900; line-height: 1.45; }
+  .verdict em { font-style: normal; color: var(--gold); }
+
+  .hero-num { text-align: center; color: var(--blue); font-weight: 900; transform: skewX(-8deg); line-height: 1.05; }
+  .hero-num .a { display: block; font-size: 150px; }
+  .hero-num .b { display: block; font-size: 64px; color: var(--navy); }
+
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .vs > div { border-radius: 26px; padding: 34px 30px; display: flex; flex-direction: column; gap: 16px; }
+  .vs .before { background: #dfe5ef; border: 2px solid #c3cde0; color: #56688a; }
+  .vs .after { background: var(--navy); border: 3px solid var(--blue-bright); color: var(--white); }
+  .vs h4 { margin: 0; font-size: 36px; font-weight: 900; }
+  .vs .after h4 { color: var(--gold); }
+  .vs ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .vs li { font-size: 29px; font-weight: 700; line-height: 1.4; }
+  .vs .before li::before { content: "✕ "; color: var(--red); }
+  .vs .after li::before { content: "✓ "; color: var(--blue-bright); }
+
+  .steps { display: flex; flex-direction: column; gap: 14px; }
+  .steps div { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 22px; background: var(--white); border: 2px solid #c6d3ea; border-radius: 20px; padding: 20px 26px; }
+  .steps b { width: 76px; height: 76px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-size: 38px; font-weight: 900; }
+  .steps span { font-size: 34px; font-weight: 900; color: var(--navy); }
+  .steps small { display: block; font-size: 27px; font-weight: 500; color: #4b5e80; }
+
+  .free { text-align: center; }
+  .free .tag { display: inline-block; background: var(--red); color: var(--white); border-radius: 999px; padding: 12px 40px; font-size: 40px; font-weight: 900; transform: skewX(-6deg); }

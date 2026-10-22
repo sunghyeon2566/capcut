@@ -1,0 +1,108 @@
+
+  /* 구글 신청서에 올릴 세로 이미지 5장 — 연회색 바탕 · 파란 굵은 제목 · 남색 카드 */
+  :root {
+    --bg-top: #eef2f8;
+    --bg-bottom: #d9e2f0;
+    --blue: #1565e0;
+    --blue-bright: #2b86ff;
+    --navy: #1b2f52;
+    --navy-deep: #14233f;
+    --line: #34507f;
+    --white: #ffffff;
+    --soft: #c9d6ec;
+    --gold: #ffd54a;
+    --red: #e53935;
+    --font: "Noto Sans KR", "WenQuanYi Zen Hei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-bottom); font-family: var(--font); word-break: keep-all; }
+  .sheet {
+    width: 1080px; padding: 90px 70px 100px; margin: 0 0 40px;
+    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    display: flex; flex-direction: column; gap: 44px; color: var(--navy);
+  }
+  .brand { text-align: center; font-weight: 900; font-size: 30px; letter-spacing: .14em; color: var(--blue); }
+  .big {
+    margin: 0; text-align: center; font-weight: 900; line-height: 1.12; color: var(--blue);
+    font-size: 118px; letter-spacing: -0.02em; transform: skewX(-8deg);
+  }
+  .big .dark { color: var(--navy); }
+  .big .sm { display: block; font-size: 76px; }
+  .lead { margin: 0; text-align: center; font-size: 40px; font-weight: 700; line-height: 1.5; color: var(--navy); }
+  .lead b { color: var(--blue); }
+
+  .card { background: var(--navy); border-radius: 26px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 18px 40px rgba(20, 35, 63, .25); }
+  .card-head {
+    background: var(--blue); color: var(--white); padding: 30px 40px; display: flex; gap: 22px; align-items: baseline;
+    font-size: 40px; font-weight: 700; line-height: 1.35;
+  }
+  .card-head .tag { flex: none; font-weight: 900; font-size: 50px; }
+  .card-head small { display: block; font-size: 30px; font-weight: 500; opacity: .9; margin-top: 4px; }
+  .card-body { padding: 40px 46px 44px; color: var(--white); }
+  .card-body ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 24px; }
+  .card-body li { display: flex; gap: 18px; font-size: 38px; font-weight: 700; line-height: 1.4; }
+  .card-body li::before { content: "•"; flex: none; }
+  .card-body .note { margin: 34px 0 0; padding-top: 30px; border-top: 2px solid var(--line); color: var(--soft); font-size: 30px; font-weight: 500; line-height: 1.6; }
+
+  .offline .card-head { background: linear-gradient(90deg, #e53935, #ff6f43); }
+  .offline .where { margin-top: 30px; display: grid; grid-template-columns: auto 1fr; gap: 14px 22px; font-size: 34px; font-weight: 700; }
+  .offline .where dt { color: var(--gold); }
+  .offline .where dd { margin: 0; }
+
+  .pill {
+    align-self: center; background: var(--navy-deep); color: var(--white); border: 3px solid var(--blue-bright);
+    border-radius: 999px; padding: 14px 40px; font-size: 38px; font-weight: 900;
+  }
+
+  /* 성과 숫자 */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .stat { background: var(--navy); border-radius: 26px; padding: 40px 30px; text-align: center; color: var(--white); border: 2px solid var(--line); }
+  .stat .n { font-size: 110px; font-weight: 900; line-height: 1; color: var(--white); transform: skewX(-8deg); }
+  .stat .n span { font-size: 56px; color: var(--blue-bright); }
+  .stat .t { margin-top: 18px; font-size: 34px; font-weight: 700; color: var(--soft); line-height: 1.4; }
+  .stat.wide { grid-column: 1 / -1; padding-block: 34px; }
+  .stat.wide .n { font-size: 64px; }
+
+  .classes { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .cls { background: var(--white); border-radius: 26px; padding: 36px 32px; border: 3px solid var(--blue); display: flex; flex-direction: column; gap: 14px; }
+  .cls .lv { align-self: flex-start; background: var(--blue); color: var(--white); border-radius: 999px; padding: 6px 22px; font-size: 28px; font-weight: 900; }
+  .cls h3 { margin: 0; font-size: 50px; font-weight: 900; color: var(--navy); transform: skewX(-6deg); }
+  .cls p { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.5; color: #3a4d70; }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .flow span { background: var(--white); border: 3px solid var(--blue); color: var(--navy); border-radius: 18px; padding: 16px 26px; font-size: 34px; font-weight: 900; white-space: nowrap; }
+  .flow i { font-style: normal; color: var(--blue); font-size: 40px; font-weight: 900; }
+
+  /* 혜택 */
+  .benefit { display: grid; grid-template-columns: 110px 1fr; gap: 28px; align-items: center; }
+  .benefit + .benefit { margin-top: 34px; padding-top: 34px; border-top: 2px solid var(--line); }
+  .benefit .no { width: 110px; height: 110px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-size: 54px; font-weight: 900; }
+  .benefit h4 { margin: 0; font-size: 42px; font-weight: 900; line-height: 1.35; color: var(--white); }
+  .benefit h4 em { font-style: normal; color: var(--gold); }
+  .benefit p { margin: 8px 0 0; font-size: 31px; font-weight: 500; color: var(--soft); line-height: 1.5; }
+  .banner {
+    background: linear-gradient(90deg, var(--blue), var(--blue-bright)); color: var(--white); border-radius: 26px; text-align: center;
+    padding: 40px 30px; font-size: 56px; font-weight: 900; transform: skewX(-6deg); box-shadow: 0 18px 40px rgba(21, 101, 224, .35);
+  }
+  .banner small { display: block; font-size: 32px; font-weight: 700; opacity: .9; margin-top: 6px; }
+
+  .sched { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .sched div { font-size: 38px; font-weight: 700; color: var(--navy); }
+  .sched b { color: var(--blue); }
+
+  /* 수강료 */
+  .price-card { background: var(--navy-deep); border-radius: 26px; padding: 44px 46px; border: 2px solid var(--blue-bright); box-shadow: 0 0 0 6px rgba(43, 134, 255, .15), 0 18px 40px rgba(20, 35, 63, .3); color: var(--white); }
+  .price-card .badge { display: inline-block; background: #000; border: 3px solid var(--blue-bright); border-radius: 999px; padding: 10px 30px; font-size: 36px; font-weight: 900; }
+  .price-card .desc { margin: 24px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .price-card .desc li { font-size: 32px; font-weight: 700; color: var(--soft); display: flex; gap: 14px; }
+  .price-card .desc li::before { content: "✓"; color: var(--blue-bright); font-weight: 900; }
+  .rows { margin-top: 26px; display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; border-top: 2px solid var(--line); padding-top: 18px; }
+  .row .k { font-size: 34px; font-weight: 700; color: var(--white); }
+  .row .k small { display: block; font-size: 27px; font-weight: 500; color: var(--soft); }
+  .row .v { font-size: 74px; font-weight: 900; white-space: nowrap; transform: skewX(-8deg); color: var(--white); }
+  .row .v span { font-size: 40px; color: var(--blue-bright); }
+  .price-card.top { border-color: var(--gold); box-shadow: 0 0 0 6px rgba(255, 213, 74, .18), 0 18px 40px rgba(20, 35, 63, .3); }
+  .price-card.top .badge { border-color: var(--gold); color: var(--gold); }
+  .price-card.top .v span { color: var(--gold); }
+  .foot { text-align: center; font-size: 28px; font-weight: 500; color: #4b5e80; line-height: 1.6; }
