@@ -1,0 +1,187 @@
+<title>딥마크온 클래스 무료 특강</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  /* 무료 특강 홍보 링크 — 영상 → 썸네일(클릭) → 랜딩 이미지 → 줌 참여 */
+  :root {
+    --bg: #000000;
+    --card: #111111;
+    --line: #2c2c2c;
+    --fg: #ffffff;
+    --muted: #b8b8b8;
+    --accent: #f5c542;
+    --accent-soft: #2b230a;
+    --hot: #e53935;
+    --zoom: #2d8cff;
+    --on-accent: #111111;
+    --display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    font-family: var(--body); font-size: 18px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding-block: 40px 64px; display: flex; flex-direction: column; gap: 24px; }
+  .brand { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; color: var(--muted); font-size: 15px; letter-spacing: 0.04em; }
+  .brand b { color: var(--fg); font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: 0.02em; }
+
+  .intro { border-radius: 24px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .intro video { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; }
+  .sound {
+    display: block; width: calc(100% - 24px); margin: 12px; border: 0; border-radius: 999px;
+    background: var(--accent); color: var(--on-accent); font-weight: 900; font-size: 18px; padding: 14px 20px; cursor: pointer;
+  }
+
+  /* 썸네일 + 클릭 */
+  .thumb {
+    -webkit-tap-highlight-color: transparent;
+    display: block; width: 100%; padding: 0; text-align: center; cursor: pointer; color: inherit;
+    background: var(--card); border: 1px solid var(--line); border-radius: 24px; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s, background-color .2s, transform .2s;
+  }
+  .thumb img { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .thumb .label { display: block; padding: 18px 20px 6px; font-size: 18px; font-weight: 700; color: var(--muted); }
+  .click {
+    display: flex; align-items: center; justify-content: center; gap: 14px; margin: 10px 16px 18px;
+    border-radius: 999px; background: var(--accent); color: var(--on-accent);
+    font-family: var(--display); font-size: clamp(40px, 11vw, 60px); line-height: 1; padding: 22px 20px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .click svg { width: 1em; height: 1em; flex: none; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 197, 66, .55); } 50% { box-shadow: 0 0 0 14px rgba(245, 197, 66, 0); } }
+  @media (hover: hover) {
+    .thumb:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: var(--accent-soft); }
+  }
+  .thumb:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); background: var(--accent-soft); }
+  .thumb:active { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent); transform: scale(0.97); }
+
+  .foot { text-align: center; color: var(--muted); font-size: 15px; margin: 0; }
+  .foot a { color: var(--fg); border-bottom: 1px solid var(--line); }
+
+  /* 랜딩 */
+  .landing { max-width: 860px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 12px; }
+  .back { background: none; border: 0; color: var(--muted); font-size: 17px; cursor: pointer; padding: 6px 0; }
+  .back:hover { color: var(--fg); }
+  .imgs { border-radius: 20px; overflow: hidden; }
+  .imgs img { display: block; width: 100%; max-width: 100%; height: auto; }
+  .end { text-align: center; padding-block: 40px 28px; display: flex; flex-direction: column; gap: 20px; }
+  .end p { margin: 0; font-size: 21px; font-weight: 700; }
+  .end p b { color: var(--accent); }
+  .join {
+    -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
+    border-radius: 999px; background: var(--zoom); color: #fff; font-weight: 900; font-size: clamp(22px, 5.8vw, 28px);
+    padding: 22px 20px; box-shadow: 0 0 0 4px rgba(45, 140, 255, .3); transition: transform .2s, box-shadow .2s;
+  }
+  .end .join { font-size: clamp(26px, 7vw, 36px); padding-block: 30px; animation: pulse-z 1.6s ease-in-out infinite; }
+  @keyframes pulse-z { 0%, 100% { box-shadow: 0 0 0 0 rgba(45, 140, 255, .6); } 50% { box-shadow: 0 0 0 16px rgba(45, 140, 255, 0); } }
+  .join:active { transform: scale(0.97); }
+  .join:focus-visible, .back:focus-visible, .sound:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+  .end small { color: var(--muted); font-size: 16px; }
+  .bar {
+    position: sticky; bottom: 0; z-index: 5; background: var(--bg); border-top: 1px solid var(--line);
+    padding-top: 12px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 900px) {
+    body { zoom: 0.7; }
+    .wrap { max-width: 600px; }
+    .landing { max-width: 640px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<!-- 처음 화면 -->
+<main id="home" class="wrap">
+  <div class="brand"><b>딥마크온 클래스</b><span>시니어 유튜브 수익화</span></div>
+
+  <div class="intro">
+    <video id="intro-video" src="media/intro.mp4" poster="media/intro-poster.jpg" autoplay muted loop playsinline controls preload="metadata"></video>
+    <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
+  </div>
+
+  <button type="button" class="thumb" id="open-landing" aria-label="무료 특강 소개 보기">
+    <img src="media/free-thumb.jpg" alt="무료 특강 썸네일">
+    <span class="label">누구나 1시간 안에 1시간짜리 영상, 무료 특강에서 공개합니다</span>
+    <span class="click">클릭
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </button>
+
+  <p class="foot">딥마크온 클래스 · <a href="https://deep-mark-on.kr/" target="_blank" rel="noopener">deep-mark-on.kr</a></p>
+</main>
+
+<!-- 특강 소개 랜딩 -->
+<section id="landing" class="landing" hidden>
+  <div class="top"><button type="button" class="back" id="close-landing">← 처음 화면으로</button></div>
+  <div class="imgs">
+    <img src="media/free-01.png" alt="열심히 만드는데 왜 내 영상은 안 될까요?">
+    <img src="media/free-02.png" alt="영상 수익화가 안 되는 분들의 특징" loading="lazy">
+    <img src="media/free-03.png" alt="영상 노출이 안 되는 분들의 특징" loading="lazy">
+    <img src="media/free-04.png" alt="영상 제작에 시간이 많이 드는 분들의 특징" loading="lazy">
+    <img src="media/free-05.png" alt="누구나 1시간 안에 1시간짜리 영상 완성" loading="lazy">
+    <img src="media/free-06.png" alt="이번 특강에서 가져가실 것" loading="lazy">
+  </div>
+  <div class="end">
+    <p>지금 바로 들어오세요.<br><b>신청서 없이</b> 버튼 한 번이면 특강에 참여하실 수 있어요.</p>
+    <a class="join" data-zoom href="#">🎥 특강 바로 참여하기</a>
+    <small>버튼을 누르면 줌(Zoom)으로 바로 연결됩니다</small>
+  </div>
+  <div class="bar"><a class="join" data-zoom href="#">🎥 특강 바로 참여하기</a></div>
+</section>
+
+<script>
+  // 줌 링크 — 여기만 바꾸면 참여 버튼 주소가 바뀝니다
+  const ZOOM_LINK = "https://us06web.zoom.us/j/6268363794?pwd=baMfsITgJDnxGOzJxsWJBMubXoHBQK.1";
+
+  document.querySelectorAll("[data-zoom]").forEach(function (a) {
+    a.href = ZOOM_LINK;
+    a.target = "_blank";
+    a.rel = "noopener";
+  });
+
+  const home = document.getElementById("home");
+  const landing = document.getElementById("landing");
+  function show(name) {
+    home.hidden = name !== "home";
+    landing.hidden = name !== "landing";
+    window.scrollTo(0, 0);
+  }
+  document.getElementById("open-landing").addEventListener("click", function () { show("landing"); });
+  document.getElementById("close-landing").addEventListener("click", function () { show("home"); });
+
+  // 맨 아래 큰 참여 버튼이 보이면 하단 고정 버튼은 숨김
+  const bar = document.querySelector(".bar");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) { bar.hidden = entries[0].isIntersecting; })
+      .observe(document.querySelector(".end"));
+  }
+
+  // 소개 영상: 처음엔 소리 없이 자동 재생, 버튼을 누르면 소리 켜고 처음부터
+  const introVideo = document.getElementById("intro-video");
+  const soundOn = document.getElementById("sound-on");
+  soundOn.addEventListener("click", function () {
+    introVideo.muted = false;
+    introVideo.loop = false;
+    introVideo.currentTime = 0;
+    introVideo.play().catch(function () {});
+    soundOn.hidden = true;
+  });
+  introVideo.addEventListener("volumechange", function () { if (!introVideo.muted) soundOn.hidden = true; });
+
+  // 아이폰에서도 누르는 순간(:active) 효과가 보이도록
+  document.addEventListener("touchstart", function () {}, { passive: true });
+
+  // 링크 끝에 #landing 을 붙이면 특강 소개부터 열립니다
+  if (location.hash === "#landing") show("landing");
+</script>

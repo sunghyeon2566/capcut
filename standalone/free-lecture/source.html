@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>무료 특강 랜딩 이미지 원본</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="_style.css">
+<style>
+  /* 무료 특강 랜딩 이미지 — 신청서 이미지와 같은 파란·남색 스타일, 문제 제기 → 해결 순서 */
+  .eyebrow { text-align: center; font-size: 34px; font-weight: 900; color: var(--red); letter-spacing: .04em; }
+  .q { margin: 0; text-align: center; font-size: 46px; font-weight: 700; line-height: 1.5; color: var(--navy); }
+  .q b { color: var(--blue); }
+  .checks { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 22px; }
+  .checks li {
+    background: var(--white); border-radius: 22px; padding: 28px 32px; display: grid; grid-template-columns: 64px 1fr; gap: 22px; align-items: start;
+    border: 2px solid #c6d3ea; box-shadow: 0 10px 24px rgba(20, 35, 63, .08);
+  }
+  .checks .x { width: 64px; height: 64px; border-radius: 50%; background: var(--red); color: var(--white); display: grid; place-items: center; font-size: 38px; font-weight: 900; }
+  .checks h4 { margin: 0; font-size: 40px; font-weight: 900; color: var(--navy); line-height: 1.35; }
+  .checks p { margin: 8px 0 0; font-size: 30px; font-weight: 500; color: #4b5e80; line-height: 1.5; }
+  .verdict { background: var(--navy); color: var(--white); border-radius: 26px; padding: 40px; text-align: center; font-size: 42px; font-weight: 900; line-height: 1.45; }
+  .verdict em { font-style: normal; color: var(--gold); }
+
+  .hero-num { text-align: center; color: var(--blue); font-weight: 900; transform: skewX(-8deg); line-height: 1.05; }
+  .hero-num .a { display: block; font-size: 150px; }
+  .hero-num .b { display: block; font-size: 64px; color: var(--navy); }
+
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .vs > div { border-radius: 26px; padding: 34px 30px; display: flex; flex-direction: column; gap: 16px; }
+  .vs .before { background: #dfe5ef; border: 2px solid #c3cde0; color: #56688a; }
+  .vs .after { background: var(--navy); border: 3px solid var(--blue-bright); color: var(--white); }
+  .vs h4 { margin: 0; font-size: 36px; font-weight: 900; }
+  .vs .after h4 { color: var(--gold); }
+  .vs ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .vs li { font-size: 29px; font-weight: 700; line-height: 1.4; }
+  .vs .before li::before { content: "✕ "; color: var(--red); }
+  .vs .after li::before { content: "✓ "; color: var(--blue-bright); }
+
+  .steps { display: flex; flex-direction: column; gap: 14px; }
+  .steps div { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 22px; background: var(--white); border: 2px solid #c6d3ea; border-radius: 20px; padding: 20px 26px; }
+  .steps b { width: 76px; height: 76px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-size: 38px; font-weight: 900; }
+  .steps span { font-size: 34px; font-weight: 900; color: var(--navy); }
+  .steps small { display: block; font-size: 27px; font-weight: 500; color: #4b5e80; }
+
+  .free { text-align: center; }
+  .free .tag { display: inline-block; background: var(--red); color: var(--white); border-radius: 999px; padding: 12px 40px; font-size: 40px; font-weight: 900; transform: skewX(-6deg); }
+</style>
+</head>
+<body>
+
+<!-- 1. 문제 제기 -->
+<section class="sheet" id="f1">
+  <div class="brand">딥마크온 클래스 무료 특강</div>
+  <h1 class="big"><span class="sm dark">열심히 만드는데</span>왜 내 영상은<br>안 될까요?</h1>
+  <p class="q">혹시 지금 이런 고민을 하고 계신가요?<br><b>3가지 중 하나라도 해당된다면</b><br>이번 특강을 꼭 보셔야 합니다.</p>
+  <div class="steps">
+    <div><b>1</b><span>영상을 올려도 수익이 안 난다</span></div>
+    <div><b>2</b><span>영상을 올려도 아무도 안 본다</span></div>
+    <div><b>3</b><span>영상 하나 만드는 데 며칠이 걸린다</span></div>
+  </div>
+</section>
+
+<!-- 2. 수익화가 안 되는 분들의 특징 -->
+<section class="sheet" id="f2">
+  <div class="eyebrow">CHECK 1</div>
+  <h1 class="big"><span class="sm dark">영상 수익화가</span>안 되는 분들의<br>특징</h1>
+  <ul class="checks">
+    <li><span class="x">✕</span><div><h4>짧은 영상만 올린다</h4><p>수익 창출 조건인 시청 시간 4,000시간은 짧은 영상만으로는 채우기 어렵습니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>올렸다 쉬었다를 반복한다</h4><p>꾸준히 올라오지 않는 채널은 구독자도, 유튜브도 기억하지 못합니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>매번 주제가 바뀐다</h4><p>채널의 색깔이 없으면 구독 버튼을 누를 이유가 없습니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>혼자 하다 지쳐서 멈춘다</h4><p>방법을 모른 채 버티다 결국 포기하게 됩니다.</p></div></li>
+  </ul>
+  <div class="verdict">문제는 노력이 아니라 <em>방법</em>입니다.</div>
+</section>
+
+<!-- 3. 노출이 안 되는 분들의 특징 -->
+<section class="sheet" id="f3">
+  <div class="eyebrow">CHECK 2</div>
+  <h1 class="big"><span class="sm dark">영상 노출이</span>안 되는 분들의<br>특징</h1>
+  <ul class="checks">
+    <li><span class="x">✕</span><div><h4>첫 3초에 후킹이 없다</h4><p>시작부터 궁금하지 않으면 시청자는 바로 넘겨 버립니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>썸네일과 제목이 눈에 안 띈다</h4><p>눌러 보고 싶지 않은 영상은 추천에 떠도 선택받지 못합니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>끝까지 보는 사람이 없다</h4><p>시청 지속 시간이 짧으면 유튜브가 더 이상 추천해 주지 않습니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>벤치마킹 없이 감으로 만든다</h4><p>이미 잘 되는 채널의 공식을 모르면 매번 처음부터 다시 시작입니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>업로드 주의사항을 모른다</h4><p>작은 실수 하나로 노출이 막히거나 수익 창출에서 멀어질 수 있습니다.</p></div></li>
+  </ul>
+  <div class="verdict">보이지 않으면 <em>아무리 좋은 영상도</em><br>없는 것과 같습니다.</div>
+</section>
+
+<!-- 4. 제작 시간이 오래 걸리는 분들의 특징 -->
+<section class="sheet" id="f4">
+  <div class="eyebrow">CHECK 3</div>
+  <h1 class="big"><span class="sm dark">영상 제작에</span>시간이 너무 많이<br>드는 분들의 특징</h1>
+  <ul class="checks">
+    <li><span class="x">✕</span><div><h4>대본을 처음부터 혼자 쓴다</h4><p>빈 화면 앞에서 몇 시간씩 고민합니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>이미지를 한 장씩 만든다</h4><p>장면이 100장이 넘으면 이미지 작업만 하루가 갑니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>컷편집을 손으로 자른다</h4><p>장면 하나하나 맞추다 보면 눈도 허리도 지칩니다.</p></div></li>
+    <li><span class="x">✕</span><div><h4>자막을 직접 친다</h4><p>한 줄씩 타이핑하고 시간을 맞추느라 영상보다 자막이 더 오래 걸립니다.</p></div></li>
+  </ul>
+  <div class="verdict">이 작업들, <em>이제 자동으로</em> 하시면 됩니다.</div>
+</section>
+
+<!-- 5. 해결: 1시간 안에 1시간짜리 영상 -->
+<section class="sheet" id="f5">
+  <div class="brand">이번 무료 특강에서 공개합니다</div>
+  <div class="hero-num"><span class="b">누구나</span><span class="a">1시간 안에</span><span class="b">1시간짜리 영상 완성</span></div>
+  <p class="q">편집을 몰라도, 컴퓨터가 서툴러도 괜찮습니다.<br><b>순서대로 따라 하기만</b> 하면 됩니다.</p>
+  <div class="vs">
+    <div class="before"><h4>혼자 할 때</h4><ul><li>대본 혼자 고민</li><li>이미지 한 장씩</li><li>컷편집 손으로</li><li>자막 직접 타이핑</li></ul></div>
+    <div class="after"><h4>특강 방법</h4><ul><li>지침 스킬로 대본</li><li>프롬프트로 이미지</li><li>자동 편집 프로그램</li><li>자막 자동 생성</li></ul></div>
+  </div>
+  <div class="steps">
+    <div><b>1</b><span>대본<small>지침 스킬로 후킹 · 본문 대본 완성</small></span></div>
+    <div><b>2</b><span>이미지<small>프롬프트로 장면 이미지 한 번에</small></span></div>
+    <div><b>3</b><span>목소리 · 자막<small>AI 나레이션과 자막 파일 자동 생성</small></span></div>
+    <div><b>4</b><span>자동 편집<small>프로그램에 넣으면 영상이 완성</small></span></div>
+  </div>
+</section>
+
+<!-- 6. 특강에서 얻어 가실 것 + 신뢰 -->
+<section class="sheet" id="f6">
+  <div class="free"><span class="tag">100% 무료 특강</span></div>
+  <h1 class="big"><span class="sm dark">이번 특강에서</span>가져가실 것</h1>
+  <div class="card">
+    <div class="card-body">
+      <div class="benefit"><div class="no">1</div><div><h4>야담 · 민담 · 설화 <em>롱폼 수익화 원리</em></h4><p>이 주제의 영상이 어떻게 수익으로 이어지는지</p></div></div>
+      <div class="benefit"><div class="no">2</div><div><h4>1시간 영상 제작 <em>전 과정 공개</em></h4><p>대본부터 완성 영상까지 순서 그대로</p></div></div>
+      <div class="benefit"><div class="no">3</div><div><h4>노출되는 영상의 <em>공식</em></h4><p>후킹, 썸네일, 업로드 주의사항까지</p></div></div>
+      <div class="benefit"><div class="no">4</div><div><h4>시간을 줄여 주는 <em>자동 프로그램</em></h4><p>컷편집 · 영상 자동 편집 프로그램 소개</p></div></div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">200<span>명</span></div><div class="t">챌린지 1기 · 2기<br>함께한 수강생</div></div>
+    <div class="stat"><div class="n">60<span>명</span></div><div class="t">상장과 상금을<br>받으신 분</div></div>
+  </div>
+  <div class="verdict">이미 많은 분들이 <em>애드센스에 성공</em>하고 계십니다.<br>다음은 바로 당신 차례입니다.</div>
+  <div class="banner">신청서 없이 줌으로 바로 참여<small>아래 버튼을 눌러 지금 입장하세요</small></div>
+</section>
+
+<!-- 임시 썸네일 (실제 썸네일을 받으면 교체) -->
+<section id="thumb" style="width:1280px;height:720px;background:linear-gradient(135deg,#0d2748,#1565e0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;color:#fff;font-family:var(--font)">
+  <div style="background:#e53935;border-radius:999px;padding:12px 44px;font-size:44px;font-weight:900">무료 특강</div>
+  <div style="font-size:110px;font-weight:900;transform:skewX(-8deg);line-height:1.1;text-align:center">1시간 안에<br><span style="color:#ffd54a">1시간짜리 영상</span></div>
+  <div style="font-size:40px;font-weight:700;opacity:.9">야담 · 민담 · 설화 유튜브 수익화</div>
+</section>
+</body>
+</html>
