@@ -49,7 +49,7 @@
     background: var(--card); border: 1px solid var(--line); border-radius: 24px; overflow: hidden;
     transition: border-color .2s, box-shadow .2s, background-color .2s, transform .2s;
   }
-  .thumb img { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .thumb img { display: block; width: 100%; max-width: 100%; height: auto; }
   .thumb .label { display: block; padding: 18px 20px 6px; font-size: 18px; font-weight: 700; color: var(--muted); }
   .click {
     display: flex; align-items: center; justify-content: center; gap: 14px; margin: 10px 16px 18px;
@@ -112,7 +112,7 @@
   </div>
 
   <button type="button" class="thumb" id="open-landing" aria-label="무료 특강 소개 보기">
-    <img src="media/free-thumb.jpg" alt="무료 특강 썸네일">
+    <img src="media/free-thumb.jpg" alt="무료 특강 유튜브 1개월 챌린지 · 감동민담 · 야담 · 설화" width="966" height="483">
     <span class="label">누구나 1시간 안에 1시간짜리 영상, 무료 특강에서 공개합니다</span>
     <span class="click">클릭
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
