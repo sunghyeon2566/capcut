@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 64" role="img" aria-label="서울특별시">
+  <circle cx="44" cy="17" r="9" fill="#F7941D"/>
+  <path d="M6 40 C14 24 24 18 32 26 C38 32 44 30 52 24 L58 30 C48 40 38 42 30 36 C24 31 18 32 12 44 Z" fill="#45C46A"/>
+  <path d="M6 50 C18 42 28 46 36 50 C44 54 52 52 58 46 L58 54 C50 60 42 60 34 56 C26 52 18 50 6 56 Z" fill="#4FA8FF"/>
+  <text x="70" y="38" font-family="Pretendard, 'Malgun Gothic', sans-serif" font-size="27" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">서울특별시</text>
+  <text x="71" y="56" font-family="Pretendard, 'Malgun Gothic', sans-serif" font-size="11.5" font-weight="700" fill="#B9C8EE" letter-spacing="2.2">SEOUL METROPOLITAN</text>
+</svg>

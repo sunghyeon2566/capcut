@@ -1,0 +1,179 @@
+/* CSS 3D 장면 공통 스타일 */
+@font-face {
+  font-family: "Pretendard";
+  src: url("../fonts/PretendardVariable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+.scene3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 2600px;
+  perspective-origin: 50% 30%;
+  font-family: "Pretendard", "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif;
+}
+.scene3d .world {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform-style: preserve-3d;
+  transform: scale(calc(var(--s) * var(--k, 1))) rotateX(58deg) rotateZ(-40deg);
+  animation: sway 10s ease-in-out infinite alternate;
+}
+@keyframes sway {
+  from { transform: scale(calc(var(--s) * var(--k, 1))) rotateX(58deg) rotateZ(-45deg); }
+  to   { transform: scale(calc(var(--s) * var(--k, 1))) rotateX(56deg) rotateZ(-35deg); }
+}
+.scene3d .obj,
+.scene3d .f {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  transform-origin: 0 0;
+}
+.scene3d .f { overflow: hidden; }
+.scene3d .cy { backface-visibility: hidden; }
+.scene3d .disk { border-radius: 50%; }
+.scene3d .rnd { border-radius: 26px; }
+.scene3d .shd { background: radial-gradient(closest-side, rgba(16, 32, 80, 0.7), transparent); }
+
+/* 정면 요소 */
+.scene3d .bb {
+  position: absolute;
+  transform-origin: 0 0;
+  transform: rotateZ(40deg) rotateX(-58deg);
+  transform-style: preserve-3d;
+}
+.scene3d .bbi {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -100%);
+  transform-style: preserve-3d;
+  white-space: nowrap;
+}
+
+/* 움직임 */
+.scene3d .obj.float { animation: bob3d 3.4s ease-in-out infinite alternate; }
+.scene3d .bbi.float { animation: bob2d 3s ease-in-out infinite alternate; }
+.scene3d .d1 { animation-delay: -0.8s !important; }
+.scene3d .d2 { animation-delay: -1.6s !important; }
+.scene3d .d3 { animation-delay: -2.4s !important; }
+@keyframes bob3d { from { translate: 0 0 0; } to { translate: 0 0 18px; } }
+@keyframes bob2d { from { translate: 0 0; } to { translate: 0 -14px; } }
+.scene3d .sail { animation: sail 7s ease-in-out infinite alternate; }
+@keyframes sail { from { translate: -110px 0 0; } to { translate: 90px 0 0; } }
+.scene3d .drive { animation: drive 6s ease-in-out infinite alternate; }
+@keyframes drive { from { translate: 60px 0 0; } to { translate: -40px 0 0; } }
+.static .scene3d *, .static.scene3d * { animation: none !important; }
+
+/* 창문 */
+.scene3d .win {
+  position: absolute;
+  inset: 8% 12% 6%;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.62) 55%, transparent 55%);
+  background-size: 14px 16px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 55%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 55%);
+  -webkit-mask-size: 14px 16px;
+  mask-size: 14px 16px;
+}
+.scene3d .win.bus {
+  inset: 14% 6% 46%;
+  background-size: 24px 100%;
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image: linear-gradient(to right, rgba(220, 238, 255, 0.95) 80%, transparent 80%);
+}
+.scene3d .win.night { background-image: linear-gradient(to right, rgba(255, 214, 102, 0.85) 50%, transparent 50%); }
+.scene3d .win.lit { background-image: linear-gradient(to right, #FFF4C2 80%, transparent 80%); }
+.scene3d .win.shop {
+  inset: 18% 10% 30%;
+  -webkit-mask-image: none;
+  mask-image: none;
+  background: linear-gradient(135deg, #CFE3FF, #9EC3FF);
+  border: 4px solid #fff;
+}
+
+/* 장식 요소 */
+.scene3d .ball {
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 70%, #000));
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
+}
+.scene3d .tag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #fff;
+  color: #16307A;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.15;
+  padding: 8px 14px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(22, 48, 122, 0.22);
+  text-align: center;
+}
+.scene3d .tag b { font-size: 26px; font-weight: 900; color: #1E5BD8; }
+.scene3d .tag small { font-size: 14px; font-weight: 700; color: #4A5B85; }
+.scene3d .tag.big { font-size: 30px; padding: 12px 22px; border-radius: 18px; letter-spacing: 1px; }
+.scene3d .tag.sm { font-size: 14px; padding: 6px 10px; border-radius: 10px; }
+.scene3d .tag.sm b { font-size: 16px; color: #7B5CFF; }
+.scene3d .cal-t { border-bottom: 4px solid var(--c); }
+.scene3d .emoji { font-size: 52px; line-height: 1; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.18)); }
+.scene3d .stars { color: #FFE9A8; font-size: 26px; letter-spacing: 6px; }
+
+.scene3d .ext { display: grid; transform-style: preserve-3d; }
+.scene3d .exl { grid-area: 1 / 1; line-height: 0.9; }
+.scene3d .exnum { font-weight: 900; font-size: 120px; letter-spacing: -4px; font-family: inherit; }
+.scene3d .exnum.sm { font-size: 84px; }
+
+.scene3d .tnum {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255, 255, 255, 0.95); font-weight: 900; font-size: 56px;
+}
+.scene3d .tnum.sm { font-size: 30px; }
+.scene3d .lt {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 42px;
+}
+.scene3d .lt.sm { font-size: 14px; opacity: 0.8; }
+.scene3d .cardface { position: relative; width: 100%; height: 100%; padding: 18px 20px; box-sizing: border-box; color: #fff; }
+.scene3d .cardface .chip { width: 40px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #FFE27A, #E0B300); }
+.scene3d .cardface .ct { position: absolute; left: 20px; bottom: 40px; font-size: 28px; font-weight: 900; }
+.scene3d .cardface .cs { position: absolute; left: 20px; bottom: 16px; font-size: 14px; font-weight: 700; opacity: 0.8; letter-spacing: 2px; }
+.scene3d .dial, .scene3d .screen { width: 100%; height: 100%; box-sizing: border-box; }
+.scene3d .screen { padding: 14px; background: radial-gradient(circle, #13203A, #0B1426); border-radius: 26px; }
+.scene3d .coin {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 30px; color: #8A6400;
+}
+.scene3d .door { position: absolute; left: 38%; width: 24%; bottom: 0; height: 62%; background: var(--c); border: 4px solid #fff; border-bottom: 0; }
+.scene3d .sign { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 22px; }
+.scene3d .pages { position: absolute; inset: 3px 0 3px 10px; background: repeating-linear-gradient(0deg, #fff 0 2px, #E8ECF5 2px 4px); }
+.scene3d .lap { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9FC2FF; font-weight: 900; font-size: 30px; line-height: 1.1; text-align: center; }
+.scene3d .lap small { font-size: 14px; color: #fff; }
+.scene3d .pricetag {
+  background: #FF8A3D; color: #fff; font-weight: 900; font-size: 26px; padding: 10px 18px 10px 26px;
+  border-radius: 10px 30px 30px 10px; box-shadow: 0 10px 20px rgba(255, 138, 61, 0.35); transform: rotate(-8deg);
+}
+.scene3d .pricetag b { font-size: 34px; }
+.scene3d .chipface { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #FFD54A; font-weight: 900; font-size: 58px; text-shadow: 0 0 18px rgba(255, 213, 74, 0.7); }
+.scene3d .bubble { width: 100%; height: 100%; display: flex; align-items: center; padding: 0 16px; box-sizing: border-box; font-weight: 800; font-size: 19px; color: #2A2550; }
+.scene3d .bubble::before { content: "💬"; margin-right: 8px; }
+.scene3d .chk { width: 100%; height: 100%; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; }
+.scene3d .chk span { width: 36px; height: 36px; border-radius: 50%; color: #fff; font-weight: 900; font-size: 24px; display: flex; align-items: center; justify-content: center; }
+.scene3d .chk i { display: block; height: 10px; border-radius: 5px; background: #DCE3F0; width: 80%; }
+.scene3d .chk i + i { width: 55%; }
+.scene3d .cal { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.scene3d .calh { height: 22%; }
+.scene3d .cal b { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #16307A; }
+.scene3d .sensor { position: absolute; left: 40%; top: 30%; width: 20%; height: 40%; background: #2A3550; border-radius: 6px; }
+.scene3d .beam { width: 120px; height: 40px; background: radial-gradient(ellipse at left, rgba(255, 240, 170, 0.9), transparent 70%); }

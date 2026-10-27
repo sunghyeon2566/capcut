@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 서울 시정 홍보</title>
+  <meta name="description" content="2026 서울, 이렇게 달라집니다 — 교통·건강·돌봄·AI 행정 핵심을 3D PPT로 한눈에">
+  <link rel="icon" href="assets/seoul-logo-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/scene3d.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="index.html"><img src="assets/seoul-logo-white.svg" alt="서울특별시"></a>
+    <a class="pill" href="slides.html#1">PPT 보기 ▶</a>
+  </header>
+
+  <section class="hero">
+    <div class="hero-txt">
+      <p class="eyebrow">누구나 3분이면 이해하는 서울 시정</p>
+      <h1>2026 서울,<br><span>이렇게 달라집니다</span></h1>
+      <p class="sub">교통 · 건강 · 돌봄 · AI 행정까지<br>시민이 꼭 알아야 할 서울 시정 핵심을 3D PPT 20장에 담았습니다.</p>
+      <div class="cta">
+        <a class="btn primary" href="slides.html#1">▶ PPT 바로 보기</a>
+        <a class="btn" href="downloads/seoul_2026_policy_promo.pptx" download="2026_서울_시정홍보_PPT.pptx">⬇ PPTX 다운로드</a>
+      </div>
+      <ul class="chips">
+        <li># 20장 3D 슬라이드</li>
+        <li># 나레이션 대본 포함</li>
+        <li># 클릭하면 바로 해당 장으로</li>
+      </ul>
+    </div>
+    <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+  </section>
+
+  <main class="wrap">
+    <h2 class="sec-title">무엇이 달라지나요? <small>궁금한 주제를 누르면 바로 PPT로 이동합니다</small></h2>
+    <div id="parts" class="parts"></div>
+  </main>
+
+  <footer class="foot">
+    <p>자료: 서울특별시 「2026 달라지는 서울 생활」 및 서울시 보도자료 · 최신 내용은 <a href="https://www.seoul.go.kr/main/index.jsp" target="_blank" rel="noopener">서울시 누리집</a> · 120 다산콜에서 확인하세요.</p>
+    <p class="note">※ 화면의 로고는 임시 이미지입니다. 게시 전 서울시 공식 CI로 교체해 주세요.</p>
+  </footer>
+
+  <script src="js/slides-data.js"></script>
+  <script src="js/scenes.js"></script>
+  <script>
+    (function () {
+      const D = window.DECK;
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+      document.getElementById("heroArt").innerHTML = window.SEOUL_SCENES.render("skyline");
+      const firstLine = (t) => t.split("\n")[0];
+      let html = "";
+      D.parts.forEach((p) => {
+        const items = D.slides.map((s, i) => [s, i]).filter(([s]) => s.part === p.id);
+        if (!items.length) return;
+        html += `<section class="part" style="--pc:${p.color}"><h3><span>${p.emoji}</span>${esc(p.name)}</h3><div class="cards">` +
+          items.map(([s, i]) => `<a class="card" href="slides.html#${i + 1}">
+              <span class="no">${String(i + 1).padStart(2, "0")}</span>
+              <strong>${esc(s.card)}</strong>
+              <em>${esc(firstLine(s.lead || s.title.replace("\n", " ")))}</em>
+              <span class="go">PPT 보기 →</span></a>`).join("") + `</div></section>`;
+      });
+      document.getElementById("parts").innerHTML = html;
+    })();
+  </script>
+</body>
+</html>

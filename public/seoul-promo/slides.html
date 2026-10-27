@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 서울 시정 PPT</title>
+  <meta name="description" content="2026 서울, 이렇게 달라집니다 — 3D 웹 프레젠테이션 (20장)">
+  <link rel="icon" href="assets/seoul-logo-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/scene3d.css">
+  <link rel="stylesheet" href="css/deck.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><i></i></div>
+
+  <div class="ui topbar">
+    <a href="index.html" aria-label="홈으로">← 홈</a>
+    <div class="group">
+      <a href="downloads/seoul_2026_policy_promo.pptx" download="2026_서울_시정홍보_PPT.pptx">PPTX 받기</a>
+      <button id="menuBtn" type="button" aria-controls="menu">목차 (M)</button>
+      <button id="fsBtn" type="button">전체화면 (F)</button>
+    </div>
+  </div>
+
+  <main class="viewport"><div class="stage" id="stage"></div></main>
+
+  <nav class="ui nav" aria-label="슬라이드 이동">
+    <button id="prev" type="button" aria-label="이전 슬라이드">‹</button>
+    <span class="count" id="count" aria-live="polite">1 / 20</span>
+    <button id="next" type="button" aria-label="다음 슬라이드">›</button>
+  </nav>
+
+  <aside class="menu" id="menu" aria-label="목차">
+    <button class="close" id="menuClose" type="button">닫기 ✕</button>
+    <div id="menuList"></div>
+  </aside>
+
+  <script src="js/slides-data.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/deck.js"></script>
+</body>
+</html>
