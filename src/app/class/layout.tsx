@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getStudent } from "@/lib/academy/auth";
 import { LogoutButton } from "@/components/class/logout-button";
+import { GuestButtons } from "@/components/class/guest-buttons";
 import { ASSETS } from "@/lib/assets";
 
 export const metadata: Metadata = {
@@ -35,14 +36,7 @@ export default async function ClassLayout({ children }: { children: React.ReactN
                 />
               </>
             ) : (
-              <>
-                <Link href="/class/login" className="btn-secondary px-3 py-1.5 text-sm">
-                  로그인
-                </Link>
-                <Link href="/class/signup" className="btn-primary px-3 py-1.5 text-sm">
-                  회원가입
-                </Link>
-              </>
+              <GuestButtons />
             )}
           </div>
         </div>

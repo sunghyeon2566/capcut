@@ -31,6 +31,8 @@ export interface Subject {
   name: string;
   description: string;
   access: SubjectAccess;
+  // 강의실 홈(/class) 과목 목록에 표시할지 여부. 숨겨도 과목 링크로는 들어올 수 있습니다.
+  listed: boolean;
   order: number;
   createdAt: string;
 }
@@ -60,8 +62,6 @@ export interface Video {
 export interface SecuritySettings {
   // 영상 위에 수강생 이름 · 아이디 · 전화번호 뒷자리를 떠다니게 표시
   watermark: boolean;
-  // 다른 창/탭으로 전환하면 영상을 일시정지하고 가림
-  pauseOnBlur: boolean;
   // 한 계정은 한 기기에서만 로그인 유지
   singleSession: boolean;
 }
@@ -80,7 +80,6 @@ export const VIDEO_DIR = path.join(DATA_DIR, "videos");
 
 const DEFAULT_SETTINGS: SecuritySettings = {
   watermark: true,
-  pauseOnBlur: true,
   singleSession: true,
 };
 
@@ -245,6 +244,7 @@ export function createSubject(input: {
   slug: string;
   description: string;
   access: SubjectAccess;
+  listed: boolean;
 }): Subject {
   return update((db) => {
     if (db.subjects.some((s) => s.slug === input.slug)) throw new Error("SLUG_TAKEN");
@@ -254,6 +254,7 @@ export function createSubject(input: {
       name: input.name.trim(),
       description: input.description.trim(),
       access: input.access,
+      listed: input.listed,
       order: Math.max(0, ...db.subjects.map((s) => s.order)) + 1,
       createdAt: new Date().toISOString(),
     };
@@ -264,7 +265,7 @@ export function createSubject(input: {
 
 export function updateSubject(
   id: string,
-  patch: Partial<Pick<Subject, "name" | "slug" | "description" | "access">>
+  patch: Partial<Pick<Subject, "name" | "slug" | "description" | "access" | "listed">>
 ): Subject {
   return update((db) => {
     const s = db.subjects.find((x) => x.id === id);

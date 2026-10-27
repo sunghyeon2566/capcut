@@ -8,6 +8,7 @@ export interface SubjectInput {
   slug?: string;
   description?: string;
   access?: SubjectAccess;
+  listed?: boolean;
 }
 
 // 과목 생성(requireAll=true) · 수정(false) 요청 본문 검사
@@ -32,6 +33,7 @@ export function parseSubjectInput(
   }
   if (typeof b.description === "string") out.description = b.description.trim();
   if (b.access === "all" || b.access === "approved") out.access = b.access;
+  if (typeof b.listed === "boolean") out.listed = b.listed;
   return out;
 }
 

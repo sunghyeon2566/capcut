@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/academy/auth";
 import { updateSettings, type SecuritySettings } from "@/lib/academy/store";
 
-const KEYS: (keyof SecuritySettings)[] = ["watermark", "pauseOnBlur", "singleSession"];
+const KEYS: (keyof SecuritySettings)[] = ["watermark", "singleSession"];
 
 export async function PUT(req: NextRequest) {
   const denied = await requireAdmin();

@@ -22,8 +22,13 @@ export default async function AdminSubjectsPage() {
               <Link href={`/admin/subjects/${s.id}`} className="card block p-5 hover:shadow-md">
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-lg font-bold text-navy-950">{s.name}</span>
-                  <span className="shrink-0 rounded-full bg-navy-50 px-2 py-0.5 text-xs text-navy-800/70">
-                    {s.access === "all" ? "가입자 전체 공개" : "승인된 수강생만"}
+                  <span className="flex shrink-0 gap-1">
+                    <span className="rounded-full bg-navy-50 px-2 py-0.5 text-xs text-navy-800/70">
+                      {s.access === "all" ? "가입자 전체" : "승인된 수강생만"}
+                    </span>
+                    <span className="rounded-full bg-navy-50 px-2 py-0.5 text-xs text-navy-800/70">
+                      {s.listed ? "홈에 표시" : "홈에서 숨김"}
+                    </span>
                   </span>
                 </div>
                 <p className="mt-1 font-mono text-xs text-navy-700">/class/{s.slug}</p>

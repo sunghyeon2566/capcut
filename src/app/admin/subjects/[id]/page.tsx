@@ -51,6 +51,7 @@ export default async function AdminSubjectDetail({ params }: { params: Promise<{
             slug: subject.slug,
             description: subject.description,
             access: subject.access,
+            listed: Boolean(subject.listed),
           }}
         />
         <div className="mt-6 border-t border-navy-100 pt-4">

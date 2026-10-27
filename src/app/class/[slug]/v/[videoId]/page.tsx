@@ -40,7 +40,7 @@ export default async function WatchPage({
 
       <div className="mt-4">
         <SecurePlayer
-          // 영상 바뀔 때 플레이어 상태(가림 화면 등)를 초기화
+          // 영상이 바뀌면 플레이어를 새로 만듭니다
           key={video.id}
           source={
             video.source.type === "file"
@@ -49,7 +49,6 @@ export default async function WatchPage({
           }
           watermarkText={access.viewer.label}
           watermark={settings.watermark}
-          pauseOnBlur={settings.pauseOnBlur}
         />
       </div>
 

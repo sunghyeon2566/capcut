@@ -5,7 +5,6 @@ import { adminRequest } from "@/components/admin/api";
 
 interface Settings {
   watermark: boolean;
-  pauseOnBlur: boolean;
   singleSession: boolean;
 }
 
@@ -14,11 +13,6 @@ const ITEMS: { key: keyof Settings; title: string; body: string }[] = [
     key: "watermark",
     title: "시청자 워터마크",
     body: "영상 위에 수강생 이름 · 아이디 · 전화번호 뒷자리와 시청 시각을 표시하고 위치를 계속 바꿉니다. 녹화본이 유출되면 누가 유출했는지 확인할 수 있습니다.",
-  },
-  {
-    key: "pauseOnBlur",
-    title: "창 이탈 · 캡처 감지 시 영상 가림",
-    body: "다른 창이나 탭(캡처 도구, 녹화 프로그램 등)으로 이동하면 영상을 멈추고 검은 화면으로 가립니다. 듀얼 모니터로 필기하며 보는 수강생은 불편할 수 있습니다.",
   },
   {
     key: "singleSession",

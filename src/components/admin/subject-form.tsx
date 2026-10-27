@@ -10,6 +10,7 @@ interface SubjectValues {
   slug: string;
   description: string;
   access: "all" | "approved";
+  listed: boolean;
 }
 
 // 과목 생성(initial 없음) · 수정(initial 있음) 공용 폼
@@ -18,7 +19,8 @@ export function SubjectForm({ initial }: { initial?: SubjectValues }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [access, setAccess] = useState<"all" | "approved">(initial?.access ?? "approved");
+  const [access, setAccess] = useState<"all" | "approved">(initial?.access ?? "all");
+  const [listed, setListed] = useState(initial?.listed ?? false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,7 +30,7 @@ export function SubjectForm({ initial }: { initial?: SubjectValues }) {
     setBusy(true);
     setError(null);
     setSaved(false);
-    const body = { name, slug, description, access };
+    const body = { name, slug, description, access, listed };
     const err = initial
       ? await adminRequest(`/api/admin/subjects/${initial.id}`, "PATCH", body)
       : await adminRequest("/api/admin/subjects", "POST", body);
@@ -88,12 +90,25 @@ export function SubjectForm({ initial }: { initial?: SubjectValues }) {
         <legend className="mb-1.5 text-sm font-semibold text-navy-800">시청 가능 대상</legend>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
+            <input type="radio" checked={access === "all"} onChange={() => setAccess("all")} />
+            가입한 수강생 전체
+          </label>
+          <label className="flex items-center gap-2">
             <input type="radio" checked={access === "approved"} onChange={() => setAccess("approved")} />
             승인된 수강생만 <span className="text-navy-800/55">(수강생 관리에서 과목 지정)</span>
           </label>
+        </div>
+      </fieldset>
+      <fieldset className="sm:col-span-2">
+        <legend className="mb-1.5 text-sm font-semibold text-navy-800">강의실 홈 목록</legend>
+        <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
-            <input type="radio" checked={access === "all"} onChange={() => setAccess("all")} />
-            가입한 수강생 전체
+            <input type="radio" checked={!listed} onChange={() => setListed(false)} />
+            숨기기 <span className="text-navy-800/55">(과목 링크를 받은 사람만 들어올 수 있음)</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" checked={listed} onChange={() => setListed(true)} />
+            강의실 홈(/class)에 표시
           </label>
         </div>
       </fieldset>

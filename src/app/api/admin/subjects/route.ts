@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
       name: parsed.name!,
       slug: parsed.slug!,
       description: parsed.description ?? "",
-      access: parsed.access ?? "approved",
+      access: parsed.access ?? "all",
+      listed: parsed.listed ?? false,
     });
     return NextResponse.json({ subject });
   } catch {

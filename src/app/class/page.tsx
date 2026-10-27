@@ -2,11 +2,12 @@ import Link from "next/link";
 import { getStudentState } from "@/lib/academy/auth";
 import { canStudentView, getCategories, getSubjects, getVideosBySubject } from "@/lib/academy/store";
 
-// 온라인 강의실 첫 화면 — 개설된 과목 목록. 과목마다 별도의 페이지(/class/과목주소)로 이동합니다.
+// 온라인 강의실 첫 화면 — 관리자가 "홈에 표시"로 정한 과목만 보여 줍니다.
+// 숨긴 과목은 목록에 나오지 않고, 과목 링크(/class/과목주소)를 받은 사람만 들어올 수 있습니다.
 export default async function ClassHome() {
   const state = await getStudentState();
   const student = state.status === "ok" ? state.student : null;
-  const subjects = getSubjects();
+  const subjects = getSubjects().filter((s) => s.listed);
 
   return (
     <div className="container-x w-full py-12">
@@ -37,7 +38,9 @@ export default async function ClassHome() {
 
       <h2 className="text-xl font-bold text-navy-950">개설 과목</h2>
       {subjects.length === 0 ? (
-        <p className="card mt-4 p-6 text-navy-800/70">아직 개설된 과목이 없습니다.</p>
+        <p className="card mt-4 p-6 text-navy-800/70">
+          강사에게 받은 과목 링크로 접속해 주세요.
+        </p>
       ) : (
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {subjects.map((subject) => {
