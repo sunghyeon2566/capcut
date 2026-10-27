@@ -16,7 +16,7 @@ const SHEET = {
 };
 const TZ = 'Asia/Seoul';
 const BOARD_HEADER_ROW = 4;
-const BOARD_FIXED_COLS = ['순위', '이름', '채널명', '상태', '업로드 일수', '누락 일수', '영상 수', '총 조회수', '상금'];
+const BOARD_FIXED_COLS = ['순위', '이름', '채널명', '상태', '업로드 일수', '누락 일수', '영상 수', '총 조회수', '상금', '구독자'];
 const PARTICIPANT_HEADERS = ['이름', '채널명', '채널 링크', '채널ID (자동)', '확인된 채널명 (자동)', '상태 (자동)'];
 const VIDEO_HEADERS = ['이름', '채널명', '업로드일', '일차', '제목', '링크', '조회수'];
 const FORM_ITEMS = { name: '이름', channelName: '채널명', link: '유튜브 채널 링크' };
@@ -58,7 +58,7 @@ function setup() {
       ['시작일', 1, '매월 시작일'],
       ['종료일', 30, '매월 종료일 (달의 마지막 날보다 크면 마지막 날로 자동 조정)'],
       ['자동 갱신 간격(시간)', 4, '1, 2, 4, 6, 8, 12 중 하나'],
-      ['등수별 상금', '300000, 200000, 100000', '쉼표로 구분 (1등, 2등, 3등 …)'],
+      ['등수별 상금', '1등 200000, 2등 100000, 3~10등 30000, 11~20등 10000', '예: 1등 200000, 3~10등 30000 (20만원처럼 써도 됨)'],
       ['순위표 공개 메모', '', '현황판 상단에 표시할 안내 문구 (선택)'],
     ]);
     styleHeader_(settings.getRange(1, 1, 1, 3));
@@ -225,6 +225,7 @@ function refreshAll() {
     const period = getPeriod_(cfg, new Date());
     const participants = readParticipants_();
     resolveChannels_(participants);
+    const subscribers = fetchSubscribers_(participants.map((p) => p.channelId).filter(Boolean));
 
     const results = participants.map((p) => {
       if (!p.channelId) return { participant: p, videos: [], error: p.status || '채널 확인 필요' };
@@ -235,6 +236,9 @@ function refreshAll() {
       }
     });
 
+    results.forEach((r) => {
+      r.subscribers = subscribers[r.participant.channelId];
+    });
     writeVideos_(results);
     writeBoard_(results, period, cfg);
     toast_(`갱신 완료 (${participants.length}명)`);
@@ -311,6 +315,22 @@ function parseChannelInput_(raw) {
   if ((m = s.match(/youtube\.com\/user\/([^\/?#\s]+)/i))) return { type: 'user', value: m[1] };
   if ((m = s.match(/youtube\.com\/(?:c\/)?([^\/?#\s]+)/i))) return { type: 'search', value: m[1] };
   return { type: 'search', value: s };
+}
+
+/** 채널별 구독자 수. 구독자 수를 숨긴 채널은 '비공개'. */
+function fetchSubscribers_(channelIds) {
+  const counts = {};
+  for (let i = 0; i < channelIds.length; i += 50) {
+    try {
+      const res = YouTube.Channels.list('statistics', { id: channelIds.slice(i, i + 50).join(','), maxResults: 50 });
+      (res.items || []).forEach((ch) => {
+        counts[ch.id] = ch.statistics.hiddenSubscriberCount ? '비공개' : Number(ch.statistics.subscriberCount || 0);
+      });
+    } catch (e) {
+      // 구독자 수는 참고용이라 실패해도 집계는 계속한다
+    }
+  }
+  return counts;
 }
 
 /** 채널의 업로드 영상 중 챌린지 기간에 올라온 공개 영상과 조회수를 가져온다. */
@@ -482,9 +502,9 @@ function writeBoard_(results, period, cfg) {
   const backgrounds = [];
   ranked.forEach((s) => {
     const p = s.result.participant;
-    const prize = s.rank && s.rank <= prizes.length ? prizes[s.rank - 1] : '';
+    const prize = (s.rank && prizes[s.rank - 1]) || '';
     values.push(
-      [s.rank || '-', safe_(p.name), safe_(p.channelName), s.status, s.uploaded, s.missed, s.result.videos.length, s.totalViews, prize].concat(
+      [s.rank || '-', safe_(p.name), safe_(p.channelName), s.status, s.uploaded, s.missed, s.result.videos.length, s.totalViews, prize, s.result.subscribers === undefined ? '' : s.result.subscribers].concat(
         s.cells.map((c) => symbol[c])
       )
     );
@@ -500,6 +520,7 @@ function writeBoard_(results, period, cfg) {
   sheet.getRange(BOARD_HEADER_ROW + 1, 5, values.length, 3).setHorizontalAlignment('center');
   sheet.getRange(BOARD_HEADER_ROW + 1, 8, values.length, 1).setNumberFormat('#,##0').setFontWeight('bold');
   sheet.getRange(BOARD_HEADER_ROW + 1, 9, values.length, 1).setNumberFormat('#,##0"원"');
+  sheet.getRange(BOARD_HEADER_ROW + 1, 10, values.length, 1).setNumberFormat('#,##0"명"').setHorizontalAlignment('right');
   sheet.getRange(BOARD_HEADER_ROW + 1, BOARD_FIXED_COLS.length + 1, values.length, dayCount).setHorizontalAlignment('center');
   ranked.forEach((s, i) => {
     if (!s.eligible) sheet.getRange(BOARD_HEADER_ROW + 1 + i, 1, 1, BOARD_FIXED_COLS.length).setFontColor('#9aa0a6');
@@ -507,7 +528,7 @@ function writeBoard_(results, period, cfg) {
 
   sheet.setFrozenRows(BOARD_HEADER_ROW);
   sheet.setFrozenColumns(3);
-  sheet.setColumnWidth(1, 50).setColumnWidths(2, 2, 120).setColumnWidth(4, 170).setColumnWidths(5, 3, 75).setColumnWidths(8, 2, 100);
+  sheet.setColumnWidth(1, 50).setColumnWidths(2, 2, 120).setColumnWidth(4, 170).setColumnWidths(5, 3, 75).setColumnWidths(8, 3, 100);
   sheet.setColumnWidths(BOARD_FIXED_COLS.length + 1, dayCount, 30);
 }
 
@@ -569,10 +590,7 @@ function readSettings_() {
     month = `${m[1]}-${pad2_(Number(m[2]))}`;
   }
 
-  const prizes = String(map['등수별 상금'] || '')
-    .split(',')
-    .map((s) => Number(s.replace(/[^\d]/g, '')))
-    .filter((n) => n > 0);
+  const prizes = parsePrizes_(map['등수별 상금']);
 
   return {
     month: month,
@@ -582,6 +600,28 @@ function readSettings_() {
     prizes: prizes,
     note: String(map['순위표 공개 메모'] || '').trim(),
   };
+}
+
+/**
+ * '1등 200000, 2등 100000, 3~10등 30000' 형식(20만원 표기도 가능)을 등수별 상금 배열로 바꾼다.
+ * 등 표기가 없으면 예전 방식처럼 쉼표로 나열한 금액을 1등부터 순서대로 쓴다.
+ */
+function parsePrizes_(raw) {
+  const text = String(raw || '');
+  const prizes = [];
+  const re = /(\d+)\s*(?:~\s*(\d+))?\s*등\s*:?\s*([\d,]+)\s*(만)?/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const from = Number(m[1]);
+    const to = Number(m[2] || m[1]);
+    const amount = Number(m[3].replace(/,/g, '')) * (m[4] ? 10000 : 1);
+    for (let rank = from; rank <= to && rank <= 500; rank++) prizes[rank - 1] = amount;
+  }
+  if (prizes.length) return Array.from(prizes, (n) => n || 0);
+  return text
+    .split(',')
+    .map((s) => Number(s.replace(/[^\d]/g, '')))
+    .filter((n) => n > 0);
 }
 
 function readParticipants_() {
