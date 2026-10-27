@@ -54,7 +54,7 @@ function setup() {
     settings.getRange('B2').setNumberFormat('@');
     settings.getRange(1, 1, 7, 3).setValues([
       ['항목', '값', '설명'],
-      ['챌린지 월', '', '예: 2026-11 (비워두면 이번 달)'],
+      ['챌린지 월', '', '예: 2026-10 (바꾸면 그 달로 자동 재집계, 비워두면 이번 달)'],
       ['시작일', 1, '매월 시작일'],
       ['종료일', 30, '매월 종료일 (달의 마지막 날보다 크면 마지막 날로 자동 조정)'],
       ['자동 갱신 간격(시간)', 4, '1, 2, 4, 6, 8, 12 중 하나'],
@@ -183,19 +183,35 @@ function installTriggers() {
       // 폼이 없어졌으면 정기 갱신만 사용
     }
   }
+  ScriptApp.newTrigger('handleSettingsEdit').forSpreadsheet(SpreadsheetApp.getActive()).onEdit().create();
   toast_(`자동 갱신을 켰습니다. ${hours}시간마다 조회수를 갱신합니다.`);
   refreshAll();
 }
 
 function removeTriggers() {
   ScriptApp.getProjectTriggers()
-    .filter((t) => ['refreshAll', 'handleSignup'].indexOf(t.getHandlerFunction()) !== -1)
+    .filter((t) => ['refreshAll', 'handleSignup', 'handleSettingsEdit'].indexOf(t.getHandlerFunction()) !== -1)
     .forEach((t) => ScriptApp.deleteTrigger(t));
 }
 
 /** 참가 신청이 들어오면 바로 현황판에 반영한다. */
 function handleSignup() {
   refreshAll();
+}
+
+/** 설정 시트의 챌린지 월 · 시작일 · 종료일을 바꾸면 그 기간으로 바로 다시 집계한다. */
+function handleSettingsEdit(e) {
+  const range = e && e.range;
+  if (!range || range.getSheet().getName() !== SHEET.SETTINGS) return;
+  const top = range.getRow();
+  const bottom = range.getLastRow();
+  if (bottom < 2) return;
+  if (top <= 5 && bottom >= 5) {
+    installTriggers(); // 갱신 간격이 바뀌었으면 트리거를 다시 만들고 집계까지 한다
+  } else if (top <= 4) {
+    toast_('설정이 바뀌어 다시 집계합니다…');
+    refreshAll();
+  }
 }
 
 // ───────────────────────── 메인 집계 ─────────────────────────
