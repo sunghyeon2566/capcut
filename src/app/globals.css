@@ -323,3 +323,48 @@ body {
     animation: none;
   }
 }
+
+/* ---- 쇼핑몰 빌더 (강사/수강생 관리자) ---- */
+.shop-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.875rem;
+  color: #171717;
+  outline: none;
+}
+.shop-input:focus {
+  border-color: #171717;
+}
+.shop-btn-dark,
+.shop-btn-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.shop-btn-dark {
+  background: #171717;
+  color: #fff;
+}
+.shop-btn-dark:hover {
+  background: #404040;
+}
+.shop-btn-dark:disabled {
+  background: #a3a3a3;
+}
+.shop-btn-light {
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  color: #404040;
+}
+.shop-btn-light:hover {
+  background: #f5f5f5;
+}
