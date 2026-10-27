@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/programs", label: "교육 프로그램" },
   { href: "/events", label: "전시회·공모전·행사" },
   { href: "/resources", label: "회원 전용 자료실" },
+  { href: "/class", label: "온라인 강의실" },
   { href: "/map", label: "전국 회원 현황" },
 ];
 
@@ -54,7 +55,7 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 lg:flex">
+          <nav className="hidden items-center gap-6 lg:flex xl:gap-8">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}

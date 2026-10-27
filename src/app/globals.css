@@ -323,3 +323,15 @@ body {
     animation: none;
   }
 }
+
+/* 온라인 강의실 영상 플레이어 — 선택·드래그·길게 눌러 저장 방지 */
+.secure-player,
+.secure-player * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.secure-player:fullscreen {
+  border-radius: 0;
+  aspect-ratio: auto;
+}

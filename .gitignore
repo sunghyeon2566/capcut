@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# env
+.env*
+!.env.example
+
+# 온라인 강의실 운영 데이터 (수강생 개인정보 · 업로드 영상) — 저장소에 올리지 않습니다
+/data/academy.json
+/data/academy.json.tmp
+/data/videos/
+
+# misc
+.DS_Store
+npm-debug.log*
