@@ -328,7 +328,7 @@ def build(meta, out_path):
 
     # about -14 LUFS integrated (the level Reels/Shorts/TikTok normalise to), then a soft limiter
     rms = np.sqrt(np.mean(mix ** 2))
-    mix *= 10 ** (-17.5 / 20) / max(rms, 1e-9)
+    mix *= 10 ** (-18.5 / 20) / max(rms, 1e-9)
     mix = np.tanh(mix * 1.1) / np.tanh(1.1)
     peak = np.abs(mix).max()
     if peak > .89:

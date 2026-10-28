@@ -81,7 +81,7 @@ function run(cmd, argv) {
     '-f', 'image2pipe', '-framerate', String(meta.fps), '-c:v', 'png', '-i', '-',
     ...(withAudio ? ['-i', wav] : []),
     '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-profile:v', 'high', '-tune', 'film',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-profile:v', 'high', '-tune', 'film',
     '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
     ...(withAudio ? ['-c:a', 'aac', '-b:a', '192k', '-shortest'] : ['-an']),
     '-movflags', '+faststart', mp4,
