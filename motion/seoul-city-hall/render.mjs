@@ -28,7 +28,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const out = path.resolve(args.out || path.join(outDir, 'seoul-city-hall.mp4'));
 const workers = Number(args.workers || 4);
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.ttf': 'font/ttf', '.js': 'text/javascript' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.ttf': 'font/ttf', '.js': 'text/javascript', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
 const server = http.createServer((req, res) => {
   const p = path.join(dir, decodeURIComponent(new URL(req.url, 'http://x').pathname));
   if (!p.startsWith(dir) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }

@@ -59,6 +59,7 @@ ffmpeg -y -i out/seoul-city-hall_silent.mp4 -i out/sound.wav -map 0:v -map 1:a -
 - **색**: `index.html` 위쪽의 `C.accent` 한 줄로 전체 톤이 바뀝니다. (기본값은 시청역 2호선을 닮은 네온 그린)
 - **문구**: 각 장면 함수(`sceneMission`, `sceneTitle`, `sceneSpaces` …) 안의 문자열을 바꾸면 됩니다.
 - **길이·순서**: `T` 타임라인 값. 바꾸면 `sound.py`의 `T`도 같이 맞춰 주세요.
+- **마무리 로고**: `assets/logo.png` 를 넣으면 마지막 장면이 마크+워드마크 대신 그 로고로 바뀝니다. 로고 왼쪽 심볼 위치가 다르면 `LOGO_SYMBOL`, 크기는 `LOGO_H` 로 맞춥니다.
 
 ## 참고
 

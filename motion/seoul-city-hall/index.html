@@ -871,7 +871,18 @@ function sceneStack(lt) {
 
 // 마크의 최종 위치(로크업) — flip이 이 위치로 착지해야 이음새가 없다
 const LOCK = { markW: 230, gap: 46 };
+// 공식 로고 이미지가 있으면 마무리 장면에 그 로고를 쓴다(없으면 마크 + 워드마크).
+const LOGO_SRC = 'assets/logo.png';
+const LOGO_H = 210;          // 로고 높이(px, 1080 기준)
+const LOGO_SYMBOL = 0.5;     // 로고 왼쪽 심볼 중심의 가로 위치(로고 높이 대비 비율)
+let LOGO = null;
 function lockupLayout(g) {
+  if (LOGO) {
+    let lh = LOGO_H, lw = lh * LOGO.naturalWidth / LOGO.naturalHeight;
+    if (lw > 1200) { lh *= 1200 / lw; lw = 1200; }
+    const lx = W / 2 - lw / 2, ly = 470 - lh / 2;
+    return { logo: true, lx, ly, lw, lh, mcx: lx + lh * LOGO_SYMBOL, mcy: ly + lh / 2, mw: lh * 0.9 };
+  }
   const o = { size: 160, weight: 900, ls: -5 };
   const tw = measure(g, '서울시청', o);
   const total = LOCK.markW + LOCK.gap + tw;
@@ -931,24 +942,40 @@ function sceneLockup(lt) {
       const r = Math.hypot(dx, dy);
       const th = Math.atan2(dy, dx);
       const rays = Math.pow(0.5 + 0.5 * Math.cos(th * 36), 1.5);
-      return rays * sstep(150, 190, r) * (1 - sstep(230, 270 + 50 * burst, r)) * burst;
-    }, C.accent, { x0: L.mcx - 420, x1: L.mcx + 420, y0: L.mcy - 420, y1: L.mcy + 420, cell: 10 });
+      const m = L.mw;
+      return rays * sstep(m * 0.65, m * 0.83, r) * (1 - sstep(m, m * (1.17 + 0.22 * burst), r)) * burst;
+    }, C.accent, { x0: L.mcx - L.mw * 1.8, x1: L.mcx + L.mw * 1.8, y0: L.mcy - L.mw * 1.8, y1: L.mcy + L.mw * 1.8, cell: 10 });
   }
-  g.fillStyle = C.accent;
-  markPath(g, L.mcx, L.mcy, L.mw);
-  g.fill();
-  const look = lt < 1.6 ? 0 : lt < 2.0 ? 0.8 : 0;
-  drawEyes(g, markEyes(L.mcx, L.mcy, L.mw, look, blinkAt(lt, 1.25, 0.18)), C.ink);
+  if (L.logo) {
+    // 공식 로고: 왼→오 와이프 + 살짝 커지며 자리 잡기. multiply로 흰 바탕을 종이색에 녹인다.
+    const wk = eOutCubic(prog(lt, 0.04, 0.55));
+    const sc = lerp(0.96, 1, eOutCubic(prog(lt, 0, 0.7)));
+    g.save();
+    g.beginPath();
+    g.rect(L.lx - 20, L.ly - 30, (L.lw + 40) * wk, L.lh + 60);
+    g.clip();
+    g.globalCompositeOperation = 'multiply';
+    g.translate(W / 2, L.ly + L.lh / 2);
+    g.scale(sc, sc);
+    g.drawImage(LOGO, -L.lw / 2, -L.lh / 2, L.lw, L.lh);
+    g.restore();
+  } else {
+    g.fillStyle = C.accent;
+    markPath(g, L.mcx, L.mcy, L.mw);
+    g.fill();
+    const look = lt < 1.6 ? 0 : lt < 2.0 ? 0.8 : 0;
+    drawEyes(g, markEyes(L.mcx, L.mcy, L.mw, look, blinkAt(lt, 1.25, 0.18)), C.ink);
 
-  // 워드마크: 왼→오 와이프
-  const wk = eOutCubic(prog(lt, 0.08, 0.5));
-  const tw = measure(g, '서울시청', L.o);
-  g.save();
-  g.beginPath();
-  g.rect(L.tx - 10, L.ty - 200, (tw + 40) * wk, 260);
-  g.clip();
-  text(g, '서울시청', L.tx + (1 - wk) * -30, L.ty, { ...L.o, color: C.ink });
-  g.restore();
+    // 워드마크: 왼→오 와이프
+    const wk = eOutCubic(prog(lt, 0.08, 0.5));
+    const tw = measure(g, '서울시청', L.o);
+    g.save();
+    g.beginPath();
+    g.rect(L.tx - 10, L.ty - 200, (tw + 40) * wk, 260);
+    g.clip();
+    text(g, '서울시청', L.tx + (1 - wk) * -30, L.ty, { ...L.o, color: C.ink });
+    g.restore();
+  }
 
   text(g, 'Seoul City Hall', W / 2, 690, { size: 46, weight: 900, align: 'center', color: C.ink, ls: -1, alpha: prog(lt, 0.45, 0.7) });
   // 주소 줄: 스크램블 후 확정
@@ -1002,7 +1029,7 @@ function render(t) {
   hud(t, res.hud);
   glitch(t);
   // 컷 순간의 짧은 플래시
-  for (const c of FLASHES) flash(0.55 * (1 - clamp(Math.abs(t - c - 0.017) / 0.05)), theme === 'white' ? '#ffffff' : '#eafff0');
+  for (const c of (LOGO ? [...FLASHES, T.lockup[0]] : FLASHES)) flash(0.55 * (1 - clamp(Math.abs(t - c - 0.017) / 0.05)), theme === 'white' ? '#ffffff' : '#eafff0');
   if (theme === 'white') { vignette(0.07); grain(t, 0.05, 'multiply'); }
   else { vignette(theme === 'green' ? 0.2 : 0.38); grain(t, theme === 'green' ? 0.07 : 0.05, 'overlay'); }
 }
@@ -1024,6 +1051,12 @@ async function boot() {
     document.fonts.load('400 40px JBMono', 'SEOUL'),
     document.fonts.load('700 40px JBMono', 'SEOUL'),
   ]);
+  LOGO = await new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => res(null);
+    im.src = LOGO_SRC;
+  });
   buildNoise();
   window.sceneReady = true;
   if (RENDER) { render(Number(params.get('t') || 0)); return; }
