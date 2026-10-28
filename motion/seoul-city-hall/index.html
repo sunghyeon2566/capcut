@@ -873,15 +873,15 @@ function sceneStack(lt) {
 const LOCK = { markW: 230, gap: 46 };
 // 공식 로고 이미지가 있으면 마무리 장면에 그 로고를 쓴다(없으면 마크 + 워드마크).
 const LOGO_SRC = 'assets/logo.png';
-const LOGO_H = 210;          // 로고 높이(px, 1080 기준)
-const LOGO_SYMBOL = 0.5;     // 로고 왼쪽 심볼 중심의 가로 위치(로고 높이 대비 비율)
+const LOGO_H = 170;          // 로고 높이(px, 1080 기준)
+const LOGO_SYMBOL = 0.46;    // 로고 왼쪽 심볼 중심의 가로 위치(로고 높이 대비 비율)
 let LOGO = null;
 function lockupLayout(g) {
   if (LOGO) {
     let lh = LOGO_H, lw = lh * LOGO.naturalWidth / LOGO.naturalHeight;
     if (lw > 1200) { lh *= 1200 / lw; lw = 1200; }
     const lx = W / 2 - lw / 2, ly = 470 - lh / 2;
-    return { logo: true, lx, ly, lw, lh, mcx: lx + lh * LOGO_SYMBOL, mcy: ly + lh / 2, mw: lh * 0.9 };
+    return { logo: true, lx, ly, lw, lh, mcx: lx + lh * LOGO_SYMBOL, mcy: ly + lh / 2, mw: lh * 0.85 };
   }
   const o = { size: 160, weight: 900, ls: -5 };
   const tw = measure(g, '서울시청', o);
