@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone motion-graphics renderer (plain Node/browser scripts, not part of the app)
+    "motion/**",
   ]),
 ]);
 

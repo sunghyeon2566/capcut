@@ -1,0 +1,6 @@
+out/stills/
+out/preview_*.mp4
+out/*.wav
+out/cues.json
+out/render.log
+node_modules/

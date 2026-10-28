@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>새로운 책쓰기 연구소 · 홍보 모션</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Nanum+Gothic+Coding:wght@400;700&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@500;700&family=Noto+Serif+KR:wght@400;600;700;900&display=block">
+<style>
+/* ============================================================
+   새로운 책쓰기 연구소 (KYT) — 9:16 홍보 모션그래픽
+   1080 x 1920 · 30fps · 32.5초
+   문구는 아래 <script> 의 COPY 객체에서 바꿉니다.
+   ============================================================ */
+:root{
+  --serif:'Noto Serif KR',serif;
+  --sans:'Noto Sans KR',sans-serif;
+  --mono:'JetBrains Mono','Nanum Gothic Coding',monospace;
+  --hand:'Nanum Pen Script',cursive;
+  --cream:#fbf6ec;
+  --ink:#2a2118;
+  --red:#c4452f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#050403}
+body{overflow:hidden;color:var(--cream);font-family:var(--serif);-webkit-font-smoothing:antialiased}
+#viewport{position:absolute;left:0;top:0}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;background:#0a0705;transform-origin:0 0}
+.full{position:absolute;inset:0}
+
+/* ---------- background ---------- */
+.bg{background:radial-gradient(120% 75% at 50% 42%,#1d140b 0%,#110c07 48%,#070504 100%)}
+#haze{background:radial-gradient(70% 28% at 50% 14%,rgba(205,150,80,.13),transparent 70%)}
+#glow{position:absolute;left:-110px;top:480px;width:1300px;height:1300px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(222,160,74,.5),rgba(196,128,52,.2) 42%,rgba(160,100,40,.06) 70%,transparent 100%)}
+.vig{background:radial-gradient(ellipse 85% 72% at 50% 48%,transparent 52%,rgba(0,0,0,.62) 100%)}
+.grain{opacity:.075;mix-blend-mode:overlay}
+#dust{position:absolute;left:0;top:0}
+#flash{background:radial-gradient(circle at 50% 52%,#fff7e4 0%,rgba(250,214,150,.92) 30%,rgba(214,150,70,.55) 58%,rgba(0,0,0,0) 85%);opacity:0;visibility:hidden}
+
+/* ---------- 3D layers ---------- */
+.layer{position:absolute;inset:0;perspective:2400px;perspective-origin:540px 1130px;transform-origin:540px 1130px;visibility:hidden}
+.rig{position:absolute;left:540px;top:1130px;width:0;height:0;transform-style:preserve-3d}
+.rig>*{position:absolute;left:0;top:0}
+.card{box-shadow:0 46px 100px rgba(0,0,0,.55),0 8px 22px rgba(0,0,0,.35)}
+
+/* closed book */
+.cb{transform-style:preserve-3d}
+.cb .f{position:absolute;backface-visibility:hidden}
+.edge-v{background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(0,0,0,0) 40%,rgba(0,0,0,.18)),repeating-linear-gradient(90deg,#f8f2e4 0 2px,#ddd0b3 2px 3px)}
+.edge-h{background:linear-gradient(0deg,rgba(0,0,0,.14),rgba(0,0,0,0) 40%,rgba(0,0,0,.1)),repeating-linear-gradient(0deg,#f8f2e4 0 2px,#ddd0b3 2px 3px)}
+.cover{overflow:hidden;border-radius:3px 10px 10px 3px}
+.cover .frame{position:absolute;border-radius:3px}
+.cover .frame::after{content:'';position:absolute;inset:7px;border-radius:2px}
+.cover .kick{position:absolute;width:100%;text-align:center;font-family:var(--mono);font-weight:500;letter-spacing:.42em}
+.cover .orn{position:absolute;left:50%}
+.cover .orn svg{display:block;width:100%;height:auto}
+.cover .ttl{position:absolute;width:100%;text-align:center;font-family:var(--serif);font-weight:900}
+.cover .au{position:absolute;width:100%;text-align:center;font-family:var(--serif);font-weight:600;letter-spacing:.08em}
+.cover .lit{position:absolute;inset:0;background:linear-gradient(125deg,rgba(255,255,255,.28),rgba(255,255,255,0) 38%,rgba(0,0,0,0) 62%,rgba(0,0,0,.22))}
+
+.ivory{background:repeating-linear-gradient(0deg,rgba(120,90,50,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,50,.035) 0 1px,transparent 1px 4px),linear-gradient(160deg,#f5ecd9,#e7d9bb)}
+.ivory .frame{inset:26px;border:2px solid #c39749}
+.ivory .frame::after{border:1px solid rgba(195,151,73,.6)}
+.ivory .kick{top:106px;font-size:19px;color:#a8803f}
+.ivory .orn{top:172px;width:110px;margin-left:-55px}
+.ivory .ttl{top:330px;font-size:64px;line-height:1.2;color:rgba(70,52,34,.2)}
+.ivory .caret{display:inline-block;width:5px;height:68px;background:#b98236;vertical-align:-10px;margin-left:8px}
+.ivory .rule{position:absolute;top:452px;left:50%;width:120px;margin-left:-60px;height:2px;background:#c39749}
+.ivory .au{bottom:112px;font-size:25px;color:#8f6d3c}
+.ivory .au i{display:inline-block;width:150px;border-bottom:2px solid #c39749;margin-left:12px;vertical-align:5px}
+.spine-ivory{background:linear-gradient(90deg,#cbb893,#efe4cc 45%,#d3c19c)}
+.spine-ivory::before,.spine-ivory::after{content:'';position:absolute;left:0;right:0;height:3px;background:#c39749}
+.spine-ivory::before{top:80px}.spine-ivory::after{bottom:80px}
+.back-ivory{background:#e3d6ba}
+
+.genre .frame{inset:18px;border:1.5px solid rgba(226,178,94,.8)}
+.genre .frame::after{border:1px solid rgba(226,178,94,.35)}
+.genre .kick{top:68px;font-size:15px;color:rgba(240,206,140,.9)}
+.genre .orn{top:112px;width:72px;margin-left:-36px}
+.genre .ttl{top:196px;font-size:52px;line-height:1.28;background:linear-gradient(180deg,#fbe4a8 10%,#e8b862 55%,#c78a3a 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.genre .au{bottom:62px;font-size:19px;color:rgba(240,214,160,.9)}
+.g-essay{background:linear-gradient(160deg,#2b4b39,#152a1f)}
+.g-self{background:linear-gradient(160deg,#6a262c,#3a1216)}
+.g-expert{background:linear-gradient(160deg,#243659,#111b30)}
+.sp-essay{background:linear-gradient(90deg,#10211a,#22392c 50%,#10211a)}
+.sp-self{background:linear-gradient(90deg,#2c0e11,#4d1a1f 50%,#2c0e11)}
+.sp-expert{background:linear-gradient(90deg,#0c1424,#1b2a46 50%,#0c1424)}
+.spine-g::before,.spine-g::after{content:'';position:absolute;left:0;right:0;height:2px;background:rgba(226,178,94,.8)}
+.spine-g::before{top:44px}.spine-g::after{bottom:44px}
+
+/* open book */
+.ob{transform-style:preserve-3d}
+.ob>*{position:absolute}
+.ob-board{width:948px;height:640px;left:-474px;top:-320px;border-radius:12px;background:linear-gradient(180deg,#4d3521,#2a1b10);transform:translateZ(-18px);box-shadow:0 40px 90px rgba(0,0,0,.6)}
+.ob-under{width:452px;height:614px;top:-307px;background:linear-gradient(90deg,#cdbb97,#e2d4b6)}
+.ob-under.l{left:-460px;transform-origin:100% 50%;transform:translateZ(-9px) rotateY(9deg);border-radius:6px 0 0 6px}
+.ob-under.r{left:8px;transform-origin:0 50%;transform:translateZ(-9px) rotateY(-9deg);border-radius:0 6px 6px 0;background:linear-gradient(90deg,#e2d4b6,#cdbb97)}
+.ob-page{width:440px;height:600px;top:-300px;overflow:hidden}
+.ob-page.l{left:-440px;transform-origin:100% 50%;transform:rotateY(11deg);border-radius:6px 0 0 6px;background:linear-gradient(90deg,#eee2c8 0%,#f8f1e2 16%,#f6eedc 80%,#d6c4a0 100%)}
+.ob-page.r{left:0;transform-origin:0 50%;transform:rotateY(-11deg);border-radius:0 6px 6px 0;background:linear-gradient(90deg,#d6c4a0 0%,#f6eedc 20%,#f8f1e2 84%,#eee2c8 100%)}
+.pg{position:absolute;top:48px;bottom:40px;font:400 17px/1.95 var(--serif);color:#3b3025}
+.ob-page.l .pg{left:48px;right:40px}
+.ob-page.r .pg{left:44px;right:44px}
+.pg .ch{font:500 13px var(--mono);letter-spacing:.35em;color:#a8803f}
+.pg .tt{font:700 30px/1.3 var(--serif);color:var(--ink);margin:10px 0 16px}
+.pg .ln{white-space:nowrap;min-height:33px}
+.pg .no{position:absolute;bottom:0;font:500 13px var(--mono);color:#a08a6a}
+.ob-page.l .no{left:0}.ob-page.r .no{right:0}
+
+/* genkoji (Korean manuscript paper) */
+.genko{background:linear-gradient(160deg,#faf3e4,#efe4cc);border-radius:16px}
+.genko .hdr{position:absolute;left:40px;right:40px;top:26px;display:flex;justify-content:space-between;font:500 16px var(--mono);letter-spacing:.3em;color:#b4553c}
+.genko .grid{position:absolute;left:40px;top:66px}
+.genko .row{position:absolute;left:0;height:40px;border-top:1.5px solid rgba(196,84,56,.62);border-bottom:1.5px solid rgba(196,84,56,.62);background:repeating-linear-gradient(90deg,rgba(196,84,56,.55) 0 1.5px,transparent 1.5px 40px)}
+.genko .row::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1.5px;background:rgba(196,84,56,.55)}
+.genko .c{position:absolute;width:40px;height:40px;text-align:center;font:600 26px/40px var(--serif);color:#2b2219}
+.genko .caret{position:absolute;width:3px;height:30px;background:#2b2219}
+
+/* revision doc */
+.doc{width:720px;height:860px;background:#f7f0e1;border-radius:16px;overflow:hidden}
+.doc .bar{height:66px;background:#2a2119;display:flex;align-items:center;padding:0 26px;gap:10px}
+.doc .dot{width:13px;height:13px;border-radius:50%}
+.doc .fname{margin-left:14px;font:500 21px var(--mono);color:#ecdcbc}
+.doc .body{position:absolute;top:66px;left:0;right:0;bottom:0;padding:56px 56px}
+.doc .h{font:700 40px var(--serif);color:var(--ink);margin-bottom:22px}
+.doc .ln{position:relative;font:400 26px/2.05 var(--serif);color:#3b3025;white-space:nowrap;width:max-content}
+.doc .st{position:absolute;left:-6px;right:-6px;top:52%;height:3.5px;border-radius:2px;background:var(--red);transform-origin:0 50%}
+.doc .rn{position:absolute;font:400 48px/1 var(--hand);color:var(--red);white-space:nowrap}
+
+/* notes */
+.note{padding:28px 32px 24px;font:400 54px/1.1 var(--hand);color:#3a2c1e;white-space:nowrap;border-radius:4px;box-shadow:0 24px 50px rgba(0,0,0,.45)}
+.note::before{content:'';position:absolute;left:50%;top:-12px;width:90px;height:26px;margin-left:-45px;background:rgba(236,224,196,.6);transform:rotate(-3deg)}
+
+/* pop-out cards */
+.toc{width:600px;height:660px;background:#fbf6ea;border-radius:18px;padding:52px 52px}
+.toc .k,.edit .k{font:500 16px var(--mono);letter-spacing:.42em;color:#b0853f}
+.toc .t{font:900 54px var(--serif);color:var(--ink);margin:6px 0 22px}
+.toc .row{position:relative;display:flex;align-items:baseline;font:600 25px/2.2 var(--serif);color:#3a2e22}
+.toc .lead{flex:1;border-bottom:2px dotted rgba(120,90,50,.35);margin:0 12px;transform:translateY(-8px)}
+.toc .n{font:500 20px var(--mono);color:#9c7a48}
+.toc .mark{position:absolute;left:-14px;right:-14px;top:12px;bottom:10px;border-radius:6px;background:linear-gradient(90deg,rgba(236,190,100,.5),rgba(236,190,100,.22));transform-origin:0 50%;z-index:-1}
+.chip{width:470px;height:132px;background:rgba(28,21,15,.97);border:1.5px solid rgba(226,178,94,.55);border-radius:22px;padding:24px 30px}
+.chip .lb{display:flex;justify-content:space-between;align-items:baseline;font:500 18px var(--mono);letter-spacing:.16em;color:#e8c98a}
+.chip .pct{display:inline-block;font:700 26px var(--mono);letter-spacing:.04em;color:#f6dca0}
+.chip .bar{margin-top:20px;height:16px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
+.chip .fill{height:100%;transform-origin:0 50%;border-radius:8px;background:linear-gradient(90deg,#b98236,#f3d48c)}
+.edit{width:880px;height:440px;background:#fbf6ea;border-radius:18px;padding:46px 52px}
+.edit .before{margin-top:12px;font:600 31px/1.62 var(--serif);color:#6d5d4a}
+.edit .del{position:relative;display:inline-block}
+.edit .del .st{position:absolute;left:-3px;right:-3px;top:55%;height:3.5px;border-radius:2px;background:var(--red);transform-origin:0 50%}
+.edit .arrow{display:flex;align-items:center;gap:14px;margin:20px 0 10px;font:500 16px var(--mono);letter-spacing:.42em;color:#b0853f}
+.edit .arrow b{display:block;height:2px;width:60px;background:#d4a556}
+.edit .after{position:relative;display:inline-block;font:700 35px/1.5 var(--serif);color:var(--ink)}
+.edit .after .ul{position:absolute;left:-4px;right:-4px;bottom:4px;height:14px;border-radius:4px;background:rgba(236,190,100,.55);transform-origin:0 50%;z-index:-1}
+.edit .rn{position:absolute;font:400 46px/1 var(--hand);color:var(--red);white-space:nowrap}
+
+/* leaves (S6) */
+#leaves{position:absolute;left:240px;top:780px;width:600px;height:600px;overflow:visible;filter:drop-shadow(0 0 26px rgba(240,186,96,.45))}
+
+/* ---------- HUD (headlines / labels) ---------- */
+.hl{position:absolute;top:205px;left:0;width:100%;text-align:center;font:900 88px/1.2 var(--serif);letter-spacing:-.02em;color:var(--cream);visibility:hidden}
+.hl .line{display:block;white-space:nowrap}
+.w{display:inline-block;text-shadow:0 6px 40px rgba(0,0,0,.55)}
+.g{background:linear-gradient(180deg,#fbe4a8 10%,#e8b862 55%,#c78a3a 95%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.mono{position:absolute;top:466px;left:0;width:100%;text-align:center;font:500 27px var(--mono);letter-spacing:.3em;color:rgba(240,212,156,.92);white-space:pre;visibility:hidden}
+.mono .rest{color:transparent}
+.mono .cur{display:inline-block;width:14px;height:28px;margin:0 .1em 0 -.1em;background:#e2b25e;vertical-align:-4px}
+.toggle{position:absolute;top:476px;left:50%;width:614px;margin-left:-307px;height:86px;border-radius:43px;background:rgba(255,255,255,.05);border:1.5px solid rgba(226,178,94,.38);visibility:hidden}
+.toggle .knob{position:absolute;top:7px;left:7px;width:198px;height:69px;border-radius:35px;background:linear-gradient(180deg,#f6d996,#d9a650);box-shadow:0 0 34px rgba(230,170,80,.4)}
+.toggle .opt{position:absolute;top:0;width:200px;height:83px;line-height:83px;text-align:center;font:700 27px var(--sans)}
+
+/* ---------- end card ---------- */
+#end{visibility:hidden;background:radial-gradient(120% 75% at 50% 36%,#22170c 0%,#120c07 50%,#070504 100%)}
+#end .eglow{position:absolute;left:-60px;top:-60px;width:1200px;height:1200px;border-radius:50%;background:radial-gradient(closest-side,rgba(222,160,74,.42),rgba(196,128,52,.15) 46%,transparent 100%)}
+#end .rays{position:absolute;left:-360px;top:-336px;width:1800px;height:1800px;background:repeating-conic-gradient(from 0deg,rgba(246,206,130,.075) 0deg 2.5deg,transparent 2.5deg 12deg);-webkit-mask:radial-gradient(closest-side,#000 12%,transparent 72%);mask:radial-gradient(closest-side,#000 12%,transparent 72%)}
+#end .emb{position:absolute;left:200px;top:186px;width:680px;height:750px}
+#end .emb img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen}
+#end .emb .shine{filter:brightness(1.9) saturate(1.1)}
+.spark{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;filter:drop-shadow(0 0 14px rgba(255,220,150,.9))}
+#end .ttl{position:absolute;top:972px;left:0;width:100%;text-align:center;font:900 76px/1.2 var(--serif);letter-spacing:-.02em;color:var(--cream)}
+#end .tag{position:absolute;top:1090px;left:0;width:100%;text-align:center;font:700 42px/1.3 var(--serif);color:#efe3cc}
+#end .lbl{position:absolute;top:1206px;left:0;width:100%;text-align:center;font:500 22px var(--mono);letter-spacing:.38em;color:rgba(236,205,146,.78)}
+#end .ctaglow{position:absolute;top:1212px;left:50%;width:900px;height:220px;margin-left:-450px;border-radius:50%;background:radial-gradient(closest-side,rgba(236,176,84,.45),transparent 100%)}
+#end .cta{position:absolute;top:1252px;left:50%;width:640px;height:118px;margin-left:-320px;border-radius:59px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:20px;color:#1d140b;font:700 50px var(--sans);letter-spacing:.01em;background:linear-gradient(180deg,#f9dd9c,#e2ad55 60%,#c98f3c);box-shadow:inset 0 0 0 1.5px rgba(255,236,190,.55),0 18px 50px rgba(0,0,0,.45)}
+#end .cta svg{width:44px;height:44px;flex:none}
+#end .cta .csh{position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.6) 50%,transparent 60%);background-size:300% 100%}
+#end .fine{position:absolute;top:1424px;left:0;width:100%;text-align:center;font:400 20px var(--mono);letter-spacing:.06em;color:rgba(236,205,146,.45)}
+
+/* ---------- preview controls (hidden when rendering) ---------- */
+#ui{position:fixed;left:0;right:0;bottom:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;background:#0d0a07;border-top:1px solid #2a2016;font:500 13px var(--mono);color:#d9bf8a}
+#ui button{width:40px;height:32px;border:1px solid #5a4528;border-radius:6px;background:#1a130c;color:#f0d49a;font:700 14px var(--mono);cursor:pointer}
+#ui input{flex:1;accent-color:#d9a650}
+body.render #ui{display:none}
+</style>
+</head>
+<body>
+<div id="viewport">
+<div id="stage">
+  <div class="full bg"></div>
+  <div class="full" id="haze"></div>
+  <div id="glow"></div>
+
+  <!-- S1: blank book -->
+  <div class="layer" id="L-s1"><div class="rig"></div></div>
+  <!-- S2: pain points -->
+  <div class="layer" id="L-genko"><div class="rig"></div></div>
+  <div class="layer" id="L-doc"><div class="rig"></div></div>
+  <!-- S3/S4: open book + pop-out cards -->
+  <div class="layer" id="L-ob"><div class="rig"></div></div>
+  <div class="layer" id="L-cards">
+    <div class="rig" id="R-toc"></div>
+    <div class="rig" id="R-gk"></div>
+    <div class="rig" id="R-edit"></div>
+  </div>
+  <div class="layer" id="L-notes"><div class="rig"></div></div>
+  <!-- S5: genre carousel (one layer per book so each can dim independently) -->
+  <div class="layer gw"><div class="rig"></div></div>
+  <div class="layer gw"><div class="rig"></div></div>
+  <div class="layer gw"><div class="rig"></div></div>
+  <!-- S6: sprout -->
+  <div class="layer" id="L-ob2"><div class="rig"></div></div>
+  <div class="layer" id="L-leaf">
+    <svg id="leaves" viewBox="-300 -560 600 600">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#9c6a2c"/><stop offset=".45" stop-color="#d9a24e"/><stop offset="1" stop-color="#fbe3a4"/>
+        </linearGradient>
+        <radialGradient id="sg"><stop offset="0" stop-color="#fffaf0"/><stop offset=".45" stop-color="#ffe2a6"/><stop offset="1" stop-color="#e2a84e"/></radialGradient>
+      </defs>
+      <path id="stem" d="M0 40 C0 10 2 -20 0 -60" fill="none" stroke="#e6b866" stroke-width="7" stroke-linecap="round"/>
+      <g id="lv"></g>
+      <g id="star"><path d="M0 -60 C5 -12 12 -5 60 0 C12 5 5 12 0 60 C-5 12 -12 5 -60 0 C-12 -5 -5 -12 0 -60Z" fill="url(#sg)"/></g>
+    </svg>
+  </div>
+
+  <!-- End card -->
+  <div class="full" id="end">
+    <div class="eglow"></div>
+    <div class="rays"></div>
+    <div class="emb">
+      <img class="base" src="assets/kyt-emblem.webp" alt="KYT 새로운 책쓰기 연구소">
+      <img class="shine" src="assets/kyt-emblem.webp" alt="">
+    </div>
+    <div class="ttl"></div>
+    <div class="tag"></div>
+    <div class="lbl"></div>
+    <div class="ctaglow"></div>
+    <div class="cta"><svg viewBox="0 0 24 24"><path fill="#1d140b" d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.32.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg><span class="num"></span><div class="csh"></div></div>
+    <div class="fine"></div>
+  </div>
+
+  <div class="full" id="hud"></div>
+  <canvas id="dust" width="1080" height="1920"></canvas>
+  <div class="full" id="flash"></div>
+  <div class="full grain" id="grain"></div>
+  <div class="full vig"></div>
+</div>
+</div>
+<div id="ui"><button id="play">❚❚</button><input id="scrub" type="range" min="0" step="0.001"><span id="tc">00.00</span></div>
+
+<script>
+/* ============================================================
+   COPY — 화면에 나오는 모든 문구
+   *단어* = 골드 강조, | = 줄바꿈
+   ============================================================ */
+const COPY = {
+  hook:     '*내 이름*으로 된 책,|언젠가 쓰고 싶으셨죠?',
+  pain1:    '막막한|*첫 문장.*',
+  pain2:    '끝나지 않는|*퇴고.*',
+  pain3:    '흩어진|*메모와 기억들.*',
+  brand:    '새로운 책쓰기 연구소',
+  turn:     '그 조각들을 모아,|*한 권의 책*으로.',
+  step1:    ['STEP 01 — 기획', '주제는|*선명하게.*'],
+  step2:    ['STEP 02 — 집필', '원고는|*끝까지.*'],
+  step3:    ['STEP 03 — 퇴고', '문장은|*단단하게.*'],
+  genre:    '에세이도, 실용서도.|*당신의 이야기*로.',
+  genres:   ['에세이', '자기계발', '전문서'],
+  journeyK: 'PLAN · WRITE · EDIT · PUBLISH',
+  journey:  '기획부터 출간까지,|*함께* 씁니다.',
+  endTitle: '새로운 책쓰기 연구소',
+  endTag:   '당신의 이야기가, *한 권의 책*이 됩니다.',
+  endLabel: '책쓰기 상담 · 문의',
+  phone:    '010-8073-5149',
+  fine:     '화면 속 원고 · 목차 · 표지는 예시 이미지입니다.',
+};
+
+/* ============================================================
+   TIMING — 96 BPM 박자(0.625초)에 맞춘 장면 경계
+   ============================================================ */
+const FPS = 30;
+const DURATION = 32.5;
+const T = {
+  s1: 0, pain1: 4.375, pain2: 6.25, pain3: 8.125, turn: 10.0,
+  step1: 13.75, step2: 16.25, step3: 18.75, genre: 21.25, journey: 25.0, end: 27.5,
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const E = {
+  lin: t => t,
+  outCubic: t => 1 - Math.pow(1 - t, 3),
+  inCubic: t => t * t * t,
+  inOutCubic: t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  inOutSine: t => -(Math.cos(Math.PI * t) - 1) / 2,
+  outQuint: t => 1 - Math.pow(1 - t, 5),
+  outBack: t => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+};
+/** progress of t through [a, a+d], eased */
+const p = (t, a, d, e = E.outCubic) => e(clamp((t - a) / d));
+function keys(arr, t) {
+  if (t <= arr[0][0]) return arr[0][1];
+  for (let i = 1; i < arr.length; i++) {
+    if (t <= arr[i][0]) {
+      const [t0, v0] = arr[i - 1], [t1, v1] = arr[i];
+      return lerp(v0, v1, E.inOutSine((t - t0) / (t1 - t0)));
+    }
+  }
+  return arr[arr.length - 1][1];
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const tf = ({ x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, s = 1 } = {}) =>
+  `translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(2)}px) rotateX(${rx.toFixed(3)}deg) rotateY(${ry.toFixed(3)}deg) rotateZ(${rz.toFixed(3)}deg) scale(${s.toFixed(4)})`;
+const mix = (A, B, k) => { const o = {}; for (const key of new Set([...Object.keys(A), ...Object.keys(B)])) o[key] = lerp(A[key] ?? (key === 's' ? 1 : 0), B[key] ?? (key === 's' ? 1 : 0), k); return o; };
+function vis(el, o) {
+  el.style.opacity = o.toFixed(4);
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+  return o > 0.001;
+}
+function blur(el, b, extra = '') {
+  el.style.filter = b > 0.05 ? `blur(${b.toFixed(2)}px) ${extra}` : (extra || 'none');
+}
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const chars = s => [...s];
+
+/* ---------- builders ---------- */
+const ORN = `<svg viewBox="0 0 100 70"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M50 64 C38 56 22 54 6 56 V24 C22 22 38 24 50 32 C62 24 78 22 94 24 V56 C78 54 62 56 50 64 Z"/><path d="M50 32 V64"/></g><g fill="currentColor"><path d="M50 30 C44 20 45 9 50 0 C55 9 56 20 50 30Z"/><path d="M48 32 C38 30 31 22 30 13 C40 14 47 21 48 32Z"/><path d="M52 32 C62 30 69 22 70 13 C60 14 53 21 52 32Z"/></g></svg>`;
+
+/** closed hardcover book centred on its rig */
+function makeBook(w, h, d, coverHTML, coverCls, spineCls, backCls) {
+  const b = el('div', 'cb');
+  const face = (cls, fw, fh, t, html = '') => {
+    const f = el('div', 'f ' + cls, html);
+    Object.assign(f.style, { width: fw + 'px', height: fh + 'px', left: -fw / 2 + 'px', top: -fh / 2 + 'px', transform: t });
+    b.appendChild(f); return f;
+  };
+  face(backCls, w, h, `rotateY(180deg) translateZ(${d / 2}px)`);
+  face('edge-v', d - 6, h - 10, `rotateY(90deg) translateZ(${w / 2 - 5}px)`);
+  face('edge-h', w - 10, d - 6, `rotateX(90deg) translateZ(${h / 2 - 5}px)`);
+  face('edge-h', w - 10, d - 6, `rotateX(-90deg) translateZ(${h / 2 - 5}px)`);
+  face(spineCls, d, h, `rotateY(-90deg) translateZ(${w / 2}px)`);
+  const front = face('cover ' + coverCls, w, h, `translateZ(${d / 2}px)`, coverHTML + '<div class="lit"></div>');
+  return { b, front };
+}
+
+const PAGE_L = ['1장', '나는 왜 쓰는가',
+  '누구에게나 한 권의 책이 있다.', '다만 아직 쓰이지 않았을 뿐.', '매일 스쳐 가는 생각과 기억,',
+  '오래 품어 온 경험과 노하우는', '정리되는 순간 이야기가 된다.', '',
+  '처음부터 잘 쓰는 사람은 없다.', '방향을 잡아 주는 사람과', '끝까지 함께 걷는 동료가 있을 때',
+  '비로소 한 권의 책이 완성된다.'];
+const PAGE_R = ['그래서 우리는 묻는다.', '당신은 어떤 이야기를', '세상에 남기고 싶은가.', '',
+  '첫 문장을 쓰는 일은 두렵다.', '하지만 한 꼭지, 또 한 꼭지', '쌓아 가다 보면 어느새', '원고는 책의 모양을 갖춘다.', '',
+  '이 책은 바로 그 여정의', '첫 페이지다.'];
+
+function makeOpenBook() {
+  const ob = el('div', 'ob');
+  ob.appendChild(el('div', 'ob-board'));
+  ob.appendChild(el('div', 'ob-under l'));
+  ob.appendChild(el('div', 'ob-under r'));
+  const L = el('div', 'ob-page l'), R = el('div', 'ob-page r');
+  const pl = el('div', 'pg'), pr = el('div', 'pg');
+  const lines = [];
+  PAGE_L.forEach((s, i) => { const d = el('div', i === 0 ? 'ch' : i === 1 ? 'tt' : 'ln'); d.textContent = s; pl.appendChild(d); lines.push(d); });
+  PAGE_R.forEach(s => { const d = el('div', 'ln'); d.textContent = s; pr.appendChild(d); lines.push(d); });
+  pl.appendChild(el('div', 'no', '13')); pr.appendChild(el('div', 'no', '14'));
+  L.appendChild(pl); R.appendChild(pr);
+  const gutL = el('div'); Object.assign(gutL.style, { position: 'absolute', right: 0, top: 0, bottom: 0, width: '70px', background: 'linear-gradient(90deg,rgba(90,60,30,0),rgba(90,60,30,.22))' });
+  const gutR = el('div'); Object.assign(gutR.style, { position: 'absolute', left: 0, top: 0, bottom: 0, width: '70px', background: 'linear-gradient(90deg,rgba(90,60,30,.22),rgba(90,60,30,0))' });
+  L.appendChild(gutL); R.appendChild(gutR);
+  ob.appendChild(L); ob.appendChild(R);
+  return { ob, lines };
+}
+
+/** genkoji: cols x rows grid of 40px cells, rows separated by `gap` */
+function makeGenko(cols, rows, gap, hdrL, hdrR) {
+  const cell = 40, gw = cols * cell, gh = rows * (cell + gap) - gap;
+  const card = el('div', 'genko card');
+  Object.assign(card.style, { width: gw + 80 + 'px', height: gh + 66 + 44 + 'px' });
+  card.appendChild(el('div', 'hdr', `<span>${hdrL}</span><span>${hdrR}</span>`));
+  const grid = el('div', 'grid'); Object.assign(grid.style, { width: gw + 'px', height: gh + 'px' });
+  for (let r = 0; r < rows; r++) {
+    const row = el('div', 'row'); Object.assign(row.style, { top: r * (cell + gap) + 'px', width: gw + 'px' });
+    grid.appendChild(row);
+  }
+  const cells = [];
+  for (let i = 0; i < cols * rows; i++) {
+    const c = el('div', 'c'); const r = Math.floor(i / cols), k = i % cols;
+    Object.assign(c.style, { left: k * cell + 'px', top: r * (cell + gap) + 'px' });
+    grid.appendChild(c); cells.push(c);
+  }
+  const caret = el('div', 'caret'); grid.appendChild(caret);
+  card.appendChild(grid);
+  const placeCaret = i => { const r = Math.floor(i / cols), k = i % cols; caret.style.left = k * cell + 4 + 'px'; caret.style.top = r * (cell + gap) + 5 + 'px'; };
+  return { card, cells, caret, placeCaret, cols };
+}
+
+/** headline: words get their own span so they can fade/blur in one by one */
+function buildWords(target, text) {
+  const words = [];
+  let gold = false;
+  text.split('|').forEach(line => {
+    const ld = el('div', 'line');
+    line.split(' ').forEach((tok, wi) => {
+      const w = el('span', 'w');
+      let buf = '';
+      const flush = () => {
+        if (!buf) return;
+        if (gold) { const g = el('span', 'g'); g.textContent = buf; w.appendChild(g); } else w.appendChild(document.createTextNode(buf));
+        buf = '';
+      };
+      for (const ch of tok) { if (ch === '*') { flush(); gold = !gold; } else buf += ch; }
+      flush();
+      if (wi > 0) ld.appendChild(document.createTextNode(' '));
+      ld.appendChild(w); words.push(w);
+    });
+    target.appendChild(ld);
+  });
+  return words;
+}
+function wordsIn(words, t, start, out, stagger = .075) {
+  const o = out == null ? 0 : p(t, out, .32, E.inCubic);
+  words.forEach((w, i) => {
+    const a = p(t, start + i * stagger, .5, E.outCubic);
+    w.style.opacity = (a * (1 - o)).toFixed(4);
+    w.style.transform = `translateY(${((1 - a) * 30 - o * 14).toFixed(2)}px) scale(${(1 - o * .03).toFixed(4)})`;
+    const b = (1 - a) * 12 + o * 14;
+    w.style.filter = b > .05 ? `blur(${b.toFixed(2)}px)` : 'none';
+  });
+}
+
+/* ============================================================
+   BUILD
+   ============================================================ */
+const hud = $('#hud');
+const HEADS = [
+  [COPY.hook, 0.55, 3.98], [COPY.pain1, 4.45, 6.0], [COPY.pain2, 6.32, 7.86], [COPY.pain3, 8.2, 9.76],
+  [COPY.turn, 10.35, 13.42], [COPY.step1[1], 13.85, 15.96], [COPY.step2[1], 16.35, 18.46], [COPY.step3[1], 18.85, 20.96],
+  [COPY.genre, 21.4, 24.72], [COPY.journey, 25.15, 27.1],
+].map(([text, tin, tout]) => { const e = el('div', 'hl'); hud.appendChild(e); return { el: e, words: buildWords(e, text), tin, tout }; });
+
+const TYPE_RATE = 0.045;
+const MONOS = [
+  [COPY.brand, 10.05, 13.42], [COPY.step1[0], 13.95, 15.96], [COPY.step2[0], 16.45, 18.46],
+  [COPY.step3[0], 18.95, 20.96], [COPY.journeyK, 25.3, 27.1],
+].map(([text, tin, tout]) => {
+  const e = el('div', 'mono'); const a = el('span'), c = el('span', 'cur'), r = el('span', 'rest');
+  e.append(a, c, r); hud.appendChild(e);
+  return { el: e, a, c, r, text: chars(text), tin, tout };
+});
+
+const toggle = el('div', 'toggle'); hud.appendChild(toggle);
+const knob = el('div', 'knob'); toggle.appendChild(knob);
+const opts = COPY.genres.map((g, i) => { const o = el('div', 'opt', g); o.style.left = 7 + i * 200 + 'px'; toggle.appendChild(o); return o; });
+
+/* S1 book */
+const s1 = makeBook(580, 790, 74,
+  `<div class="frame"></div><div class="kick">MY FIRST BOOK</div><div class="orn" style="color:#c39749">${ORN}</div>
+   <div class="ttl">나의 첫 책<span class="caret"></span></div><div class="rule"></div><div class="au">지은이<i></i></div>`,
+  'ivory', 'spine-ivory', 'back-ivory');
+$('#L-s1 .rig').appendChild(s1.b);
+const s1caret = $('.caret', s1.front);
+
+/* S2a genkoji */
+const gk1 = makeGenko(14, 14, 10, '원 고 지', 'No. 001');
+$('#L-genko .rig').appendChild(gk1.card);
+const PAIN_TYPE = chars('어디서부터 시작하지?');
+
+/* S2b doc */
+const DOC_LINES = ['처음 책을 쓰겠다고 마음먹은 날,', '나는 하얀 화면 앞에서 한참을 앉아 있었다.', '쓰고, 지우고, 다시 쓰기를 몇 번이나',
+  '반복했는지 모른다. 문장은 자꾸만', '어디론가 흩어졌고, 마음만 앞서갔다.', '그래도 포기하고 싶지는 않았다.',
+  '언젠가는 이 이야기가 누군가에게', '작은 위로가 될 거라고 믿었으니까.'];
+const doc = el('div', 'doc card');
+doc.innerHTML = `<div class="bar"><i class="dot" style="background:#e0705c"></i><i class="dot" style="background:#e6b75a"></i><i class="dot" style="background:#82b36c"></i><span class="fname"></span></div>
+  <div class="body"><div class="h">프롤로그</div>${DOC_LINES.map(s => `<div class="ln">${s}<i class="st"></i></div>`).join('')}</div>`;
+$('#L-doc .rig').appendChild(doc);
+const docName = $('.fname', doc), docLines = $$('.ln', doc);
+const DOC_EDITS = [ // line, strike time, margin note
+  { line: 1, t: 6.72, note: '다시!', x: 'calc(100% - 96px)', dy: -32 },
+  { line: 2, t: 6.98, note: '어색함', x: '38%', dy: -30 },
+  { line: 4, t: 7.24, note: '삭제?', x: 'calc(100% - 100px)', dy: -32 },
+  { line: 5, t: 7.5, note: '??', x: '52%', dy: -30 },
+];
+DOC_EDITS.forEach(e => {
+  const n = el('div', 'rn', e.note);
+  docLines[e.line].appendChild(n);
+  Object.assign(n.style, { left: e.x, top: e.dy + 'px' });
+  e.st = $('.st', docLines[e.line]); e.n = n;
+});
+$$('.ln .st', doc).forEach(s => { if (!DOC_EDITS.some(e => e.st === s)) s.remove(); });
+const DOC_VERSIONS = [3, 7, 12, 15];
+
+/* S2c / S3 notes */
+const NOTE_TEXT = ['어릴 적 기억', '강의 노트', '블로그 글', '일기장 한 켠', '첫 직장 이야기', '여행 메모', '실패의 기록',
+  '엄마의 한마디', '독서 노트', '상담 사례', '버킷리스트', '새벽 3시의 생각', '육아 일기', '나만의 노하우'];
+const NOTE_BG = ['#f4ead2', '#f6e3a3', '#dcc6a2', '#efe1c2', '#f1dcb0'];
+const rnd = mulberry32(20261028);
+const NOTE_POS = [];
+const notes = NOTE_TEXT.map((txt, i) => {
+  const n = el('div', 'note', txt);
+  n.style.background = NOTE_BG[i % NOTE_BG.length];
+  $('#L-notes .rig').appendChild(n);
+  let x, y, tries = 0;
+  do { x = (rnd() * 2 - 1) * 330; y = (rnd() * 2 - 1) * 470 + 10; tries++; }
+  while (tries < 400 && NOTE_POS.some(q => Math.hypot((q[0] - x) * .62, q[1] - y) < 150));
+  NOTE_POS.push([x, y]);
+  return {
+    n, x, y, z: -260 + rnd() * 380,
+    rx: (rnd() - .5) * 36, ry: (rnd() - .5) * 50, rz: (rnd() - .5) * 46, ord: 0, ph: rnd() * 6.28,
+  };
+});
+notes.map((o, i) => [rnd(), i]).sort((a, b) => a[0] - b[0]).forEach(([, i], k) => { notes[i].ord = k; });
+
+/* S3 / S4 open book */
+const ob1 = makeOpenBook();
+$('#L-ob .rig').appendChild(ob1.ob);
+
+/* S4 cards */
+const TOC = [['프롤로그', 7], ['1장  나는 왜 쓰는가', 13], ['2장  작은 성공의 기록', 47], ['3장  다시 일어서는 법', 89],
+  ['4장  당신에게 건네는 말', 131], ['에필로그', 172]];
+const toc = el('div', 'toc card', `<div class="k">CONTENTS</div><div class="t">차례</div>` +
+  TOC.map(([a, b], i) => `<div class="row">${i === 1 ? '<i class="mark"></i>' : ''}<span>${a}</span><i class="lead"></i><span class="n">${b}</span></div>`).join(''));
+$('#R-toc').appendChild(toc);
+const tocRows = $$('.row', toc), tocMark = $('.mark', toc);
+toc.style.transform = 'translate(-50%,-50%)';
+
+const gk2 = makeGenko(13, 9, 10, '원 고 지', 'CH. 01');
+$('#R-gk').appendChild(gk2.card);
+gk2.card.style.transform = 'translate(-50%,-50%)';
+const FILL_TEXT = chars(' 쓰다 보면 길이 보인다. 하루 한 꼭지씩 차곡차곡 쌓아 가다 보면 흩어져 있던 생각들이 하나의 흐름이 되고, 마침내 한 권의 원고가 된다. 끝까지 쓰는 힘은 함께일 때 생긴다.');
+gk2.cells.forEach((c, i) => { c.textContent = FILL_TEXT[i] ?? ''; });
+const chip = el('div', 'chip card', `<div class="lb"><span>원고 진행률</span><span class="pct">0%</span></div><div class="bar"><div class="fill"></div></div>`);
+$('#R-gk').appendChild(chip);
+const chipPct = $('.pct', chip), chipFill = $('.fill', chip);
+
+const edit = el('div', 'edit card', `<div class="k">퇴고 전</div>
+  <div class="before">그때 저는 <span class="del">정말 너무<i class="st"></i></span> 힘들어서 모든 걸 포기하고 싶었던 <span class="del">것 같아요<i class="st"></i></span>.</div>
+  <div class="arrow"><b></b>퇴고 후</div>
+  <div class="after"><i class="ul"></i><span class="txt"></span></div>`);
+$('#R-edit').appendChild(edit);
+edit.style.transform = 'translate(-50%,-50%)';
+const dels = $$('.del', edit), afterTxt = $('.after .txt', edit), afterUl = $('.after .ul', edit), editArrow = $('.arrow', edit);
+const AFTER = chars('그해 겨울, 나는 모든 걸 놓고 싶었다.');
+const editNote = el('div', 'rn', '더 단단하게!');
+Object.assign(editNote.style, { right: '54px', top: '30px' });
+edit.appendChild(editNote);
+$('.after', edit).style.minHeight = '52px';
+
+/* S5 genre carousel */
+const GENRE = [
+  { cls: 'g-essay', sp: 'sp-essay', k: 'ESSAY', t: '당신의<br>에세이' },
+  { cls: 'g-self', sp: 'sp-self', k: 'SELF-HELP', t: '당신의<br>자기계발서' },
+  { cls: 'g-expert', sp: 'sp-expert', k: 'EXPERT', t: '당신의<br>전문서' },
+];
+const gws = $$('.layer.gw');
+GENRE.forEach((g, i) => {
+  const bk = makeBook(350, 500, 54,
+    `<div class="frame"></div><div class="kick">${g.k}</div><div class="orn" style="color:#e2b25e">${ORN}</div><div class="ttl">${g.t}</div><div class="au">지은이 · 당신</div>`,
+    'genre ' + g.cls, 'spine-g ' + g.sp, g.cls);
+  $('.rig', gws[i]).appendChild(bk.b);
+});
+
+/* S6 */
+const ob2 = makeOpenBook();
+$('#L-ob2 .rig').appendChild(ob2.ob);
+const LEAF = 'M0 0 C 42 -70 46 -190 0 -262 C -46 -190 -42 -70 0 0 Z';
+const LEAVES = [
+  { a: 0, s: .92, at: 25.55 }, { a: -34, s: .74, at: 25.7 }, { a: 34, s: .74, at: 25.78 },
+  { a: -68, s: .54, at: 25.9 }, { a: 68, s: .54, at: 25.98 },
+].map(L => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.innerHTML = `<path d="${LEAF}" fill="url(#lg)" stroke="#fbe0a0" stroke-width="2.5"/><path d="M0 -14 L0 -236" stroke="#9c6a2c" stroke-opacity=".55" stroke-width="3" fill="none"/>`;
+  $('#lv').appendChild(g);
+  return { ...L, g };
+});
+const stem = $('#stem'), star = $('#star');
+const STEM_LEN = stem.getTotalLength();
+stem.style.strokeDasharray = STEM_LEN;
+
+/* End card */
+const end = $('#end');
+const endTitleWords = buildWords($('.ttl', end), COPY.endTitle);
+const endTagWords = buildWords($('.tag', end), COPY.endTag);
+$('.lbl', end).textContent = COPY.endLabel;
+$('.num', end).textContent = COPY.phone;
+$('.fine', end).textContent = COPY.fine;
+const embBase = $('.emb .base', end), embShine = $('.emb .shine', end);
+const SPARK = `<svg viewBox="-60 -60 120 120"><path d="M0 -60 C5 -12 12 -5 60 0 C12 5 5 12 0 60 C-5 12 -12 5 -60 0 C-12 -5 -5 -12 0 -60Z" fill="#fff6dc"/></svg>`;
+// glint positions measured on the 680px-wide emblem (star above the book, top of the T, left book corner)
+const SPARKS = [[448, 105, 28.75, 1.0], [577, 324, 29.35, .7], [35, 484, 30.1, .6], [448, 105, 31.2, .8]].map(([x, y, at, s]) => {
+  const d = el('div', 'spark', SPARK);
+  Object.assign(d.style, { left: 200 + x + 'px', top: 186 + y + 'px' });
+  end.appendChild(d);
+  return { d, at, s };
+});
+
+/* grain texture */
+(function () {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d'), im = x.createImageData(256, 256), r = mulberry32(99);
+  for (let i = 0; i < im.data.length; i += 4) { const v = r() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; }
+  x.putImageData(im, 0, 0);
+  $('#grain').style.backgroundImage = `url(${c.toDataURL()})`;
+})();
+
+/* dust + bursts */
+const dctx = $('#dust').getContext('2d');
+const DUST = (() => { const r = mulberry32(7), a = []; for (let i = 0; i < 90; i++) a.push({ x: r() * 1080, y: r() * 1920, vy: -(6 + r() * 26), vx: (r() - .5) * 8, r: .6 + r() * 2.2, ph: r() * 6.28, w: .8 + r() * 2.2, a: .25 + r() * .6 }); return a; })();
+const BURSTS = [[11.05, 540, 1150, 70, 1], [18.12, 760, 1160, 36, .7], [26.35, 690, 960, 50, .9], [27.5, 540, 560, 90, 1.1]].map(([t0, cx, cy, n, k], bi) => {
+  const r = mulberry32(300 + bi), parts = [];
+  for (let i = 0; i < n; i++) { const ang = r() * Math.PI * 2; parts.push({ dx: Math.cos(ang), dy: Math.sin(ang), sp: (180 + r() * 720) * k, size: .8 + r() * 2.4, life: .7 + r() * .9 }); }
+  return { t0, cx, cy, parts };
+});
+function drawDust(t) {
+  dctx.clearRect(0, 0, 1080, 1920);
+  const lvl = keys([[0, 0], [.7, .55], [10, .55], [11.1, 1], [21, .8], [25, .8], [27.4, 1.25], [32.5, 1]], t);
+  dctx.globalCompositeOperation = 'lighter';
+  for (const d of DUST) {
+    const y = (((d.y + d.vy * t) % 1920) + 1920) % 1920;
+    const x = d.x + d.vx * t + Math.sin(t * .5 + d.ph) * 14;
+    const a = d.a * lvl * (.55 + .45 * Math.sin(t * d.w + d.ph));
+    if (a <= 0) continue;
+    dctx.globalAlpha = a * .22; dctx.fillStyle = '#f0b860';
+    dctx.beginPath(); dctx.arc(x, y, d.r * 3.4, 0, 6.2832); dctx.fill();
+    dctx.globalAlpha = a; dctx.fillStyle = '#ffe6b0';
+    dctx.beginPath(); dctx.arc(x, y, d.r, 0, 6.2832); dctx.fill();
+  }
+  for (const b of BURSTS) {
+    const age = t - b.t0;
+    if (age < 0 || age > 1.7) continue;
+    for (const q of b.parts) {
+      if (age > q.life) continue;
+      const dist = q.sp * (1 - Math.exp(-age * 3.2)) / 3.2;
+      const x = b.cx + q.dx * dist, y = b.cy + q.dy * dist + 40 * age * age;
+      const a = Math.pow(1 - age / q.life, 1.6);
+      dctx.globalAlpha = a * .35; dctx.fillStyle = '#f2b45a';
+      dctx.beginPath(); dctx.arc(x, y, q.size * 3.2, 0, 6.2832); dctx.fill();
+      dctx.globalAlpha = a; dctx.fillStyle = '#fff1cc';
+      dctx.beginPath(); dctx.arc(x, y, q.size, 0, 6.2832); dctx.fill();
+    }
+  }
+  dctx.globalAlpha = 1; dctx.globalCompositeOperation = 'source-over';
+}
+
+/* ============================================================
+   SCENE UPDATES — every visual is a pure function of t
+   ============================================================ */
+function upBg(t) {
+  let g = keys([[0, 0], [.9, .55], [9.9, .5], [11.0, .8], [13.75, .72], [21.25, .68], [25.2, .62], [27.3, 1.5], [27.7, .7], [32.5, .7]], t);
+  if (t >= 11.05) g += .55 * Math.exp(-(t - 11.05) * 2.4);
+  const G = $('#glow');
+  G.style.opacity = Math.min(1, g).toFixed(4);
+  G.style.transform = `scale(${(.88 + .28 * g).toFixed(4)})`;
+  $('#haze').style.opacity = keys([[0, 0], [1, 1]], t).toFixed(3);
+  const f = Math.floor(t * FPS), r = mulberry32(f + 1);
+  $('#grain').style.backgroundPosition = `${Math.floor(r() * 256)}px ${Math.floor(r() * 256)}px`;
+}
+
+function upS1(t) {
+  const L = $('#L-s1'), rig = L.firstElementChild;
+  const a = p(t, .1, 1.5, E.outCubic), ap = p(t, .1, .6), ex = p(t, 3.95, .45, E.inCubic);
+  if (!vis(L, ap * (1 - ex))) return;
+  blur(L, (1 - ap) * 10 + ex * 18);
+  L.style.transform = `scale(${(1 + ex * .25).toFixed(4)})`;
+  rig.style.transform = tf({ y: lerp(900, 10, a), rx: lerp(46, 16, a), ry: lerp(-52, -24, a) + Math.sin(t * .9) * 2.5, rz: lerp(-16, -5, a) });
+  s1caret.style.opacity = Math.floor(t * 2.2) % 2 === 0 ? 1 : 0;
+}
+
+function upGenko1(t) {
+  const L = $('#L-genko');
+  const a = p(t, 4.28, .65, E.outCubic), ex = p(t, 6.05, .32, E.inCubic);
+  if (!vis(L, p(t, 4.28, .3) * (1 - ex))) return;
+  blur(L, (1 - a) * 12 + ex * 16);
+  L.style.transform = `scale(${(1 + ex * .15).toFixed(4)})`;
+  gk1.card.style.transform = 'translate(-50%,-50%) ' + tf({ y: lerp(160, 0, a), z: lerp(-300, 0, a), rx: lerp(30, 12, a), ry: lerp(-40, -17, a) + Math.sin(t * 1.1) * 2, rz: lerp(8, 2, a), s: lerp(.92, 1.12, a) });
+  // type, hesitate, delete
+  let n = 0;
+  if (t >= 4.85 && t < 5.75) n = Math.min(PAIN_TYPE.length, Math.floor((t - 4.85) / .068) + 1);
+  else if (t >= 5.75) n = Math.max(0, PAIN_TYPE.length - Math.floor((t - 5.75) / .035));
+  gk1.cells.forEach((c, i) => { const k = i - 1; c.textContent = k >= 0 && k < n ? PAIN_TYPE[k] : ''; });
+  gk1.placeCaret(1 + n);
+  const typing = (t >= 4.85 && t < 5.75 && n < PAIN_TYPE.length) || (t >= 5.75 && n > 0);
+  gk1.caret.style.opacity = typing || Math.floor(t * 2.6) % 2 === 0 ? 1 : 0;
+}
+
+function upDoc(t) {
+  const L = $('#L-doc');
+  const a = p(t, 6.18, .62, E.outCubic), ex = p(t, 7.93, .32, E.inCubic);
+  if (!vis(L, p(t, 6.18, .3) * (1 - ex))) return;
+  blur(L, (1 - a) * 12 + ex * 16);
+  L.style.transform = `scale(${(1 + ex * .15).toFixed(4)})`;
+  doc.style.transform = 'translate(-50%,-50%) ' + tf({ y: lerp(160, 0, a), z: lerp(-300, 0, a), rx: lerp(26, 10, a), ry: lerp(40, 16, a) + Math.sin(t * 1.1) * 2, rz: lerp(-7, -2, a), s: lerp(.92, 1.1, a) });
+  let done = 0;
+  DOC_EDITS.forEach(e => {
+    const k = p(t, e.t, .26, E.inOutCubic);
+    e.st.style.transform = `scaleX(${k.toFixed(4)})`;
+    const nk = p(t, e.t + .14, .32, E.outBack);
+    e.n.style.opacity = clamp(nk * 1.4).toFixed(3);
+    e.n.style.transform = `scale(${(.4 + .6 * nk).toFixed(4)}) rotate(-6deg)`;
+    if (t >= e.t + .1) done++;
+  });
+  docName.textContent = `원고_최종_진짜최종(${DOC_VERSIONS[Math.max(0, done - 1)]}).hwp`;
+}
+
+function upNotes(t) {
+  const L = $('#L-notes');
+  if (!vis(L, t > 8.0 && t < 11.4 ? 1 : 0)) return;
+  blur(L, (1 - p(t, 8.1, .5)) * 6);
+  notes.forEach((o, i) => {
+    const st = 8.08 + i * .026;
+    const b = p(t, st, .8, E.outBack), bo = p(t, st, .22);
+    const dx = Math.sin(t * .8 + o.ph) * 14, dy = Math.cos(t * .7 + o.ph * 1.7) * 16;
+    const pos = {
+      x: lerp(0, o.x, b) + dx * b, y: lerp(80, o.y, b) + dy * b, z: lerp(-420, o.z, b),
+      rx: o.rx * b + Math.sin(t * .9 + o.ph) * 6, ry: o.ry * b + Math.cos(t * .8 + o.ph) * 8,
+      rz: o.rz * b + Math.sin(t * .6 + i) * 3, s: lerp(.4, 1, b),
+    };
+    const cst = 9.98 + o.ord * .045, c = p(t, cst, .75, E.inOutCubic);
+    const fin = mix(pos, { x: 0, y: 70, z: -60, rx: 24, ry: 0, rz: 0, s: .14 }, c);
+    o.n.style.opacity = (bo * (1 - p(t, cst + .5, .25))).toFixed(4);
+    o.n.style.transform = 'translate(-50%,-50%) ' + tf(fin);
+  });
+}
+
+const P3 = { x: 0, y: 70, z: 0, rx: 24, ry: -6, rz: -2, s: 1.08 };
+const P41 = { x: -150, y: 190, z: -140, rx: 28, ry: 18, rz: -3, s: .94 };
+const P42 = { x: 150, y: 210, z: -140, rx: 28, ry: -18, rz: 3, s: .94 };
+const P43 = { x: 0, y: 320, z: -180, rx: 46, ry: 0, rz: 0, s: .96 };
+function obPose(t) {
+  const a = p(t, 10.2, .95, E.outCubic);
+  let pose = mix({ x: 0, y: 70, z: -900, rx: 34, ry: -26, rz: -7, s: 1.08 }, P3, a);
+  pose = mix(pose, P41, p(t, 13.7, .75, E.inOutCubic));
+  pose = mix(pose, P42, p(t, 16.2, .75, E.inOutCubic));
+  pose = mix(pose, P43, p(t, 18.7, .75, E.inOutCubic));
+  pose.ry += Math.sin(t * .7) * 2.5;
+  return pose;
+}
+function upOb1(t) {
+  const L = $('#L-ob'), rig = L.firstElementChild;
+  const ex = p(t, 21.0, .42, E.inCubic);
+  if (!vis(L, p(t, 10.2, .45) * (1 - ex))) return;
+  blur(L, (1 - p(t, 10.2, .8)) * 10 + ex * 14);
+  const pose = obPose(t); pose.z -= 260 * ex;
+  rig.style.transform = tf(pose);
+  ob1.lines.forEach((ln, j) => {
+    const k = p(t, 11.0 + j * .05, .38);
+    ln.style.opacity = k.toFixed(3);
+    ln.style.transform = `translateY(${((1 - k) * 8).toFixed(2)}px)`;
+  });
+}
+
+function popCard(rig, t, tin, tout, from, to) {
+  const a = p(t, tin, .62, E.outBack), ao = p(t, tin, .25), ex = p(t, tout, .34, E.inCubic);
+  const o = ao * (1 - ex);
+  rig.style.visibility = o > .001 ? 'visible' : 'hidden';
+  if (o <= .001) return false;
+  const pose = mix(from, to, a);
+  pose.y -= 90 * ex; pose.z += 160 * ex; pose.rx += Math.sin(t * 1.3) * 1.5; pose.ry += Math.sin(t * .9) * 2;
+  rig.style.transform = tf(pose);
+  rig.style.opacity = o.toFixed(4);
+  blur(rig, (1 - ao) * 8 + ex * 12);
+  return true;
+}
+function upCards(t) {
+  const L = $('#L-cards');
+  if (!vis(L, t > 13.8 && t < 21.4 ? 1 : 0)) return;
+  if (popCard($('#R-toc'), t, 13.95, 15.95, { x: -60, y: 150, z: -120, rx: 28, ry: 18, rz: -2, s: .5 }, { x: 110, y: -50, z: 120, rx: 8, ry: -12, rz: 2, s: 1.1 })) {
+    tocRows.forEach((r, i) => { const k = p(t, 14.35 + i * .11, .35); r.style.opacity = k.toFixed(3); r.style.transform = `translateX(${((1 - k) * 24).toFixed(2)}px)`; });
+    tocMark.style.transform = `scaleX(${p(t, 15.15, .38, E.inOutCubic).toFixed(4)})`;
+  }
+  if (popCard($('#R-gk'), t, 16.4, 18.45, { x: 150, y: 170, z: -120, rx: 28, ry: -18, rz: 2, s: .5 }, { x: -60, y: -70, z: 120, rx: 8, ry: 12, rz: -2, s: 1.1 })) {
+    const n = Math.floor(clamp((t - 16.85) / 1.2) * gk2.cells.length);
+    gk2.cells.forEach((c, i) => { c.style.opacity = i < n ? 1 : 0; });
+    gk2.placeCaret(Math.min(n, gk2.cells.length - 1));
+    gk2.caret.style.opacity = n < gk2.cells.length ? 1 : 0;
+    const ca = p(t, 16.7, .5, E.outBack);
+    chip.style.opacity = clamp(ca * 1.5).toFixed(3);
+    chip.style.transform = `translate(-50%,-50%) translate3d(130px,${lerp(420, 360, ca).toFixed(2)}px,80px) scale(${lerp(.7, 1, ca).toFixed(4)})`;
+    const pct = Math.round(100 * E.inOutSine(clamp((t - 16.9) / 1.22)));
+    chipFill.style.transform = `scaleX(${(pct / 100).toFixed(3)})`;
+    const doneK = p(t, 18.12, .3, E.outBack);
+    chipPct.textContent = pct >= 100 ? '탈고 완료' : pct + '%';
+    chipPct.style.transform = `scale(${(1 + .25 * Math.sin(Math.PI * clamp(doneK))).toFixed(4)})`;
+  }
+  if (popCard($('#R-edit'), t, 18.9, 20.95, { x: 0, y: 300, z: -160, rx: 46, ry: 0, s: .5 }, { x: 0, y: -50, z: 120, rx: 10, ry: 0, rz: 0, s: 1.04 })) {
+    dels.forEach((d, i) => {
+      const k = p(t, 19.42 + i * .26, .26, E.inOutCubic);
+      $('.st', d).style.transform = `scaleX(${k.toFixed(4)})`;
+      d.style.opacity = (1 - .55 * p(t, 19.75 + i * .2, .3)).toFixed(3);
+    });
+    const nk = p(t, 19.8, .32, E.outBack);
+    editNote.style.opacity = clamp(nk * 1.4).toFixed(3);
+    editNote.style.transform = `scale(${(.4 + .6 * nk).toFixed(4)}) rotate(-5deg)`;
+    editArrow.style.opacity = p(t, 19.95, .3).toFixed(3);
+    const n = Math.floor(clamp((t - 20.05) / .55) * AFTER.length);
+    afterTxt.textContent = AFTER.slice(0, n).join('');
+    afterUl.style.transform = `scaleX(${p(t, 20.58, .35, E.inOutCubic).toFixed(4)})`;
+  }
+}
+
+function upGenre(t) {
+  const a = p(t, 21.3, .75, E.outCubic), ao = p(t, 21.3, .35), ex = p(t, 24.72, .36, E.inCubic);
+  const f = p(t, 22.5, .5, E.inOutCubic) + p(t, 23.75, .5, E.inOutCubic);
+  gws.forEach((L, i) => {
+    const off = i - f, ad = Math.abs(off);
+    const o = ao * (1 - ex) * (1 - clamp(ad - 1) * .7);
+    if (!vis(L, o)) return;
+    L.style.zIndex = String(10 - Math.round(ad * 3));
+    const br = 1 - Math.min(ad, 1) * .5;
+    blur(L, (1 - a) * 10 + ex * 14, `brightness(${br.toFixed(3)})`);
+    L.firstElementChild.style.transform = tf({
+      x: off * 390, y: lerp(620, 30, a) + ad * 30, z: 80 - ad * 260,
+      rx: 8, ry: -off * 30 + Math.sin(t * .8 + i) * 3, rz: 0, s: 1 + .1 * (1 - Math.min(ad, 1)),
+    });
+  });
+  const to = p(t, 21.55, .4) * (1 - ex);
+  if (vis(toggle, to)) {
+    blur(toggle, (1 - p(t, 21.55, .4)) * 8 + ex * 10);
+    knob.style.transform = `translateX(${(f * 200).toFixed(2)}px)`;
+    opts.forEach((o, i) => {
+      const k = clamp(1 - Math.abs(i - f));
+      o.style.color = `rgb(${Math.round(lerp(240, 31, k))},${Math.round(lerp(214, 22, k))},${Math.round(lerp(160, 13, k))})`;
+      o.style.opacity = lerp(.75, 1, k).toFixed(3);
+    });
+  }
+}
+
+function upS6(t) {
+  const L = $('#L-ob2'), LL = $('#L-leaf'), rig = L.firstElementChild;
+  const a = p(t, 24.95, .75, E.outCubic), ao = p(t, 24.95, .35);
+  const push = p(t, 26.9, .62, E.inCubic);
+  const gone = t > 27.62;
+  const o = gone ? 0 : ao;
+  [L, LL].forEach(x => {
+    x.style.transformOrigin = '540px 1180px';
+    x.style.transform = `scale(${(1 + push * 1.3).toFixed(4)})`;
+  });
+  if (vis(L, o)) {
+    blur(L, (1 - a) * 10 + push * 10);
+    rig.style.transform = tf({ y: lerp(620, 250, a), rx: lerp(72, 54, a), ry: Math.sin(t * .8) * 2, rz: 0, s: 1 });
+  }
+  if (vis(LL, gone ? 0 : 1)) {
+    blur(LL, push * 8, 'drop-shadow(0 0 26px rgba(240,186,96,.45))');
+    const sk = p(t, 25.35, .45, E.inOutCubic);
+    stem.style.strokeDashoffset = (STEM_LEN * (1 - sk)).toFixed(2);
+    stem.style.opacity = sk > 0 ? 1 : 0;
+    LEAVES.forEach(l => {
+      const k = p(t, l.at, .7, E.outBack);
+      l.g.setAttribute('transform', `translate(0 -54) rotate(${(l.a * (.6 + .4 * clamp(k))).toFixed(2)}) scale(${(l.s * Math.max(0, k)).toFixed(4)})`);
+      l.g.style.opacity = clamp(k * 3).toFixed(3);
+    });
+    const st = p(t, 26.3, .55, E.outBack);
+    const tw = 1 + .12 * Math.sin(t * 9);
+    star.setAttribute('transform', `translate(160 -380) rotate(${(st * 90).toFixed(2)}) scale(${(st * .9 * tw).toFixed(4)})`);
+    star.style.opacity = clamp(st * 2).toFixed(3);
+  }
+  const fl = p(t, 27.05, .45, E.inCubic) * (1 - p(t, 27.5, .85, E.outCubic));
+  vis($('#flash'), fl * .95);
+}
+
+function upEnd(t) {
+  if (!vis(end, p(t, 27.35, .15))) return;
+  const a = p(t, 27.5, 1.1, E.outCubic);
+  const drift = 1 + Math.max(0, t - 28.6) * .006;
+  [embBase, embShine].forEach(im => { im.style.transform = `translateY(${lerp(24, 0, a).toFixed(2)}px) scale(${(lerp(1.1, 1, a) * drift).toFixed(4)})`; });
+  embBase.style.opacity = a.toFixed(4);
+  blur(embBase, (1 - a) * 14);
+  // light sweep across the gold
+  const sw = p(t, 28.35, 1.15, E.inOutSine), sw2 = p(t, 31.0, 1.0, E.inOutSine);
+  const pos = sw < 1 ? lerp(-25, 125, sw) : lerp(-25, 125, sw2);
+  const m = `linear-gradient(112deg, transparent ${(pos - 14).toFixed(2)}%, #000 ${pos.toFixed(2)}%, transparent ${(pos + 14).toFixed(2)}%)`;
+  embShine.style.webkitMaskImage = m; embShine.style.maskImage = m;
+  embShine.style.opacity = (sw > 0 && sw < 1) || (sw2 > 0 && sw2 < 1) ? '.85' : '0';
+  $('.rays', end).style.transform = `rotate(${(t * 2.2).toFixed(3)}deg)`;
+  $('.rays', end).style.opacity = p(t, 27.6, 1.2).toFixed(3);
+  $('.eglow', end).style.opacity = (.75 + .25 * Math.sin(t * 1.6)).toFixed(3);
+  SPARKS.forEach(s => {
+    const k = clamp((t - s.at) / .8);
+    const v = Math.sin(Math.PI * k);
+    s.d.style.opacity = v.toFixed(3);
+    s.d.style.transform = `scale(${(v * s.s).toFixed(4)}) rotate(${(k * 120).toFixed(2)}deg)`;
+  });
+  wordsIn(endTitleWords, t, 28.55, null, .06);
+  wordsIn(endTagWords, t, 28.95, null, .06);
+  const lb = p(t, 29.3, .5);
+  $('.lbl', end).style.opacity = lb.toFixed(3);
+  $('.lbl', end).style.transform = `translateY(${((1 - lb) * 12).toFixed(2)}px)`;
+  const c = p(t, 29.4, .65, E.outBack), co = p(t, 29.4, .3);
+  const cta = $('.cta', end);
+  cta.style.opacity = co.toFixed(3);
+  cta.style.transform = `scale(${lerp(.82, 1, c).toFixed(4)})`;
+  $('.csh', cta).style.backgroundPosition = `${lerp(110, -10, p(t, 30.25, .9, E.inOutSine)).toFixed(2)}% 0`;
+  $('.ctaglow', end).style.opacity = (co * (.65 + .35 * Math.sin((t - 29.4) * 3.2))).toFixed(3);
+  $('.fine', end).style.opacity = p(t, 29.85, .6).toFixed(3);
+}
+
+function upHud(t) {
+  HEADS.forEach(h => {
+    if (!vis(h.el, t >= h.tin - .01 && t < h.tout + .34 ? 1 : 0)) return;
+    wordsIn(h.words, t, h.tin, h.tout);
+  });
+  MONOS.forEach(m => {
+    if (!vis(m.el, t >= m.tin && t < m.tout + .32 ? 1 - p(t, m.tout, .3, E.inCubic) : 0)) return;
+    const n = Math.min(m.text.length, Math.floor((t - m.tin) / TYPE_RATE) + 1);
+    m.a.textContent = m.text.slice(0, n).join('');
+    m.r.textContent = m.text.slice(n).join('');
+    m.c.style.opacity = n < m.text.length || Math.floor(t * 2.4) % 2 === 0 ? 1 : 0;
+    blur(m.el, p(t, m.tout, .3, E.inCubic) * 8);
+  });
+}
+
+function seek(t) {
+  t = clamp(t, 0, DURATION);
+  upBg(t); upS1(t); upGenko1(t); upDoc(t); upOb1(t); upCards(t); upNotes(t); upGenre(t); upS6(t); upEnd(t); upHud(t); drawDust(t);
+}
+
+/* ============================================================
+   SOUND CUES — read by render.cjs and handed to audio/make_audio.py
+   ============================================================ */
+function cues() {
+  const c = [];
+  const add = (t, k, v = 1) => c.push({ t: +t.toFixed(4), k, v });
+  [T.pain1, T.pain2, T.turn, T.step1, T.step2, T.step3, T.genre, T.journey].forEach(t => add(t, 'whoosh'));
+  add(T.pain3, 'flutter'); add(9.98, 'flutter', .8);
+  MONOS.forEach(m => m.text.forEach((ch, i) => { if (ch.trim()) add(m.tin + i * TYPE_RATE, 'tick', .55); }));
+  PAIN_TYPE.forEach((ch, i) => { if (ch.trim()) add(4.85 + i * .068, 'key', .8); });
+  for (let i = 0; i < PAIN_TYPE.length; i++) add(5.75 + i * .035, 'key', .45);
+  DOC_EDITS.forEach(e => add(e.t, 'scratch'));
+  [19.42, 19.68].forEach(t => add(t, 'scratch', .8));
+  [13.95, 16.4, 18.9].forEach(t => add(t, 'pop'));
+  [22.5, 23.75].forEach(t => add(t, 'click'));
+  add(11.05, 'chime'); add(18.12, 'chime', .8); add(20.6, 'chime', .6); add(26.3, 'chime', .9); add(28.75, 'chime', 1);
+  add(25.0, 'riser'); add(T.end, 'impact');
+  return c.sort((a, b) => a.t - b.t);
+}
+
+/* ============================================================
+   RUNTIME — preview player, or frame-by-frame render hooks
+   ============================================================ */
+const RENDER = new URLSearchParams(location.search).has('render');
+window.__meta = { fps: FPS, duration: DURATION, width: 1080, height: 1920, bpm: 96, scenes: T, cues: cues() };
+window.__seek = seek;
+window.__ready = (async () => {
+  await document.fonts.ready;
+  const txt = document.body.textContent + Object.values(COPY).flat().join('') + '0123456789%탈고 완료원고_최종_진짜최종().hwp';
+  const specs = ['900 88px "Noto Serif KR"', '700 40px "Noto Serif KR"', '600 26px "Noto Serif KR"', '400 17px "Noto Serif KR"',
+    '700 27px "Noto Sans KR"', '500 27px "Noto Sans KR"', '500 25px "JetBrains Mono"', '700 26px "JetBrains Mono"',
+    '400 25px "Nanum Gothic Coding"', '700 25px "Nanum Gothic Coding"', '400 48px "Nanum Pen Script"'];
+  await Promise.all(specs.map(s => document.fonts.load(s, txt)));
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+  seek(0);
+  return true;
+})();
+
+if (RENDER) {
+  document.body.classList.add('render');
+} else {
+  const stage = $('#stage'), vp = $('#viewport'), scrub = $('#scrub'), tc = $('#tc'), btn = $('#play');
+  scrub.max = DURATION;
+  const fit = () => {
+    const s = Math.min(innerWidth / 1080, (innerHeight - 52) / 1920);
+    stage.style.transform = `scale(${s})`;
+    vp.style.left = (innerWidth - 1080 * s) / 2 + 'px';
+    vp.style.top = Math.max(0, (innerHeight - 52 - 1920 * s) / 2) + 'px';
+  };
+  addEventListener('resize', fit); fit();
+  let playing = true, t0 = performance.now(), cur = 0;
+  const loop = now => {
+    if (playing) { cur = ((now - t0) / 1000) % DURATION; seek(cur); scrub.value = cur; tc.textContent = cur.toFixed(2).padStart(5, '0'); }
+    requestAnimationFrame(loop);
+  };
+  window.__ready.then(() => requestAnimationFrame(loop));
+  const toggleP = () => { playing = !playing; btn.textContent = playing ? '❚❚' : '▶'; if (playing) t0 = performance.now() - cur * 1000; };
+  btn.onclick = toggleP;
+  addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); toggleP(); } });
+  scrub.oninput = () => { cur = +scrub.value; seek(cur); tc.textContent = cur.toFixed(2).padStart(5, '0'); t0 = performance.now() - cur * 1000; };
+}
+</script>
+</body>
+</html>
