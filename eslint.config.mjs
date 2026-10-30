@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 홍보 영상 소스(캔버스 렌더 스크립트) — 사이트 코드가 아님
+    "video/**",
   ]),
 ]);
 
