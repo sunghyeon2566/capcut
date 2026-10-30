@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울시청 컨셉 필름</title>
+<style>
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-Black.ttf); font-weight: 900; }
+  @font-face { font-family: 'JBMono'; src: url(fonts/JetBrainsMono-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: 'JBMono'; src: url(fonts/JetBrainsMono-Bold.ttf); font-weight: 700; }
+  html, body { margin: 0; height: 100%; background: #000; color: #9aa59c; font: 13px/1.4 'JBMono', monospace; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { display: block; width: min(100vw, calc((100vh - 56px) * 16 / 9)); aspect-ratio: 16 / 9; background: #050605; }
+  .bar { display: flex; gap: 12px; align-items: center; width: min(100vw, calc((100vh - 56px) * 16 / 9)); box-sizing: border-box; padding: 0 12px; }
+  .bar button { background: #111; color: #2be36b; border: 1px solid #2be36b55; padding: 6px 12px; font: inherit; cursor: pointer; }
+  .bar input { flex: 1; accent-color: #2be36b; }
+  body.render { display: block; }
+  body.render #c { width: 1920px; height: 1080px; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div class="bar">
+  <button id="play">일시정지</button>
+  <input id="seek" type="range" min="0" max="26" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<script>
+/* ============================================================
+   서울시청 컨셉 필름 — 하프톤 · HUD · 키네틱 타이포
+   모든 그림은 시간 t(초)만으로 결정된다 → render(t) 한 번이 한 프레임.
+   ============================================================ */
+const W = 1920, H = 1080, FPS = 30, DUR = 26;
+
+// 색만 바꾸면 전체 톤이 바뀐다. (기본값: 시청역 2호선을 닮은 네온 그린)
+const C = {
+  accent: '#2BE36B',
+  bg: '#050605',
+  white: '#F2F5F1',
+  paper: '#F6F7F4',
+  ink: '#0A0B0A',
+  line1: '#0052A4', // 1호선
+  line2: '#00A84D', // 2호선
+};
+
+// 장면 타임라인(초) — 120BPM(한 박 0.5초) 격자에 컷을 맞췄다. sound.py와 같은 값.
+const T = {
+  intro:     [0.0, 3.5],
+  mission:   [3.5, 6.0],
+  title:     [6.0, 7.5],
+  open:      [7.5, 8.5],
+  listen:    [8.5, 9.5],
+  connect:   [9.5, 10.5],
+  districts: [10.5, 11.5],
+  tunnel:    [11.5, 14.5],
+  act:       [14.5, 16.0],
+  spaces:    [16.0, 19.0],
+  stack:     [19.0, 21.0],
+  flip:      [21.0, 22.5],
+  lockup:    [22.5, DUR],
+};
+const CUTS = Object.values(T).map(r => r[0]).filter(t => t > 0);
+const FLASHES = [T.title[0], T.tunnel[0], T.flip[0]];
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+function mk(w, h, opts) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return [c, c.getContext('2d', opts)];
+}
+const [SRC, sctx] = mk(W / 4, H / 4, { willReadFrequently: true });
+const [BLOOM, bctx] = mk(W / 4, H / 4);
+const [TMP, tctx] = mk(W, H);
+const [NOISE, nctx] = mk(512, 512);
+
+/* ---------- 수학 ---------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const sstep = (a, b, v) => { const k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+const eOutExpo = k => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eInCubic = k => k * k * k;
+const eInOutCubic = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+const hash2 = (a, b) => hash(a * 57.13 + b * 113.71);
+
+/* ---------- 하프톤 ---------- */
+const CELL = 12;
+// fn(x, y) → 0..1 밝기. 밝을수록 점이 커진다(면적 비례).
+function halftone(g, fn, color, o = {}) {
+  const cell = o.cell || CELL;
+  const maxR = cell * (o.maxR || 0.6);
+  const x0 = o.x0 ?? 0, y0 = o.y0 ?? 0, x1 = o.x1 ?? W, y1 = o.y1 ?? H;
+  const dy = cell * 0.866;
+  g.fillStyle = color;
+  g.beginPath();
+  let row = Math.floor(y0 / dy);
+  for (let y = row * dy; y < y1 + cell; y += dy, row++) {
+    const off = (row & 1) ? cell / 2 : 0;
+    for (let x = Math.floor(x0 / cell) * cell + off; x < x1 + cell; x += cell) {
+      const v = fn(x, y);
+      if (v <= 0.03) continue;
+      const r = maxR * Math.sqrt(v > 1 ? 1 : v);
+      g.moveTo(x + r, y);
+      g.arc(x, y, r, 0, TAU);
+    }
+  }
+  g.fill();
+}
+// 저해상도 소스 캔버스에 흑백으로 그린 뒤 그 밝기로 하프톤을 찍는다.
+function srcBegin() {
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  sctx.globalAlpha = 1;
+  sctx.filter = 'none';
+  sctx.fillStyle = '#000';
+  sctx.fillRect(0, 0, SRC.width, SRC.height);
+  sctx.setTransform(0.25, 0, 0, 0.25, 0, 0);
+  return sctx;
+}
+function srcSampler() {
+  const sw = SRC.width, sh = SRC.height;
+  const d = sctx.getImageData(0, 0, sw, sh).data;
+  return (x, y) => {
+    const fx = clamp(x * 0.25, 0, sw - 1.001), fy = clamp(y * 0.25, 0, sh - 1.001);
+    const ix = fx | 0, iy = fy | 0, ax = fx - ix, ay = fy - iy;
+    const i = (iy * sw + ix) * 4;
+    const a = d[i], b = d[i + 4], c = d[i + sw * 4], e = d[i + sw * 4 + 4];
+    return (a + (b - a) * ax + (c - a) * ay + (a - b - c + e) * ax * ay) / 255;
+  };
+}
+
+/* ---------- 텍스트 ---------- */
+const KR = 'NotoKR', MONO = "JBMono, NotoKR";
+function setFont(g, o) {
+  g.font = `${o.weight ?? 900} ${o.size ?? 100}px ${o.fam ?? KR}`;
+  g.textAlign = o.align ?? 'left';
+  g.textBaseline = o.base ?? 'alphabetic';
+  g.letterSpacing = (o.ls ?? 0) + 'px';
+}
+function text(g, s, x, y, o = {}) {
+  g.save();
+  setFont(g, o);
+  g.globalAlpha *= o.alpha ?? 1;
+  if (o.stroke) {
+    g.lineJoin = 'round';
+    g.lineWidth = o.strokeW ?? 12;
+    g.strokeStyle = o.stroke;
+    g.strokeText(s, x, y);
+  }
+  g.fillStyle = o.color ?? C.white;
+  g.fillText(s, x, y);
+  g.restore();
+}
+function measure(g, s, o) { g.save(); setFont(g, o); const w = g.measureText(s).width; g.restore(); return w; }
+// RGB 분리(크로매틱) 텍스트 — 검은 배경 전용
+function rgbText(g, s, x, y, o, split) {
+  if (split < 0.4) return text(g, s, x, y, o);
+  g.save();
+  g.globalCompositeOperation = 'lighter';
+  text(g, s, x - split, y, { ...o, color: '#ff3030' });
+  text(g, s, x, y + split * 0.3, { ...o, color: '#30ff60' });
+  text(g, s, x + split, y, { ...o, color: '#3060ff' });
+  g.restore();
+}
+// 아래에서 밀려 올라오는 마스크 리빌
+function riseText(g, s, x, y, o, k, split = 0) {
+  if (k <= 0) return;
+  const size = o.size ?? 100;
+  const w = measure(g, s, o);
+  const left = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  g.save();
+  g.beginPath();
+  g.rect(left - 40, y - size * 1.15, w + 80, size * 1.45);
+  g.clip();
+  const dy = (1 - eOutExpo(k)) * size * 1.1;
+  if (split > 0) rgbText(g, s, x, y + dy, o, split); else text(g, s, x, y + dy, o);
+  g.restore();
+}
+function typed(s, t, t0, cps) {
+  if (t < t0) return '';
+  return s.slice(0, Math.min(s.length, Math.floor((t - t0) * cps)));
+}
+function typeDone(s, t0, cps) { return t0 + s.length / cps; }
+function cursor(g, x, y, size, t, color = C.accent, always = false) {
+  if (!always && Math.floor(t * 2.2) % 2 === 1) return;
+  g.fillStyle = color;
+  g.fillRect(x + 4, y - size * 0.82, size * 0.55, size * 0.98);
+}
+
+/* ---------- 마크: 물결 지붕 + 두 기둥(=눈) ----------
+   신청사의 파도 같은 처마를 단순화한 문 모양. 안쪽의 두 막대가 눈이다. */
+function markPath(g, cx, cy, w) {
+  const h = w * 0.82;
+  const X = u => cx + (u - 0.5) * w, Y = v => cy + (v - 0.5) * h;
+  g.beginPath();
+  g.moveTo(X(0.00), Y(1.00));
+  g.lineTo(X(0.00), Y(0.52));
+  g.bezierCurveTo(X(0.00), Y(0.26), X(0.36), Y(0.00), X(0.70), Y(0.00));
+  g.bezierCurveTo(X(0.90), Y(0.00), X(1.03), Y(0.10), X(0.99), Y(0.26));
+  g.quadraticCurveTo(X(0.955), Y(0.215), X(0.92), Y(0.31));
+  g.lineTo(X(0.92), Y(1.00));
+  g.lineTo(X(0.75), Y(1.00));
+  g.lineTo(X(0.75), Y(0.46));
+  g.bezierCurveTo(X(0.66), Y(0.34), X(0.34), Y(0.34), X(0.17), Y(0.53));
+  g.lineTo(X(0.17), Y(1.00));
+  g.closePath();
+}
+// 눈 위치(마크 기준). look: -1..1 좌우 시선, blink: 0(뜸)..1(감음)
+function markEyes(cx, cy, w, look = 0, blink = 0) {
+  const h = w * 0.82;
+  const ew = w * 0.075, eh = h * 0.27 * (1 - 0.9 * blink);
+  const ey = cy + (0.66 - 0.5) * h;
+  const lx = look * w * 0.035;
+  return [
+    { x: cx + (0.37 - 0.5) * w + lx, y: ey, w: ew, h: eh },
+    { x: cx + (0.56 - 0.5) * w + lx, y: ey, w: ew, h: eh },
+  ];
+}
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath();
+  g.roundRect(x, y, w, h, r);
+}
+function drawEyes(g, eyes, color, glow = 0) {
+  g.save();
+  g.fillStyle = color;
+  if (glow) { g.shadowColor = color; g.shadowBlur = glow; }
+  for (const e of eyes) { roundRect(g, e.x - e.w / 2, e.y - e.h / 2, e.w, e.h, e.w * 0.28); g.fill(); }
+  g.restore();
+}
+// 독립된 눈 한 쌍(마크 없이) — 장면 2·터널에 쓰인다
+function eyePair(cx, cy, s = 1, look = 0, blink = 0) {
+  const ew = 22 * s, eh = 58 * s * (1 - 0.9 * blink), gap = 46 * s;
+  return [
+    { x: cx - gap / 2 + look * 8 * s, y: cy, w: ew, h: eh },
+    { x: cx + gap / 2 + look * 8 * s, y: cy, w: ew, h: eh },
+  ];
+}
+const blinkAt = (t, at, d = 0.16) => { const k = (t - at) / d; return k > 0 && k < 1 ? Math.sin(k * Math.PI) : 0; };
+
+/* ---------- 공통 레이어 ---------- */
+function buildNoise() {
+  const img = nctx.createImageData(512, 512);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = hash(i * 0.25 + 7) * 255;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  nctx.putImageData(img, 0, 0);
+}
+function grain(t, alpha, mode = 'overlay') {
+  const f = Math.floor(t * FPS / 2);
+  const ox = -Math.floor(hash(f) * 512), oy = -Math.floor(hash(f + 0.5) * 512);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.globalCompositeOperation = mode;
+  for (let y = oy; y < H; y += 512) for (let x = ox; x < W; x += 512) ctx.drawImage(NOISE, x, y);
+  ctx.restore();
+}
+function bloom(amount, blur = 3) {
+  bctx.setTransform(1, 0, 0, 1, 0, 0);
+  bctx.clearRect(0, 0, BLOOM.width, BLOOM.height);
+  bctx.filter = `blur(${blur}px)`;
+  bctx.drawImage(cv, 0, 0, BLOOM.width, BLOOM.height);
+  bctx.filter = 'none';
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = amount;
+  ctx.drawImage(BLOOM, 0, 0, W, H);
+  ctx.restore();
+}
+function vignette(strength, color = '0,0,0') {
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.5, W / 2, H / 2, H * 1.1);
+  g.addColorStop(0, `rgba(${color},0)`);
+  g.addColorStop(1, `rgba(${color},${strength})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+function dust(t, color, alpha) {
+  ctx.save();
+  ctx.fillStyle = color;
+  for (let i = 0; i < 70; i++) {
+    const x = hash(i * 3.1) * W, y = hash(i * 7.7) * H;
+    const a = alpha * (0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * (1 + hash(i) * 3) + i)));
+    ctx.globalAlpha = a;
+    const s = hash(i * 1.9) < 0.85 ? 2 : 3;
+    ctx.fillRect(x, y, s, s);
+  }
+  ctx.restore();
+}
+function guides(color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.fillRect(Math.round(W * 0.213), 0, 1, H);
+  ctx.fillRect(Math.round(W * 0.66), 0, 1, H);
+  ctx.restore();
+}
+// 글자 뒤 왼쪽을 어둡게 눌러 가독성을 확보
+function scrimLeft(alpha, x1) {
+  const gr = ctx.createLinearGradient(0, 0, x1, 0);
+  gr.addColorStop(0, `rgba(5,6,5,${alpha})`);
+  gr.addColorStop(0.55, `rgba(5,6,5,${alpha * 0.75})`);
+  gr.addColorStop(1, 'rgba(5,6,5,0)');
+  ctx.fillStyle = gr;
+  ctx.fillRect(0, 0, x1, H);
+}
+function crosshair(g, x, y, r) {
+  g.beginPath();
+  g.arc(x, y, r, 0, TAU);
+  g.moveTo(x - r * 1.7, y); g.lineTo(x + r * 1.7, y);
+  g.moveTo(x, y - r * 1.7); g.lineTo(x, y + r * 1.7);
+  g.stroke();
+}
+// HUD: 모서리 브래킷, 십자선, 모노 라벨
+function hud(t, o) {
+  const a = o.alpha ?? 1;
+  if (a <= 0) return;
+  const col = o.color ?? 'rgba(225,235,228,0.55)';
+  const g = ctx;
+  g.save();
+  g.globalAlpha = a;
+  g.strokeStyle = col;
+  g.lineWidth = 1.5;
+  const m = 48, L = 26;
+  g.beginPath();
+  g.moveTo(m, m + L); g.lineTo(m, m); g.lineTo(m + L, m);
+  g.moveTo(W - m - L, m); g.lineTo(W - m, m); g.lineTo(W - m, m + L);
+  g.moveTo(m, H - m - L); g.lineTo(m, H - m); g.lineTo(m + L, H - m);
+  g.moveTo(W - m - L, H - m); g.lineTo(W - m, H - m); g.lineTo(W - m, H - m - L);
+  g.stroke();
+  crosshair(g, W / 2, 40, 8);
+  crosshair(g, W / 2, H - 40, 8);
+  const lab = { size: 17, weight: 400, fam: MONO, ls: 3.5, color: col };
+  if (o.tl) {
+    const w = measure(g, o.tl, { ...lab, size: 21, ls: 5 });
+    g.strokeStyle = o.tlColor ?? C.accent;
+    g.lineWidth = 2;
+    g.strokeRect(88, 80, w + 30, 38);
+    text(g, o.tl, 103, 107, { ...lab, size: 21, ls: 5, color: o.tlColor ?? C.accent });
+  }
+  if (o.tr) o.tr.forEach((s, i) => text(g, s, W - 88, 100 + i * 27, { ...lab, align: 'right' }));
+  if (o.bl) text(g, o.bl, 88, H - 60, lab);
+  if (o.br) text(g, o.br, W - 88, H - 60, { ...lab, align: 'right' });
+  g.restore();
+}
+// 컷 전후 몇 프레임 동안 가로 띠를 밀어내는 글리치
+function glitch(t) {
+  let amt = 0, at = 0;
+  for (const c of CUTS) { const d = Math.abs(t - c); if (d < 0.07) { amt = Math.max(amt, 1 - d / 0.07); at = c; } }
+  if (amt <= 0) return;
+  const f = Math.floor(t * FPS) + at * 100;
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+  tctx.clearRect(0, 0, W, H);
+  tctx.drawImage(cv, 0, 0);
+  for (let k = 0; k < 9; k++) {
+    const y = Math.floor(hash(f + k * 13.1) * H);
+    const h = 6 + Math.floor(hash(f + k * 7.3) * 70);
+    const dx = (hash(f + k * 3.7) - 0.5) * 160 * amt;
+    ctx.drawImage(TMP, 0, y, W, h, dx, y, W, h);
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.12 * amt;
+  ctx.fillStyle = C.accent;
+  ctx.fillRect(0, Math.floor(hash(f + 99) * H), W, 3);
+  ctx.restore();
+}
+function flash(alpha, color = '#ffffff') {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+/* ============================================================
+   장면들 — 각 함수는 (lt: 장면 내부 시간, d: 장면 길이, t: 전체 시간)
+   반환값: { theme: 'dark' | 'green' | 'white', hud: {...} }
+   ============================================================ */
+const HUD_BASE = { tr: ['CLASS: CIVIC', 'STATUS: OPEN'], br: '37.5665°N · 126.9780°E' };
+
+// 1) 부팅 + 시계 눈
+function sceneIntro(lt) {
+  const g = ctx;
+  // CRT 전원선
+  const crt = prog(lt, 0.05, 0.3), crtOut = prog(lt, 0.35, 0.65);
+  if (lt < 0.7) {
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    const w = W * eOutExpo(crt), th = 3 + 10 * (1 - crtOut);
+    g.globalAlpha = 1 - crtOut;
+    const grad = g.createLinearGradient(W / 2 - w / 2, 0, W / 2 + w / 2, 0);
+    grad.addColorStop(0, 'rgba(43,227,107,0)');
+    grad.addColorStop(0.5, 'rgba(230,255,235,1)');
+    grad.addColorStop(1, 'rgba(43,227,107,0)');
+    g.fillStyle = grad;
+    g.fillRect(W / 2 - w / 2, H / 2 - th / 2, w, th);
+    g.restore();
+  }
+
+  // 시계 = 눈. 60개 눈금이 홍채의 결이 되고, 바늘 두 개가 겹쳐 세로 동공이 된다.
+  const appear = prog(lt, 0.95, 1.75);
+  if (appear > 0) {
+    const cx = W / 2, cy = H / 2, R = 360;
+    const close = eInCubic(prog(lt, 3.0, 3.42));
+    const sy = Math.max(0.02, 1 - close);
+    const handK = eOutCubic(prog(lt, 1.0, 2.35));
+    const aMin = -Math.PI / 2 + (1 - handK) * TAU * 1.5;
+    const aHour = Math.PI / 2 - (1 - handK) * TAU * 0.4;
+    const pupil = 10 + 46 * eOutBack(prog(lt, 2.35, 2.85));
+    const spin = lt * 0.12;
+    const dHand = (dx, dy, a, len, th) => {
+      const ux = Math.cos(a), uy = Math.sin(a);
+      const along = dx * ux + dy * uy, across = Math.abs(-dx * uy + dy * ux);
+      return along > -20 && along < len && across < th;
+    };
+    halftone(g, (x, y) => {
+      const dx = x - cx, dyRaw = y - cy;
+      if (Math.abs(dyRaw) > R * sy) return 0;
+      const dy = dyRaw / sy;
+      const r = Math.hypot(dx, dy);
+      if (r > R) return 0;
+      const th = Math.atan2(dy, dx) + spin;
+      const tick = Math.pow(0.5 + 0.5 * Math.cos(th * 60), 1.6);
+      const hourMark = Math.pow(0.5 + 0.5 * Math.cos(th * 12), 40);
+      let v = 0.32 + 0.68 * tick;
+      v *= sstep(R * 0.18, R * 0.42, r) * (1 - sstep(R * 0.93, R, r) * 0.75);
+      v = Math.max(v, hourMark * sstep(R * 0.74, R * 0.8, r) * (1 - sstep(R * 0.95, R, r)));
+      // 동공(세로 렌즈)
+      const pw = pupil * Math.sqrt(Math.max(0, 1 - (dy / R) * (dy / R)));
+      if (handK >= 1 && Math.abs(dx) < pw) return 0;
+      if (handK < 1 && (dHand(dx, dy, aMin, R * 0.95, 9) || dHand(dx, dy, aHour, R * 0.6, 13))) return 0;
+      // 가장자리 렌즈 그늘(바깥으로 갈수록 어둡게)
+      v *= 0.55 + 0.45 * (1 - Math.pow(r / R, 3));
+      // 안쪽부터 퍼지는 등장
+      v *= sstep(0, 0.25, appear * 1.3 - r / R * 0.9);
+      return v;
+    }, C.accent, { x0: cx - R - 20, x1: cx + R + 20, y0: cy - R - 20, y1: cy + R + 20 });
+  }
+
+  // 터미널
+  const cmd = 'open seoul-city-hall';
+  const tt = typed(cmd, lt, 0.75, 17);
+  const prefix = '> ';
+  const o = { size: 26, weight: 400, fam: MONO, color: '#dfe8e1' };
+  if (lt > 0.55) {
+    text(g, prefix + tt, 88, H - 118, o);
+    const w = measure(g, prefix + tt, o);
+    cursor(g, 88 + w, H - 118, 26, lt, C.accent, lt < typeDone(cmd, 0.75, 17) + 0.1);
+  }
+  if (lt > 2.05) text(g, '[ ok ] city hall is open — 세종대로 110', 88, H - 160, { ...o, size: 20, color: C.accent, alpha: prog(lt, 2.05, 2.15) });
+
+  const hudA = lt < 0.4 ? 0 : (lt < 0.85 ? (hash(Math.floor(lt * 30)) > 0.35 ? 1 : 0.25) : 1);
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: hudA, tl: 'FILE № SCH-0110', bl: 'SEOUL · CITY HALL' } };
+}
+
+// 2) 눈 + 타이핑 문장 + 하프톤 바닥
+function sceneMission(lt) {
+  const g = ctx;
+  const floorK = eOutCubic(prog(lt, 0.9, 1.6));
+  if (floorK > 0) {
+    const hz = lerp(H * 1.02, H * 0.71, floorK);
+    halftone(g, (x, y) => {
+      const v = sstep(hz - 10, hz + 340, y) * 0.72;
+      return v * (0.8 + 0.2 * Math.sin(x * 0.006 + lt * 2.4 + y * 0.01));
+    }, C.accent, { y0: hz - 20 });
+    g.save();
+    g.globalAlpha = 0.6 * floorK;
+    g.fillStyle = C.accent;
+    g.fillRect(0, hz - 1, W, 2);
+    g.restore();
+  }
+
+  const eyeY = 330 - 60 * eOutCubic(prog(lt, 0.0, 0.5)) + 60;
+  const look = lt < 1.3 ? 0 : lt < 1.7 ? -1 : lt < 2.1 ? 1 : 0;
+  const pop = eOutBack(prog(lt, 0.0, 0.35));
+  const blink = Math.max(blinkAt(lt, 0.75), blinkAt(lt, 2.2));
+  drawEyes(g, eyePair(W / 2, eyeY, 1.15 * pop, look, blink), C.accent, 18);
+
+  const l1 = '광장을 열고. 도서관을 밝히고.';
+  const l2 = '시민의 목소리를 가장 먼저 듣습니다.';
+  const cps = 22, t1 = 0.35, t2 = typeDone(l1, t1, cps) + 0.12;
+  const o1 = { size: 46, weight: 700, align: 'center', color: C.white };
+  const o2 = { ...o1, color: C.accent };
+  const s1 = typed(l1, lt, t1, cps), s2 = typed(l2, lt, t2, cps);
+  // 가운데 정렬 타이핑: 완성된 줄 폭 기준으로 왼쪽 시작점을 고정
+  const w1 = measure(g, l1, o1), w2 = measure(g, l2, o2);
+  text(g, s1, W / 2 - w1 / 2, 545, { ...o1, align: 'left' });
+  text(g, s2, W / 2 - w2 / 2, 612, { ...o2, align: 'left' });
+  const done = typeDone(l2, t2, cps);
+  if (lt >= t1) {
+    const onL2 = lt >= t2;
+    const cx = onL2 ? W / 2 - w2 / 2 + measure(g, s2, o2) : W / 2 - w1 / 2 + measure(g, s1, o1);
+    cursor(g, cx, onL2 ? 612 : 545, 46, lt, C.accent, lt < done + 0.1);
+  }
+  const ul = eOutCubic(prog(lt, 0.4, 1.4));
+  g.save();
+  g.fillStyle = C.accent;
+  g.globalAlpha = 0.8;
+  const uw = Math.max(w1, w2) * 0.62 * ul;
+  g.fillRect(W / 2 - uw / 2, 660, uw, 2);
+  g.restore();
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.75, bl: 'MISSION', br: 'SCH-0110' } };
+}
+
+// 3) 타이틀 + 방사형 버스트
+function sceneTitle(lt) {
+  const g = ctx;
+  const burst = eOutExpo(prog(lt, 0, 0.7)) * (1 - sstep(0.85, 1.25, lt));
+  if (burst > 0) {
+    const s = lerp(0.55, 1.08, eOutExpo(prog(lt, 0, 0.9)));
+    halftone(g, (x, y) => {
+      const dx = x - W / 2, dy = y - H / 2;
+      const r = Math.hypot(dx, dy) / s;
+      const th = Math.atan2(dy, dx);
+      const rays = Math.pow(0.5 + 0.5 * Math.cos(th * 44 + lt * 0.8), 1.4);
+      const ring = sstep(250, 330, r) * (1 - sstep(470, 600, r));
+      return rays * ring * burst;
+    }, C.accent);
+  }
+  const k = prog(lt, 0.0, 0.45);
+  const split = 14 * (1 - eOutCubic(prog(lt, 0.05, 0.4)));
+  const sc = lerp(1.1, 1, eOutExpo(k));
+  g.save();
+  g.translate(W / 2, 600);
+  g.scale(sc, sc);
+  rgbText(g, '서울시청', 0, 0, { size: 210, weight: 900, align: 'center', ls: -6, alpha: clamp(k * 3) }, split);
+  g.restore();
+  const pk = eOutCubic(prog(lt, 0.3, 0.6));
+  if (pk > 0) {
+    const label = 'SEOUL CITY HALL';
+    const o = { size: 25, weight: 700, fam: MONO, ls: 7, color: C.accent, align: 'center' };
+    const w = measure(g, label, o) + 44;
+    g.save();
+    g.globalAlpha = pk;
+    g.strokeStyle = C.accent;
+    g.lineWidth = 2;
+    roundRect(g, W / 2 - w / 2, 660, w, 46, 5);
+    g.stroke();
+    text(g, label, W / 2 + 3, 693, o);
+    g.restore();
+  }
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.75, bl: 'INTRODUCING', br: 'SCH-0110' } };
+}
+
+// 블록(픽셀 글리치) 그리기 도우미
+function blocks(g, lt, region, density, step, color, cell = 54) {
+  const s = Math.floor(lt * step);
+  g.fillStyle = color;
+  for (let gy = Math.floor(region.y0 / cell); gy * cell < region.y1; gy++) {
+    for (let gx = Math.floor(region.x0 / cell); gx * cell < region.x1; gx++) {
+      const x = gx * cell, y = gy * cell;
+      const d = density(x + cell / 2, y + cell / 2);
+      const n = hash2(gx * 1.3 + s * 0.71, gy * 2.1 - s * 0.37);
+      if (n < d) {
+        if (hash2(gx + s, gy) < 0.18) {
+          // 반쯤 켜진 블록은 하프톤으로
+          halftone(g, () => 0.45, color, { x0: x, x1: x + cell - 1, y0: y, y1: y + cell - 1, cell: 9 });
+          g.fillStyle = color;
+        } else {
+          g.fillRect(x, y, cell, cell);
+        }
+      }
+    }
+  }
+}
+
+// 4) 초록 배경 + 큰 단어
+function sceneOpen(lt) {
+  const g = ctx;
+  g.fillStyle = C.accent;
+  g.fillRect(0, 0, W, H);
+  blocks(g, lt, { x0: 1000, x1: W, y0: 0, y1: H }, (x, y) => {
+    const edge = sstep(1050, 1800, x);
+    return edge * 0.75 * (0.6 + 0.4 * Math.sin(y * 0.01 + lt * 3));
+  }, 10, C.ink);
+  const k = prog(lt, 0.0, 0.35);
+  riseText(g, '열린 시청', 120, 585, { size: 190, weight: 900, color: C.ink, ls: -6 }, k);
+  text(g, 'OPEN TO EVERY CITIZEN · 시민 누구나', 128, 650, { size: 22, weight: 700, fam: MONO, ls: 4, color: C.ink, alpha: prog(lt, 0.25, 0.45) * 0.75 });
+  return { theme: 'green', hud: { color: 'rgba(5,6,5,0.5)', bl: 'OPEN', br: 'SCH-0110' } };
+}
+
+function ringsField(cx, cy, lam, speed, lt, fade = 1100, lo = 0.32, hi = 0.72) {
+  return (x, y) => {
+    const r = Math.hypot(x - cx, y - cy);
+    const w = 0.5 + 0.5 * Math.cos(TAU * (r / lam - lt * speed));
+    return sstep(lo, hi, w) * (1 - sstep(fade * 0.55, fade, r)) * sstep(18, 60, r);
+  };
+}
+
+// 5a) 듣다 — 소리의 파문
+function sceneListen(lt) {
+  const g = ctx;
+  const ap = eOutCubic(prog(lt, 0, 0.35));
+  const f = ringsField(1460, 540, 100, 1.3, lt, 1000, 0.48, 0.8);
+  halftone(g, (x, y) => f(x, y) * ap * 0.92, C.accent);
+  g.fillStyle = C.accent;
+  g.beginPath(); g.arc(1460, 540, 16, 0, TAU); g.fill();
+  scrimLeft(0.92, 980);
+  drawEyes(g, eyePair(1640, 150, 0.6, -1, blinkAt(lt, 0.7)), C.accent, 10);
+  const k = prog(lt, 0.05, 0.4);
+  riseText(g, '듣다.', 120, 600, { size: 200, weight: 900, ls: -6 }, k, 10 * (1 - k));
+  text(g, 'LISTEN · 시민의 목소리에 귀 기울입니다', 126, 662, { size: 22, weight: 700, fam: MONO, ls: 3, color: C.accent, alpha: prog(lt, 0.3, 0.5) });
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.6, bl: '01 / LISTEN', br: 'SCH-0110' } };
+}
+
+// 5b) 잇다 — 두 파문의 간섭
+function sceneConnect(lt) {
+  const g = ctx;
+  g.fillStyle = C.accent;
+  g.fillRect(0, 0, W, H);
+  const a = [760, 330], b = [1560, 760];
+  halftone(g, (x, y) => {
+    const r1 = Math.hypot(x - a[0], y - a[1]), r2 = Math.hypot(x - b[0], y - b[1]);
+    const v = 0.5 + 0.25 * Math.cos(TAU * (r1 / 100 - lt * 1.1)) + 0.25 * Math.cos(TAU * (r2 / 100 - lt * 1.1));
+    return sstep(0.25, 0.85, v) * 0.95;
+  }, C.ink);
+  const k = prog(lt, 0.05, 0.4);
+  riseText(g, '잇다.', 120, 600, { size: 200, weight: 900, ls: -6, color: C.ink, stroke: C.accent, strokeW: 26 }, k);
+  const sub = 'CONNECT · 사람과 동네, 서울을 잇습니다';
+  const so = { size: 22, weight: 700, fam: MONO, ls: 3, color: C.ink, alpha: prog(lt, 0.3, 0.5) };
+  g.save();
+  g.globalAlpha = so.alpha;
+  g.fillStyle = C.accent;
+  g.fillRect(118, 636, measure(g, sub, so) + 16, 38);
+  g.restore();
+  text(g, sub, 126, 662, so);
+  return { theme: 'green', hud: { color: 'rgba(5,6,5,0.5)', bl: '02 / CONNECT', br: 'SCH-0110' } };
+}
+
+// 5c) 25 — 하프톤 구
+function sceneDistricts(lt) {
+  const g = ctx;
+  const cx = 1360, cy = 540;
+  const R = 330 * eOutBack(prog(lt, 0, 0.5));
+  if (R > 1) {
+    const L = [-0.55, -0.6, 0.58];
+    const ln = Math.hypot(...L);
+    halftone(g, (x, y) => {
+      const nx = (x - cx) / R, ny = (y - cy) / R;
+      const q = nx * nx + ny * ny;
+      if (q > 1) return 0;
+      const nz = Math.sqrt(1 - q);
+      const lam = (nx * L[0] + ny * L[1] + nz * L[2]) / ln;
+      const lon = Math.atan2(nx, nz) + lt * 0.9;
+      const lat = Math.asin(clamp(ny, -1, 1));
+      const grid = 0.75 + 0.25 * Math.cos(lon * 10) * Math.cos(lat * 8);
+      return clamp(0.08 + 0.95 * Math.max(0, lam)) * grid + 0.25 * Math.pow(1 - nz, 6);
+    }, C.accent, { x0: cx - R - 12, x1: cx + R + 12, y0: cy - R - 12, y1: cy + R + 12 });
+  }
+  const n = Math.round(25 * eOutCubic(prog(lt, 0.05, 0.6)));
+  const k = prog(lt, 0.0, 0.3);
+  riseText(g, String(n).padStart(2, '0'), 120, 610, { size: 260, weight: 900, ls: -8 }, k, 8 * (1 - k));
+  text(g, 'AUTONOMOUS DISTRICTS · 25개 자치구, 하나의 서울', 126, 672, { size: 22, weight: 700, fam: MONO, ls: 3, color: C.accent, alpha: prog(lt, 0.3, 0.5) });
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.6, bl: '03 / DISTRICTS', br: 'SCH-0110' } };
+}
+
+// 6) 지하철 터널 — 시청역 도착
+const STATIONS = ['강남', '잠실', '성수', '신도림', '홍대입구', '을지로입구', '시청'];
+function sceneTunnel(lt, d) {
+  const g = ctx;
+  const cx = 960 + 34 * Math.sin(lt * 1.3), cy = 560 + 22 * Math.cos(lt * 1.1);
+  const arrive = eInCubic(prog(lt, d - 0.45, d));
+  const ap = eOutCubic(prog(lt, 0, 0.4));
+  halftone(g, (x, y) => {
+    const dx = x - cx, dy = y - cy;
+    const r = Math.hypot(dx, dy);
+    const th = Math.atan2(dy, dx);
+    const lr = Math.log((r + 1) / 40);
+    const ph = lr * 2.3 - lt * 1.7;
+    const ring = Math.pow(0.5 + 0.5 * Math.cos(TAU * ph), 2.4);
+    const blob = 0.72 + 0.28 * Math.cos(th * 7 + lr * 3 - lt * 1.4);
+    return ring * blob * sstep(70, 200, r) * (0.5 + 0.5 * sstep(150, 600, r)) * ap;
+  }, C.accent);
+  drawEyes(g, eyePair(cx, cy, 0.8, 0, blinkAt(lt, 1.6)), C.accent, 16);
+  // 글자 자리를 살짝 눌러 둔다
+  const sc = g.createRadialGradient(330, 270, 40, 330, 270, 520);
+  sc.addColorStop(0, 'rgba(5,6,5,0.85)');
+  sc.addColorStop(1, 'rgba(5,6,5,0)');
+  g.fillStyle = sc;
+  g.fillRect(0, 0, 900, 700);
+
+  // 역 이름 슬롯
+  const rollEnd = 1.25;
+  const rk = clamp(lt / rollEnd);
+  const idx = Math.min(STATIONS.length - 1, Math.floor(eOutCubic(rk) * (STATIONS.length - 0.001)));
+  const name = STATIONS[idx];
+  const landed = lt >= rollEnd;
+  const o = { size: 150, weight: 900, ls: -4 };
+  const sub = (eOutCubic(rk) * (STATIONS.length - 0.001)) % 1;
+  const jitter = landed ? 0 : (1 - sub) * 30;
+  g.save();
+  g.beginPath(); g.rect(100, 140, 900, 200); g.clip();
+  rgbText(g, name, 136, 300 - jitter, o, landed ? Math.max(0, 8 - (lt - rollEnd) * 40) : 6);
+  g.restore();
+  text(g, landed ? 'THIS STOP · 이번 역은 시청입니다' : 'NEXT STATION · · ·', 142, 360, { size: 22, weight: 700, fam: MONO, ls: 4, color: C.accent, alpha: prog(lt, 0.1, 0.3), stroke: C.bg, strokeW: 8 });
+
+  // 1·2호선 배지
+  const bk = eOutBack(prog(lt, 1.45, 1.8));
+  if (bk > 0) {
+    const by = 840;
+    [[W - 345, C.line1, '1'], [W - 195, C.line2, '2']].forEach(([x, col, s], i) => {
+      const kk = eOutBack(prog(lt, 1.45 + i * 0.12, 1.8 + i * 0.12));
+      if (kk <= 0) return;
+      g.save();
+      g.translate(x, by);
+      g.scale(kk, kk);
+      g.fillStyle = col;
+      g.beginPath(); g.arc(0, 0, 62, 0, TAU); g.fill();
+      g.lineWidth = 5; g.strokeStyle = 'rgba(255,255,255,0.9)'; g.stroke();
+      text(g, s, 0, 34, { size: 92, weight: 900, align: 'center', color: '#fff' });
+      g.restore();
+    });
+    text(g, 'LINE 1 · LINE 2', W - 128, 945, { size: 22, weight: 700, fam: MONO, ls: 4, color: C.accent, align: 'right', alpha: prog(lt, 1.7, 1.9), stroke: C.bg, strokeW: 8 });
+  }
+
+  // 도착: 중심의 빛이 화면을 채운다
+  if (arrive > 0) {
+    g.save();
+    const rr = lerp(0, 1300, arrive);
+    const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rr + 1);
+    grad.addColorStop(0, 'rgba(235,255,240,1)');
+    grad.addColorStop(0.6, 'rgba(43,227,107,0.9)');
+    grad.addColorStop(1, 'rgba(43,227,107,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, W, H);
+    g.restore();
+  }
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.6, bl: 'METRO · CITY HALL STN.', br: 'SCH-0110' } };
+}
+
+// 7) 움직이다 — 픽셀 블록이 모여 눈이 된다
+function sceneAct(lt, d) {
+  const g = ctx;
+  g.fillStyle = C.accent;
+  g.fillRect(0, 0, W, H);
+  const cell = 45;
+  // 눈 = 격자 칸 묶음(2칸 x 6칸) 두 개
+  const EYE_CELLS = [[27, 9], [31, 9]];
+  const inEyeCell = (gx, gy, pad = 0) => EYE_CELLS.some(([ax, ay]) => gx >= ax - pad && gx < ax + 2 + pad && gy >= ay - pad && gy < ay + 6 + pad);
+  const gather = eOutCubic(prog(lt, 0.1, 0.9));
+  const s = Math.floor(lt * 12);
+  g.fillStyle = C.ink;
+  for (let gy = 0; gy * cell < H; gy++) {
+    for (let gx = Math.floor(980 / cell); gx * cell < W; gx++) {
+      const x = gx * cell + cell / 2, y = gy * cell + cell / 2;
+      const n = hash2(gx * 1.7, gy * 0.9);
+      if (inEyeCell(gx, gy)) {
+        if (gather < 1 && n < gather * 1.05) g.fillRect(gx * cell, gy * cell, cell - 1, cell - 1);
+      } else if (!inEyeCell(gx, gy, 1)) {
+        const noise = hash2(gx + s * 0.31, gy - s * 0.77);
+        const dens = (1 - gather) * 0.45 * sstep(1000, 1700, x) + 0.04;
+        if (noise < dens) g.fillRect(gx * cell, gy * cell, cell - 1, cell - 1);
+      }
+    }
+  }
+  if (gather >= 1) {
+    // 다 모이면 눈을 한 번 깜빡인다(가운데로 접히는 칸)
+    const blink = blinkAt(lt, 1.0, 0.2);
+    g.fillStyle = C.ink;
+    for (const [ax, ay] of EYE_CELLS) {
+      const h = 6 * cell * (1 - 0.88 * blink);
+      g.fillRect(ax * cell, ay * cell + (6 * cell - h) / 2, 2 * cell, h);
+    }
+  }
+  const k = prog(lt, 0.0, 0.35);
+  riseText(g, '움직이다.', 120, 585, { size: 180, weight: 900, color: C.ink, ls: -6 }, k);
+  text(g, 'ACT · 정책이 현장으로, 더 빠르게', 128, 650, { size: 22, weight: 700, fam: MONO, ls: 4, color: C.ink, alpha: prog(lt, 0.25, 0.45) * 0.8 });
+  // 끝무렵 흐려지며 퇴장
+  const bl = sstep(d - 0.3, d, lt);
+  if (bl > 0) {
+    tctx.setTransform(1, 0, 0, 1, 0, 0);
+    tctx.clearRect(0, 0, W, H);
+    tctx.drawImage(cv, 0, 0);
+    ctx.save();
+    ctx.filter = `blur(${bl * 24}px)`;
+    ctx.drawImage(TMP, 0, 0);
+    ctx.restore();
+  }
+  return { theme: 'green', hud: { color: 'rgba(5,6,5,0.5)', bl: '04 / ACT', br: 'SCH-0110' } };
+}
+
+// 8) 시민의 공간 리스트 + 하프톤 마크
+const SPACES = [
+  ['서울광장', 'SEOUL PLAZA'],
+  ['서울도서관', 'SEOUL LIBRARY'],
+  ['시민청', 'CITIZENS HALL'],
+  ['하늘광장', 'SKY PLAZA'],
+];
+function sceneSpaces(lt) {
+  const g = ctx;
+  const mcx = 1420, mcy = 520, mw = 640;
+  const ap = eOutCubic(prog(lt, 0.0, 0.7));
+  const s = srcBegin();
+  s.save();
+  s.translate(mcx, mcy);
+  s.rotate(Math.sin(lt * 1.2) * 0.015);
+  s.translate(-mcx, -mcy);
+  s.filter = 'blur(1px)';
+  s.fillStyle = '#fff';
+  markPath(s, mcx, mcy, mw);
+  s.fill();
+  s.restore();
+  const smp = srcSampler();
+  halftone(g, (x, y) => {
+    const v = smp(x, y);
+    const rad = Math.hypot(x - mcx, y - mcy) / 520;
+    return v * sstep(0, 0.3, ap * 1.4 - rad * 0.9) * (0.85 + 0.15 * Math.sin(y * 0.03 + lt * 4));
+  }, C.accent, { x0: mcx - mw / 2 - 20, x1: mcx + mw / 2 + 20, y0: mcy - mw * 0.45, y1: mcy + mw * 0.45 });
+  const look = lt < 1.4 ? 0 : lt < 2.0 ? -1 : 0.6;
+  const blink = Math.max(blinkAt(lt, 1.0), blinkAt(lt, 2.5));
+  if (ap > 0.6) drawEyes(g, markEyes(mcx, mcy, mw, look, blink), C.white, 12);
+
+  const h1 = '누구나 들어올 수 있는', h2 = '시민의 시청.';
+  const ho = { size: 76, weight: 900, ls: -2 };
+  riseText(g, h1, 120, 245, ho, prog(lt, 0.05, 0.4), 6 * (1 - prog(lt, 0.05, 0.4)));
+  riseText(g, h2, 120, 335, { ...ho, color: C.white }, prog(lt, 0.2, 0.55), 6 * (1 - prog(lt, 0.2, 0.55)));
+  SPACES.forEach(([ko, en], i) => {
+    const t0 = 0.7 + i * 0.32;
+    if (lt < t0) return;
+    const y = 450 + i * 74;
+    text(g, String(i + 1).padStart(2, '0'), 126, y, { size: 20, weight: 400, fam: MONO, color: C.accent, alpha: 0.9 });
+    const kk = typed(ko, lt, t0, 16);
+    text(g, kk, 196, y + 4, { size: 42, weight: 700, color: C.white });
+    if (kk.length === ko.length) {
+      const w = measure(g, ko, { size: 42, weight: 700 });
+      text(g, typed(en, lt, t0 + ko.length / 16, 40), 196 + w + 24, y, { size: 20, weight: 400, fam: MONO, ls: 3, color: 'rgba(225,235,228,0.55)' });
+    } else {
+      cursor(g, 196 + measure(g, kk, { size: 42, weight: 700 }), y + 4, 42, lt, C.accent, true);
+    }
+  });
+  text(g, '세종대로 110 · 시청역 1·2호선 · 연중 시민에게 열린 공간', 126, 900, { size: 18, weight: 400, fam: MONO, ls: 2.5, color: C.accent, alpha: 0.75 * prog(lt, 2.1, 2.4) });
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.6, bl: 'SPACES', br: 'SCH-0110' } };
+}
+
+// 9) 세 줄 선언 + 동심원
+function sceneStack(lt) {
+  const g = ctx;
+  const cx = 1420, cy = 560;
+  const f = ringsField(cx, cy, 96, 0.55, lt, 1050, 0.48, 0.8);
+  const ap = eOutCubic(prog(lt, 0, 0.4));
+  halftone(g, (x, y) => f(x, y) * ap * 0.92 * (Math.hypot(x - cx, y - cy) < 120 ? 0 : 1), C.accent);
+  scrimLeft(0.92, 1000);
+  const mk = eOutBack(prog(lt, 0.2, 0.55));
+  if (mk > 0) {
+    g.save();
+    g.translate(cx, cy);
+    g.scale(mk, mk);
+    g.fillStyle = C.accent;
+    markPath(g, 0, 0, 170);
+    g.fill();
+    drawEyes(g, markEyes(0, 0, 170, 0, blinkAt(lt, 1.3)), C.white);
+    g.restore();
+  }
+  const lines = [['열린 광장.', C.white], ['밝은 도서관.', C.white], ['시민 곁에.', C.accent]];
+  lines.forEach(([s, col], i) => {
+    const k = prog(lt, 0.1 + i * 0.32, 0.45 + i * 0.32);
+    riseText(g, s, 120, 430 + i * 112, { size: 104, weight: 900, ls: -3, color: col }, k, 6 * (1 - k));
+  });
+  return { theme: 'dark', hud: { ...HUD_BASE, alpha: 0.6, bl: 'PROMISE', br: 'SCH-0110' } };
+}
+
+// 마크의 최종 위치(로크업) — flip이 이 위치로 착지해야 이음새가 없다
+const LOCK = { markW: 230, gap: 46 };
+// 공식 로고 이미지가 있으면 마무리 장면에 그 로고를 쓴다(없으면 마크 + 워드마크).
+const LOGO_SRC = 'assets/logo.png';
+const LOGO_H = 170;          // 로고 높이(px, 1080 기준)
+const LOGO_SYMBOL = 0.46;    // 로고 왼쪽 심볼 중심의 가로 위치(로고 높이 대비 비율)
+let LOGO = null;
+function lockupLayout(g) {
+  if (LOGO) {
+    let lh = LOGO_H, lw = lh * LOGO.naturalWidth / LOGO.naturalHeight;
+    if (lw > 1200) { lh *= 1200 / lw; lw = 1200; }
+    const lx = W / 2 - lw / 2, ly = 470 - lh / 2;
+    return { logo: true, lx, ly, lw, lh, mcx: lx + lh * LOGO_SYMBOL, mcy: ly + lh / 2, mw: lh * 0.85 };
+  }
+  const o = { size: 160, weight: 900, ls: -5 };
+  const tw = measure(g, '서울시청', o);
+  const total = LOCK.markW + LOCK.gap + tw;
+  const x0 = W / 2 - total / 2;
+  return { mcx: x0 + LOCK.markW / 2, mcy: 482, mw: LOCK.markW, tx: x0 + LOCK.markW + LOCK.gap, ty: 540, o };
+}
+
+// 10) 흰 화면 전환 — 거대한 눈 → 마크가 쓸고 들어와 제자리로
+function sceneFlip(lt, d) {
+  const g = ctx;
+  g.fillStyle = C.paper;
+  g.fillRect(0, 0, W, H);
+  const L = lockupLayout(g);
+  if (lt < 0.8) {
+    const z = lerp(7, 1.5, eOutExpo(prog(lt, 0, 0.6)));
+    const blink = blinkAt(lt, 0.55, 0.2);
+    const eyes = eyePair(W / 2, H / 2, z * 2.2, 0, blink);
+    g.fillStyle = C.ink;
+    for (const e of eyes) {
+      // 살짝 사다리꼴(원근)
+      const top = e.w * 0.92;
+      g.beginPath();
+      g.moveTo(e.x - top / 2, e.y - e.h / 2);
+      g.lineTo(e.x + top / 2, e.y - e.h / 2);
+      g.lineTo(e.x + e.w / 2, e.y + e.h / 2);
+      g.lineTo(e.x - e.w / 2, e.y + e.h / 2);
+      g.closePath();
+      g.fill();
+    }
+  } else {
+    const k = eInOutCubic(prog(lt, 0.8, d));
+    const mw = lerp(1900, L.mw, k);
+    const mcx = lerp(W * 0.86, L.mcx, k), mcy = lerp(H * 0.95, L.mcy, k);
+    const rot = lerp(-0.5, 0, k);
+    g.save();
+    g.translate(mcx, mcy);
+    g.rotate(rot);
+    g.fillStyle = C.accent;
+    markPath(g, 0, 0, mw);
+    g.fill();
+    drawEyes(g, markEyes(0, 0, mw, 0, 0), C.ink);
+    g.restore();
+  }
+  return { theme: 'white', hud: { color: 'rgba(10,11,10,0.35)', bl: 'SCH-0110', br: 'SEOUL · KOREA' } };
+}
+
+// 11) 로크업
+function sceneLockup(lt) {
+  const g = ctx;
+  g.fillStyle = C.paper;
+  g.fillRect(0, 0, W, H);
+  const L = lockupLayout(g);
+  const burst = eOutExpo(prog(lt, 0, 0.5)) * (1 - sstep(0.45, 1.0, lt));
+  if (burst > 0) {
+    halftone(g, (x, y) => {
+      const dx = x - L.mcx, dy = y - L.mcy;
+      const r = Math.hypot(dx, dy);
+      const th = Math.atan2(dy, dx);
+      const rays = Math.pow(0.5 + 0.5 * Math.cos(th * 36), 1.5);
+      const m = L.mw;
+      return rays * sstep(m * 0.65, m * 0.83, r) * (1 - sstep(m, m * (1.17 + 0.22 * burst), r)) * burst;
+    }, C.accent, { x0: L.mcx - L.mw * 1.8, x1: L.mcx + L.mw * 1.8, y0: L.mcy - L.mw * 1.8, y1: L.mcy + L.mw * 1.8, cell: 10 });
+  }
+  if (L.logo) {
+    // 공식 로고: 왼→오 와이프 + 살짝 커지며 자리 잡기. multiply로 흰 바탕을 종이색에 녹인다.
+    const wk = eOutCubic(prog(lt, 0.04, 0.55));
+    const sc = lerp(0.96, 1, eOutCubic(prog(lt, 0, 0.7)));
+    g.save();
+    g.beginPath();
+    g.rect(L.lx - 20, L.ly - 30, (L.lw + 40) * wk, L.lh + 60);
+    g.clip();
+    g.globalCompositeOperation = 'multiply';
+    g.translate(W / 2, L.ly + L.lh / 2);
+    g.scale(sc, sc);
+    g.drawImage(LOGO, -L.lw / 2, -L.lh / 2, L.lw, L.lh);
+    g.restore();
+  } else {
+    g.fillStyle = C.accent;
+    markPath(g, L.mcx, L.mcy, L.mw);
+    g.fill();
+    const look = lt < 1.6 ? 0 : lt < 2.0 ? 0.8 : 0;
+    drawEyes(g, markEyes(L.mcx, L.mcy, L.mw, look, blinkAt(lt, 1.25, 0.18)), C.ink);
+
+    // 워드마크: 왼→오 와이프
+    const wk = eOutCubic(prog(lt, 0.08, 0.5));
+    const tw = measure(g, '서울시청', L.o);
+    g.save();
+    g.beginPath();
+    g.rect(L.tx - 10, L.ty - 200, (tw + 40) * wk, 260);
+    g.clip();
+    text(g, '서울시청', L.tx + (1 - wk) * -30, L.ty, { ...L.o, color: C.ink });
+    g.restore();
+  }
+
+  text(g, 'Seoul City Hall', W / 2, 690, { size: 46, weight: 900, align: 'center', color: C.ink, ls: -1, alpha: prog(lt, 0.45, 0.7) });
+  // 주소 줄: 스크램블 후 확정
+  const url = 'seoul.go.kr';
+  const t0 = 0.75;
+  if (lt > t0) {
+    const n = Math.min(url.length, Math.floor((lt - t0) * 22));
+    const chars = '01<>/_#=+*abcdefghkmnrsx';
+    let s = url.slice(0, n);
+    if (n < url.length) s += chars[Math.floor(hash(Math.floor(lt * 30)) * chars.length)];
+    text(g, s, W / 2, 748, { size: 28, weight: 700, fam: MONO, ls: 5, align: 'center', color: '#17a84c' });
+  }
+  text(g, 'CONCEPT FILM · 서울특별시 중구 세종대로 110', W / 2, H - 112, { size: 15, weight: 400, fam: MONO, ls: 3, align: 'center', color: 'rgba(10,11,10,0.45)', alpha: prog(lt, 1.0, 1.3) });
+  return { theme: 'white', hud: { color: 'rgba(10,11,10,0.35)', bl: 'SCH-0110 · CONCEPT', br: 'SEOUL · KOREA' } };
+}
+
+const SCENES = [
+  [T.intro, sceneIntro],
+  [T.mission, sceneMission],
+  [T.title, sceneTitle],
+  [T.open, sceneOpen],
+  [T.listen, sceneListen],
+  [T.connect, sceneConnect],
+  [T.districts, sceneDistricts],
+  [T.tunnel, sceneTunnel],
+  [T.act, sceneAct],
+  [T.spaces, sceneSpaces],
+  [T.stack, sceneStack],
+  [T.flip, sceneFlip],
+  [T.lockup, sceneLockup],
+];
+
+/* ---------- 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.filter = 'none';
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  let res = { theme: 'dark', hud: {} };
+  for (const [[a, b], fn] of SCENES) {
+    if (t >= a && t < b) { res = fn(t - a, b - a, t) || res; break; }
+  }
+  const theme = res.theme;
+  if (theme === 'dark') bloom(0.42, 3);
+  if (theme === 'dark') { guides('#ffffff', 0.035); dust(t, '#cfe9d6', 0.35); }
+  if (theme === 'white') { guides('#000000', 0.05); dust(t, '#1a1a1a', 0.25); }
+  hud(t, res.hud);
+  glitch(t);
+  // 컷 순간의 짧은 플래시
+  for (const c of (LOGO ? [...FLASHES, T.lockup[0]] : FLASHES)) flash(0.55 * (1 - clamp(Math.abs(t - c - 0.017) / 0.05)), theme === 'white' ? '#ffffff' : '#eafff0');
+  if (theme === 'white') { vignette(0.07); grain(t, 0.05, 'multiply'); }
+  else { vignette(theme === 'green' ? 0.2 : 0.38); grain(t, theme === 'green' ? 0.07 : 0.05, 'overlay'); }
+}
+
+/* ---------- 재생 / 렌더 훅 ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+window.DURATION = DUR;
+window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+
+async function boot() {
+  await Promise.all([
+    document.fonts.load(`900 40px ${KR}`, '서울시청'),
+    document.fonts.load(`700 40px ${KR}`, '서울시청'),
+    document.fonts.load(`500 40px ${KR}`, '서울시청'),
+    document.fonts.load('400 40px JBMono', 'SEOUL'),
+    document.fonts.load('700 40px JBMono', 'SEOUL'),
+  ]);
+  LOGO = await new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => res(null);
+    im.src = LOGO_SRC;
+  });
+  buildNoise();
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+
+  const seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  seek.max = DUR;
+  let playing = true, t0 = performance.now(), tAt = Number(params.get('t') || 0);
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? '일시정지' : '재생'; t0 = performance.now(); };
+  seek.oninput = () => { tAt = Number(seek.value); t0 = performance.now(); render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  function loop(now) {
+    if (playing) {
+      tAt += (now - t0) / 1000;
+      if (tAt >= DUR) tAt = 0;
+      render(tAt);
+      seek.value = tAt;
+      lab.textContent = tAt.toFixed(2) + 's';
+    }
+    t0 = now;
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+boot();
+</script>
+</body>
+</html>

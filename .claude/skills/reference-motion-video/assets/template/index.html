@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion Project</title>
+<style>
+  /* fetch_fonts.sh 가 받은 파일 이름 규칙: <Family>-<weight>.ttf */
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-500.ttf); font-weight: 500; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-700.ttf); font-weight: 700; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-900.ttf); font-weight: 900; }
+  @font-face { font-family: 'BHS'; src: url(fonts/BlackHanSans-400.ttf); font-weight: 400; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-600.ttf); font-weight: 600; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-800.ttf); font-weight: 800; }
+  @font-face { font-family: 'Mono'; src: url(fonts/JetBrainsMono-400.ttf); font-weight: 400; }
+  @font-face { font-family: 'Mono'; src: url(fonts/JetBrainsMono-700.ttf); font-weight: 700; }
+  html, body { margin: 0; height: 100%; background: #000; color: #aaa; font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { display: block; max-width: 100vw; max-height: calc(100vh - 56px); background: #000; }
+  .bar { display: flex; gap: 12px; align-items: center; width: min(100vw, 960px); padding: 0 12px; box-sizing: border-box; }
+  .bar button { background: #111; color: #eee; border: 1px solid #555; padding: 6px 12px; cursor: pointer; }
+  .bar input { flex: 1; }
+  body.render { display: block; }
+  body.render #c { max-width: none; max-height: none; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<audio id="snd" src="out/sound.wav" preload="auto"></audio>
+<script>
+/* ============================================================
+   모션 프로젝트 템플릿 — 모든 프레임은 시간 t만으로 결정된다(render(t)).
+   Math.random·Date·performance.now를 그림에 쓰지 말 것: 같은 t는 늘 같은 프레임이어야
+   여러 워커가 나눠 렌더해도 이어 붙인 영상이 튀지 않는다. 무작위는 hash(n)로.
+   ============================================================ */
+
+/* ---------- 1. 설정: 여기만 바꿔도 새 영상이 된다 ---------- */
+const W = 1920, H = 1080, FPS = 30, DUR = 12;   // 세로 쇼츠면 1080×1920
+const BPM = 120, BEAT = 60 / BPM;               // 컷은 박자 격자 위에(sound.py와 같은 값)
+
+// 장면(챕터) 타임라인 — 레퍼런스의 컷 시점을 옮겨 적는다
+const T = {
+  title: [0, 4],
+  list:  [4, 8],
+  end:   [8, DUR],
+};
+// 오른쪽 위 HUD에 보일 장면 이름
+const LABEL = { title: 'OPENING', list: 'POINTS', end: 'JOIN' };
+
+// 팔레트 — 레퍼런스에서 뽑은 색을 이름 붙여 둔다
+const C = {
+  bg: '#0a0f1c',
+  panel: '#13203a',
+  accent: '#F7B928',
+  accent2: '#FF6A2B',
+  fg: '#F5F2EA',
+  muted: 'rgba(245,242,234,0.62)',
+  ink: '#14161c',
+};
+
+// 화면 문구 — 사용자가 준 내용에서만 가져온다(숫자를 지어내지 않는다)
+const COPY = {
+  brand: '브랜드 이름',
+  eyebrow: 'OPENING',
+  title: [['핵심 메시지를 ', C.fg], ['한 줄로', C.accent]],
+  sub: '부제 한 줄 — 누구를 위한 무엇인지',
+  points: [['첫째 포인트', '짧은 설명'], ['둘째 포인트', '짧은 설명'], ['셋째 포인트', '짧은 설명']],
+  cta: '날짜 · 장소 · 참여 방법',
+  note: '※ 안내 문구',
+};
+
+// HUD(모서리·브랜드·장면 표시·진행 점·타임코드) 켜고 끄기
+const HUD = { on: true, brand: true, chapter: true, note: true, progress: true, timecode: true };
+
+/* ---------- 2. 수학 ---------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const sstep = (a, b, v) => { const k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eOutExpo = k => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const eInCubic = k => k * k * k;
+const eInOutCubic = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function noise1(t) { const i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f); return lerp(hash(i), hash(i + 1), u) * 2 - 1; }
+const beatPulse = (t, from = 0) => (t < from ? 0 : Math.exp(-(((t - from) % BEAT) / BEAT) * 9));
+
+const cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+if (!new URLSearchParams(location.search).has('render')) cv.style.aspectRatio = `${W} / ${H}`;
+const ctx = cv.getContext('2d');
+
+/* ---------- 3. 텍스트 ---------- */
+function setFont(o) {
+  ctx.font = `${o.weight ?? 900} ${o.size ?? 60}px ${o.fam ?? 'NotoKR'}`;
+  ctx.textAlign = o.align ?? 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.letterSpacing = (o.ls ?? 0) + 'px';
+}
+function text(s, x, y, o = {}) {
+  ctx.save();
+  setFont(o);
+  ctx.globalAlpha *= o.alpha ?? 1;
+  if (o.shadow) { ctx.shadowColor = o.shadow; ctx.shadowBlur = o.shadowBlur ?? 12; }
+  if (o.stroke) { ctx.lineJoin = 'round'; ctx.lineWidth = o.strokeW ?? 8; ctx.strokeStyle = o.stroke; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = o.color ?? C.fg;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function measure(s, o) { ctx.save(); setFont(o); const w = ctx.measureText(s).width; ctx.restore(); return w; }
+// 색이 섞인 한 줄. segs: [[문자열, 색], ...]
+function rich(segs, x, y, o = {}) {
+  const ws = segs.map(([s]) => measure(s, { ...o, align: 'left' }));
+  const total = ws.reduce((a, b) => a + b, 0);
+  let cx = o.align === 'center' ? x - total / 2 : o.align === 'right' ? x - total : x;
+  const left = cx;
+  segs.forEach(([s, col], i) => { text(s, cx, y, { ...o, align: 'left', color: col }); cx += ws[i]; });
+  return { left, width: total, ws };
+}
+// 아래에서 밀려 올라오는 마스크 리빌. fn 안에서 (x, y) 기준으로 그린다.
+function rise(k, y, size, fn) {
+  if (k <= 0) return;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, y - size * 1.25, W, size * 1.6); ctx.clip();
+  ctx.translate(0, (1 - eOutExpo(k)) * size * 1.15);
+  ctx.globalAlpha *= clamp(k * 3);
+  fn();
+  ctx.restore();
+}
+// 타자기
+const typed = (s, t, t0, cps) => (t < t0 ? '' : s.slice(0, Math.floor((t - t0) * cps)));
+// 줄바꿈: 캔버스는 자동 줄바꿈이 없으니 폭에 맞춰 직접 나눈다(한국어는 어절 단위)
+function wrap(s, maxW, o) {
+  const words = s.split(' '), lines = [];
+  let cur = '';
+  for (const w of words) {
+    const tryS = cur ? cur + ' ' + w : w;
+    if (measure(tryS, o) > maxW && cur) { lines.push(cur); cur = w; } else cur = tryS;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+// 섹션 머리말 "— LABEL"
+function eyebrow(label, k, x = 100, y = 184, color = C.accent) {
+  if (k <= 0) return;
+  ctx.save();
+  ctx.globalAlpha *= clamp(k * 2);
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y - 7, 44 * eOutCubic(k), 2);
+  text(label, x + 58, y, { fam: 'Mont', weight: 800, size: 19, ls: 6, color });
+  ctx.restore();
+}
+// 글자 뒤 가독성 확보용 어둠(복잡한 배경 위에 글자를 얹을 때)
+function scrim(x0, x1, alpha = 0.85, color = '5,6,8') {
+  const g = ctx.createLinearGradient(x0, 0, x1, 0);
+  g.addColorStop(0, `rgba(${color},${alpha})`);
+  g.addColorStop(1, `rgba(${color},0)`);
+  ctx.fillStyle = g;
+  ctx.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), H);
+}
+
+/* ---------- 4. 배경·질감 ---------- */
+function bg(t, gx = W / 2, gy = H / 2, strength = 1) {
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(W, H) * 0.5);
+  g.addColorStop(0, `rgba(247,170,40,${0.15 * strength})`);
+  g.addColorStop(1, 'rgba(247,170,40,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+function dust(t, n = 70, color = '247,185,40') {
+  for (let i = 0; i < n; i++) {
+    const x = (hash(i * 3.1) * W + t * (6 + hash(i) * 10)) % W;
+    const y = (hash(i * 7.7) * H - t * (8 + hash(i * 2.3) * 14) + H * 4) % H;
+    const a = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(t * (0.8 + hash(i) * 2) + i));
+    ctx.fillStyle = `rgba(${color},${a})`;
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
+let NOISE;
+function buildNoise() {
+  NOISE = document.createElement('canvas');
+  NOISE.width = NOISE.height = 256;
+  const g = NOISE.getContext('2d'), img = g.createImageData(256, 256);
+  for (let i = 0; i < img.data.length; i += 4) { const v = hash(i * 0.41 + 2.7) * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+  g.putImageData(img, 0, 0);
+}
+// 그레인은 2프레임마다 바꾼다(필름 느낌 + 인코딩 용량 절약)
+function grain(t, alpha = 0.04, mode = 'overlay') {
+  const f = Math.floor(t * FPS / 2);
+  ctx.save();
+  ctx.globalAlpha = alpha; ctx.globalCompositeOperation = mode;
+  const ox = -Math.floor(hash(f) * 256), oy = -Math.floor(hash(f + 0.5) * 256);
+  for (let y = oy; y < H; y += 256) for (let x = ox; x < W; x += 256) ctx.drawImage(NOISE, x, y);
+  ctx.restore();
+}
+function vignette(strength = 0.38) {
+  const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.max(W, H) * 0.62);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${strength})`);
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+// 하프톤: fn(x,y) → 0..1 밝기. 밝을수록 점이 커진다(면적 비례). 레퍼런스가 도트 질감일 때.
+function halftone(fn, color, o = {}) {
+  const cell = o.cell || 12, maxR = cell * (o.maxR || 0.6), dy = cell * 0.866;
+  const x0 = o.x0 ?? 0, y0 = o.y0 ?? 0, x1 = o.x1 ?? W, y1 = o.y1 ?? H;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  let row = Math.floor(y0 / dy);
+  for (let y = row * dy; y < y1 + cell; y += dy, row++) {
+    const off = (row & 1) ? cell / 2 : 0;
+    for (let x = Math.floor(x0 / cell) * cell + off; x < x1 + cell; x += cell) {
+      const v = fn(x, y);
+      if (v <= 0.03) continue;
+      const r = maxR * Math.sqrt(Math.min(v, 1));
+      ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU);
+    }
+  }
+  ctx.fill();
+}
+
+/* ---------- 5. 전환 ---------- */
+// 사선 띠가 훑고 지나간다(at 순간에 화면 가운데를 덮는다)
+function stripeWipe(t, at, cols = [C.accent2, C.accent, C.accent2]) {
+  const k = prog(t, at - 0.45, at + 0.35);
+  if (k <= 0 || k >= 1) return;
+  const slope = H * 0.42;
+  const band = (x0, w, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x0 + slope, 0); ctx.lineTo(x0 + slope + w, 0); ctx.lineTo(x0 + w, H); ctx.lineTo(x0, H); ctx.closePath(); ctx.fill(); };
+  const x = lerp(W + 200, -W - 1400, eInOutCubic(k));
+  band(x, 160, cols[0]); band(x + 160, Math.max(W * 0.8, 1500), cols[1]); band(x + 160 + Math.max(W * 0.8, 1500), 90, cols[2]);
+}
+// (cx,cy)에서 원이 커지며 다음 장면 바탕색으로
+function circleWipe(t, at, cx, cy, color = C.accent) {
+  const k = prog(t, at - 0.42, at);
+  if (k <= 0 || t >= at) return;
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(cx, cy, eInCubic(k) * Math.hypot(W, H), 0, TAU); ctx.fill();
+}
+// 계단 모양으로 덮는다
+function stairWipe(t, at, color = C.bg, n = 6) {
+  const k = prog(t, at - 0.45, at);
+  if (k <= 0 || t >= at) return;
+  ctx.fillStyle = color;
+  for (let i = 0; i < n; i++) ctx.fillRect(i * W / n - 1, 0, W / n + 2, H * eInOutCubic(clamp(k * 1.7 - (n - 1 - i) * 0.14)));
+}
+function flash(t, at, color = '#fff', peak = 0.5) {
+  const a = peak * (1 - clamp(Math.abs(t - at - 0.017) / 0.06));
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = color; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+// 컷 앞뒤 몇 프레임 가로 띠를 밀어내는 글리치
+const TMP = document.createElement('canvas');
+function glitch(t, at) {
+  const amt = 1 - clamp(Math.abs(t - at) / 0.07);
+  if (amt <= 0) return;
+  TMP.width = W; TMP.height = H;
+  TMP.getContext('2d').drawImage(cv, 0, 0);
+  const f = Math.floor(t * FPS) + at * 100;
+  for (let k = 0; k < 9; k++) {
+    const y = Math.floor(hash(f + k * 13.1) * H), h = 6 + Math.floor(hash(f + k * 7.3) * 70);
+    ctx.drawImage(TMP, 0, y, W, h, (hash(f + k * 3.7) - 0.5) * 160 * amt, y, W, h);
+  }
+}
+
+/* ---------- 6. HUD ---------- */
+function tc(t) { const f = Math.floor(t * FPS); return `00:00:${String(Math.floor(f / FPS)).padStart(2, '0')}:${String(f % FPS).padStart(2, '0')}`; }
+function hud(t, dark = true) {
+  if (!HUD.on) return;
+  const line = dark ? 'rgba(245,242,234,0.38)' : 'rgba(20,22,28,0.45)';
+  const fg = dark ? C.fg : C.ink, acc = dark ? C.accent : C.ink;
+  const m = Math.round(Math.min(W, H) * 0.037), L = 26;
+  ctx.save();
+  ctx.strokeStyle = line; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(m, m + L); ctx.lineTo(m, m); ctx.lineTo(m + L, m);
+  ctx.moveTo(W - m - L, m); ctx.lineTo(W - m, m); ctx.lineTo(W - m, m + L);
+  ctx.moveTo(m, H - m - L); ctx.lineTo(m, H - m); ctx.lineTo(m + L, H - m);
+  ctx.moveTo(W - m - L, H - m); ctx.lineTo(W - m, H - m); ctx.lineTo(W - m, H - m - L);
+  ctx.stroke();
+  const mo = { fam: 'Mono', weight: 400, size: 17, ls: 3 };
+  if (HUD.brand) { ctx.fillStyle = acc; ctx.beginPath(); ctx.arc(m + 40, m + 34, 8, 0, TAU); ctx.fill(); text(COPY.brand, m + 62, m + 42, { weight: 900, size: 21, ls: 3, color: fg }); }
+  const keys = Object.keys(T), idx = Math.max(0, keys.findIndex(k => t >= T[k][0] && t < T[k][1]));
+  if (HUD.chapter) {
+    const s = `${LABEL[keys[idx]] ?? ''}  CH ${String(idx + 1).padStart(2, '0')} / ${String(keys.length).padStart(2, '0')}`;
+    text(s, W - m - 42, m + 40, { ...mo, align: 'right', color: line });
+  }
+  if (HUD.note) text(COPY.note, m + 40, H - m - 14, { weight: 700, size: 19, color: dark ? C.muted : 'rgba(20,22,28,0.7)' });
+  if (HUD.progress) {
+    const x0 = W * 0.344, x1 = W * 0.656, y = H - m - 20;
+    ctx.fillStyle = line; ctx.fillRect(x0, y - 1, x1 - x0, 2);
+    ctx.fillStyle = acc; ctx.fillRect(x0, y - 1.5, (x1 - x0) * clamp(t / DUR), 3);
+    keys.forEach((k, i) => { const on = t >= T[k][0]; ctx.fillStyle = on ? acc : line; ctx.beginPath(); ctx.arc(lerp(x0, x1, i / Math.max(1, keys.length - 1)), y, on ? 5 : 4, 0, TAU); ctx.fill(); });
+  }
+  if (HUD.timecode) { const s = tc(t); text(s, W - m - 42, H - m - 14, { ...mo, align: 'right', color: fg }); text('TC ', W - m - 42 - measure(s, mo), H - m - 14, { ...mo, align: 'right', color: acc }); }
+  ctx.restore();
+}
+
+/* ---------- 7. 장면 — (lt: 장면 안 시간, d: 장면 길이, t: 전체 시간). 반환 { dark } ---------- */
+function sceneTitle(lt, d, t) {
+  bg(t, W * 0.42, H * 0.5); dust(t);
+  eyebrow(COPY.eyebrow, prog(lt, 0.1, 0.5));
+  rise(prog(lt, 0.2, 0.6), H * 0.48, 96, () => rich(COPY.title, 100, H * 0.48, { fam: 'BHS', weight: 400, size: 96 }));
+  rise(prog(lt, 0.5, 0.9), H * 0.48 + 70, 34, () => text(COPY.sub, 102, H * 0.48 + 70, { weight: 500, size: 34, color: C.muted }));
+  return { dark: true };
+}
+function sceneList(lt, d, t) {
+  bg(t, W * 0.7, H * 0.55); dust(t);
+  eyebrow('POINTS', prog(lt, 0.1, 0.5));
+  COPY.points.forEach(([head, sub], i) => {
+    const y = H * 0.36 + i * 130, k = prog(lt, 0.4 + i * 0.35, 0.85 + i * 0.35);
+    if (k <= 0) return;
+    ctx.save(); ctx.globalAlpha = clamp(k * 2); ctx.translate((1 - eOutCubic(k)) * -40, 0);
+    ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(140, y - 12, 30 * eOutBack(k), 0, TAU); ctx.fill();
+    text(String(i + 1), 140, y, { fam: 'Mont', weight: 800, size: 32, align: 'center', color: C.ink });
+    text(head, 196, y, { weight: 900, size: 42 });
+    text(sub, 198, y + 44, { weight: 500, size: 26, color: C.muted });
+    ctx.restore();
+  });
+  return { dark: true };
+}
+function sceneEnd(lt, d, t) {
+  bg(t, W / 2, H * 0.45, 1.4); dust(t);
+  rise(prog(lt, 0.1, 0.5), H * 0.47, 110, () => text(COPY.brand, W / 2, H * 0.47, { fam: 'BHS', weight: 400, size: 110, align: 'center' }));
+  rise(prog(lt, 0.5, 0.9), H * 0.47 + 90, 44, () => text(COPY.cta, W / 2, H * 0.47 + 90, { weight: 900, size: 44, align: 'center', color: C.accent }));
+  return { dark: true };
+}
+const SCENES = [[T.title, sceneTitle], [T.list, sceneList], [T.end, sceneEnd]];
+
+/* ---------- 8. 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  let res = { dark: true };
+  for (const [[a, b], fn] of SCENES) if (t >= a && t < b) { res = fn(t - a, b - a, t) || res; break; }
+  // 전환: 장면 경계에 맞춰 원하는 것만 남긴다
+  stripeWipe(t, T.list[0]);
+  stairWipe(t, T.end[0]);
+  vignette(0.38);
+  grain(t);
+  hud(t, res.dark);
+}
+
+/* ---------- 9. 재생 / 렌더 훅(render.mjs가 쓰는 약속) ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+window.DURATION = DUR;
+window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+
+const IMG = {};
+function loadImage(key, src) { return new Promise(res => { const im = new Image(); im.onload = () => { IMG[key] = im; res(im); }; im.onerror = () => res(null); im.src = src; }); }
+
+async function boot() {
+  await Promise.all([
+    document.fonts.load('900 40px NotoKR', '가'), document.fonts.load('700 40px NotoKR', '가'), document.fonts.load('500 40px NotoKR', '가'),
+    document.fonts.load('400 40px BHS', '가'), document.fonts.load('600 40px Mont', 'A'), document.fonts.load('800 40px Mont', '0'),
+    document.fonts.load('400 40px Mono', 'T'), document.fonts.load('700 40px Mono', '0'),
+    // 이미지가 필요하면: loadImage('logo', 'assets/logo.png'),
+  ]);
+  buildNoise();
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+  const snd = document.getElementById('snd'), seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  seek.max = DUR;
+  let playing = false, tAt = Number(params.get('t') || 0), t0 = performance.now();
+  render(tAt);
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? '일시정지' : '재생'; t0 = performance.now(); if (playing) { snd.currentTime = tAt; snd.play().catch(() => {}); } else snd.pause(); };
+  seek.oninput = () => { tAt = Number(seek.value); snd.currentTime = tAt; render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  (function loop(now) {
+    if (playing) {
+      tAt = snd.duration && !snd.paused ? snd.currentTime : tAt + (now - t0) / 1000;
+      if (tAt >= DUR) { tAt = 0; snd.currentTime = 0; }
+      render(tAt); seek.value = tAt; lab.textContent = tAt.toFixed(2) + 's';
+    }
+    t0 = now;
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+boot();
+</script>
+</body>
+</html>
