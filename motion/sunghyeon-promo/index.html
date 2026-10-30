@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>성현쌤 강사양성 쇼츠</title>
+<style>
+  @font-face { font-family: 'NotoKR'; src: url(../seoul-city-hall/fonts/NotoSansKR-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: 'NotoKR'; src: url(../seoul-city-hall/fonts/NotoSansKR-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: 'NotoKR'; src: url(../seoul-city-hall/fonts/NotoSansKR-Black.ttf); font-weight: 900; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: 'Fraktur'; src: url(fonts/UnifrakturCook-Bold.ttf); font-weight: 700; }
+  html, body { margin: 0; height: 100%; background: #000; color: #aaa; font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  #c { display: block; height: calc(100vh - 52px); aspect-ratio: 9 / 16; background: #000; }
+  .bar { display: flex; gap: 10px; align-items: center; width: calc((100vh - 52px) * 9 / 16); }
+  .bar button { background: #111; color: #ffd54a; border: 1px solid #ffd54a66; padding: 5px 10px; cursor: pointer; }
+  .bar input { flex: 1; accent-color: #ffd54a; }
+  body.render { display: block; }
+  body.render #c { width: 1080px; height: 1920px; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="29.5" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<audio id="song" src="audio/song.m4a" preload="auto"></audio>
+<script>
+/* ============================================================
+   성현쌤 온라인 강사양성 — 세로 쇼츠(1080×1920, 29.5초)
+   레퍼런스 구성: 상단 태그+두 줄 제목 / 장면 / 노란 가사 자막 / 회색 설명 박스
+   모든 프레임은 시간 t만으로 결정된다 → render(t)
+   ============================================================ */
+const W = 1080, H = 1920, FPS = 30, DUR = 29.5;
+const SY = 525, SH = H - SY;        // 장면 영역(헤더 아래)
+const BEAT = 60 / 137, DROP = 10.6; // 곡 템포와 비트가 들어오는 순간
+
+// 컷 타임라인 — 레퍼런스 컷과 같은 자리
+const T = {
+  crowd:   [0.0, 4.0],    // 부모님 군중 설정 샷
+  walk:    [4.0, 7.0],    // 흰 셔츠가 군중 사이로 걸어 나온다
+  stand:   [7.0, 15.4],   // 한가운데 선다(10.6 비트 인)
+  fall:    [15.4, 18.4],  // 군중이 쓰러지고 혼자 서 있다
+  close1:  [18.4, 19.6],  // 주인공 클로즈업
+  mom:     [19.6, 22.07], // 어머니 클로즈업
+  dad:     [22.07, 24.03],// 아버지 클로즈업
+  banner1: [24.03, 25.6], // 배너 샷
+  close2:  [25.6, 27.6],  // 주인공 클로즈업
+  banner2: [27.6, DUR],   // 배너 샷
+};
+
+const COPY = {
+  tag: '온라인 강사양성 · 성현쌤 (2026)',
+  title1: '한편의 영화같은 강사양성 과정',
+  title2: '5060의 인생 2막이 시작된다',
+  banner: 'Sunghyeon Class of 2026',
+};
+// [시작, 끝, 한국어, 영어] — 곡의 가사 자리에 맞춘 자막
+const LYRICS = [
+  [0.0, 4.0, '멈춰 있던 열정처럼', 'Like a quiet fire'],
+  [4.0, 7.0, '당신 안의 이야기처럼', 'Like your own story'],
+  [7.0, 10.6, '다시 타오르는 불꽃처럼', 'Like a fire reborn'],
+  [10.6, 12.75, '당당히 서서, 더 높이', 'Stand tall, go higher'],
+  [12.75, 15.4, '계속해서, 끝까지, 함께', 'On and on and on'],
+];
+const NOTES = [
+  [0.0, 7.0, ['이 영상은 강의 소개이면서 동시에 한 편의 영화다.', '무대는 온라인 강사양성 과정의 첫 수업.', '흰 셔츠의 성현쌤이 검은 정장의 부모님들 사이에 선다.']],
+  [7.0, 12.9, ['모두가 같은 옷, 같은 자리에서 망설일 때', '한 사람이 먼저 앞으로 걸어 나온다.', '"당신의 경험이 곧 강의가 됩니다."']],
+  [12.9, 21.0, ['익숙했던 방식이 하나씩 무너지고,', '그 자리에 새로운 무대가 열린다.', '5060의 인생 2막은 여기서 시작된다.']],
+  [21.0, DUR, ['처음 서는 사람의 속도에 맞춰', '첫 강의를 여는 날까지 함께 간다.', '온라인 강사양성 · 성현쌤']],
+];
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+/* ---------- 수학 ---------- */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const sstep = (a, b, v) => { const k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eInQuad = k => k * k;
+const eInOutSine = k => -(Math.cos(Math.PI * k) - 1) / 2;
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function noise1(t) { const i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f); return lerp(hash(i), hash(i + 1), u) * 2 - 1; }
+const inShot = (t, k) => t >= T[k][0] && t < T[k][1];
+const local = (t, k) => t - T[k][0];
+const span = k => T[k][1] - T[k][0];
+// 비트마다 튀는 펄스(0..1)
+function beatPulse(t, from = DROP) {
+  if (t < from) return 0;
+  const ph = ((t - from) % BEAT) / BEAT;
+  return Math.exp(-ph * 9);
+}
+
+/* ---------- 이미지 ---------- */
+const IMG = {};
+function load(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(src)); im.src = src; });
+}
+function mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+// 군중 사진: 아래쪽을 부드럽게 지우고(줄끼리 겹칠 때 경계가 안 보이게), 좌우 반쪽으로 나눈다.
+// 반쪽의 안쪽 가장자리는 페더 처리 — 줄이 갈라질 때 잘린 선이 드러나지 않게.
+const HALF = {};
+function prepCrowd(img) {
+  const base = (mirror) => {
+    const c = mk(img.width, img.height), g = c.getContext('2d');
+    if (mirror) { g.translate(c.width, 0); g.scale(-1, 1); }
+    g.drawImage(img, 0, 0);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'destination-in';
+    const gr = g.createLinearGradient(0, c.height * 0.78, 0, c.height);
+    gr.addColorStop(0, '#000'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = '#000';
+    return c;
+  };
+  const half = (src, u0, u1, feather) => {
+    const x0 = Math.round(u0 * src.width), x1 = Math.round(u1 * src.width);
+    const c = mk(x1 - x0, src.height), g = c.getContext('2d');
+    g.drawImage(src, -x0, 0);
+    g.globalCompositeOperation = 'destination-in';
+    const gr = g.createLinearGradient(0, 0, c.width, 0);
+    const fl = u0 > 0 ? feather / c.width : 0, fr = u1 < 1 ? feather / c.width : 0;
+    gr.addColorStop(0, u0 > 0 ? 'rgba(0,0,0,0)' : '#000');
+    gr.addColorStop(fl, '#000');
+    gr.addColorStop(1 - fr, '#000');
+    gr.addColorStop(1, u1 < 1 ? 'rgba(0,0,0,0)' : '#000');
+    g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+    return { c, u0, u1 };
+  };
+  for (const m of [0, 1]) {
+    const b = base(m);
+    HALF[`mid${m}`] = [half(b, 0, 0.53, 50), half(b, 0.47, 1, 50)];
+    HALF[`front${m}`] = [half(b, 0, 0.37, 110), half(b, 0.55, 1, 110)];
+    HALF[`full${m}`] = b;
+  }
+}
+
+/* ---------- 군중 줄(뒤 → 앞) ---------- */
+// x,y,w: 장면 좌표(장면 왼쪽 위 = 0,0). depth: 카메라 푸시 때 얼마나 빨리 커지는지(패럴랙스).
+const ROWS = [
+  { x: -85,  y: -130, w: 1250, mirror: 1, depth: 0.55, bright: 0.40, blur: 2.6, split: 'mid',   fallAt: 0.66 },
+  { x: -230, y: 80,   w: 1540, mirror: 0, depth: 0.70, bright: 0.55, blur: 1.6, split: 'mid',   fallAt: 0.44 },
+  { x: -400, y: 300,  w: 1880, mirror: 1, depth: 0.85, bright: 0.72, blur: 0.7, split: 'mid',   fallAt: 0.22 },
+];
+const FRONT = { x: -527, y: 610, w: 2320, mirror: 0, depth: 1.25, bright: 0.86, blur: 2.4, split: 'front', fallAt: 0.0 };
+const PROT = { cx: 540, top: 230, h: 1250, depth: 1.0 };
+
+/* ---------- 카메라 ---------- */
+// 장면마다 줌(z), 초점(fx, fy), 흔들림(shake)을 정한다. 각 레이어는 depth만큼 줌을 받는다.
+let CAM = { z: 1, fx: 540, fy: 600, sx: 0, sy: 0 };
+function withLayer(depth, fn) {
+  ctx.save();
+  const s = 1 + (CAM.z - 1) * depth;
+  ctx.translate(CAM.fx + CAM.sx * depth, CAM.fy + CAM.sy * depth);
+  ctx.scale(s, s);
+  ctx.translate(-CAM.fx, -CAM.fy);
+  fn();
+  ctx.restore();
+}
+// 스튜디오 조명의 주인공을 어두운 군중 톤에 맞춘다
+function protGrade(bright = 1, blur = 0) {
+  return `brightness(${(0.86 * bright).toFixed(3)}) saturate(0.78) contrast(1.12)${blur > 0.05 ? ` blur(${blur.toFixed(2)}px)` : ''}`;
+}
+function grade(bright, blur) {
+  return `brightness(${bright.toFixed(3)}) saturate(0.8) contrast(1.06)${blur > 0.05 ? ` blur(${blur.toFixed(2)}px)` : ''}`;
+}
+
+function backdrop(t) {
+  const g = ctx.createLinearGradient(0, 0, 0, SH);
+  g.addColorStop(0, '#20242b');
+  g.addColorStop(1, '#0b0c0f');
+  ctx.fillStyle = g;
+  ctx.fillRect(-50, -50, W + 100, SH + 100);
+  // 아주 먼 군중(흐린 실루엣) — 앞줄이 쓰러져도 텅 비어 보이지 않게
+  withLayer(0.35, () => {
+    const b = HALF.full0;
+    ctx.filter = grade(0.22, 9);
+    const w = 1500, h = w * b.height / b.width;
+    ctx.drawImage(b, -210, -260, w, h);
+    ctx.filter = 'none';
+  });
+}
+
+// 줄 하나(좌/우 반쪽). gap: 두 반쪽을 바깥으로 벌리는 거리. fall: 0..1 쓰러짐 진행.
+function drawRow(r, gap, fall, extraBlur = 0) {
+  const halves = HALF[`${r.split}${r.mirror}`];
+  const imgW = halves[0].c.width / (halves[0].u1 - halves[0].u0);
+  const scale = r.w / imgW;
+  const h = halves[0].c.height * scale;
+  halves.forEach((hf, i) => {
+    const side = i === 0 ? -1 : 1;
+    const dx = r.x + r.w * hf.u0 + side * gap / 2;
+    const dw = hf.c.width * scale;
+    withLayer(r.depth, () => {
+      ctx.save();
+      let moving = 0;
+      if (fall > 0) {
+        // 바깥 아래 모서리를 축으로 뒤로/옆으로 넘어가 주저앉는다(화면에 남는다)
+        const px = side < 0 ? dx : dx + dw, py = r.y + h * 0.95;
+        ctx.translate(px, py + fall * 230 * r.depth);
+        ctx.rotate(side * fall * (r.split === 'front' ? 0.42 : 0.24));
+        ctx.scale(1, 1 - fall * 0.16);
+        ctx.translate(-px, -py);
+        moving = fall < 1 ? Math.sin(Math.PI * fall) : 0;
+      }
+      ctx.filter = grade(r.bright * (1 - fall * 0.3), r.blur + extraBlur + moving * 7);
+      ctx.drawImage(hf.c, dx, r.y, dw, h);
+      ctx.restore();
+    });
+  });
+}
+
+function drawProtagonist(scale = 1, dx = 0, dy = 0, blur = 0, bright = 1) {
+  const im = IMG.prot;
+  const h = PROT.h * scale, w = h * im.width / im.height;
+  withLayer(PROT.depth, () => {
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 60;
+    ctx.filter = protGrade(bright, blur);
+    ctx.drawImage(im, PROT.cx - w / 2 + dx, PROT.top + (PROT.h - h) * 0.35 + dy, w, h);
+    ctx.restore();
+  });
+}
+
+// 이미지의 한 점(ix, iy)을 장면의 (cx, cy)에 오도록 s배로 그린다 — 클로즈업용
+function drawFocused(im, ix, iy, s, cx, cy, filter, rot = 0) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.filter = filter;
+  ctx.drawImage(im, -ix * s, -iy * s, im.width * s, im.height * s);
+  ctx.restore();
+  ctx.filter = 'none';
+}
+
+/* ---------- 장면 ---------- */
+function crowdScene(t) {
+  const fallK = (r) => (inShot(t, 'fall') ? eInQuad(prog(local(t, 'fall'), r.fallAt, r.fallAt + 0.9)) : 0);
+  ROWS.forEach(r => drawRow(r, 0, fallK(r)));
+}
+
+function sceneShot(t) {
+  CAM = { z: 1, fx: 540, fy: 600, sx: 0, sy: 0 };
+  if (inShot(t, 'crowd')) {
+    const k = eInOutSine(prog(local(t, 'crowd'), 0, span('crowd')));
+    CAM.z = lerp(1.0, 1.09, k);
+    CAM.fy = 560;
+    CAM.sx = noise1(t * 0.7) * 6; CAM.sy = noise1(t * 0.6 + 9) * 4;
+    backdrop(t);
+    ROWS.forEach(r => drawRow(r, 0, 0, r.split === 'mid' && r.y === 300 ? -0.6 : 0));
+    drawRow(FRONT, -440, 0);
+    return;
+  }
+  if (inShot(t, 'walk')) {
+    const lt = local(t, 'walk'), k = prog(lt, 0, span('walk'));
+    CAM.z = lerp(1.04, 1.12, k);
+    CAM.fy = 600;
+    CAM.sx = noise1(t * 0.9) * 8; CAM.sy = noise1(t * 0.8 + 3) * 5;
+    backdrop(t);
+    crowdScene(t);
+    const bob = Math.abs(Math.sin(lt * Math.PI * 1.9)) * -10;
+    drawProtagonist(lerp(0.8, 0.94, eOutCubic(k)), 0, lerp(70, 10, k) + bob);
+    drawRow(FRONT, lerp(-200, 0, eOutCubic(prog(lt, 0, 1.6))), 0);
+    return;
+  }
+  if (inShot(t, 'stand')) {
+    const lt = local(t, 'stand');
+    CAM.z = lerp(1.0, 1.34, eInOutSine(prog(lt, 0, span('stand')))) + beatPulse(t) * 0.014;
+    CAM.fy = 520;
+    CAM.sx = noise1(t * 0.6) * 5; CAM.sy = noise1(t * 0.5 + 4) * 4;
+    backdrop(t);
+    crowdScene(t);
+    drawProtagonist(1);
+    drawRow(FRONT, 0, 0);
+    // "당당히 서서, 더 높이" — 위에서 떨어지는 빛
+    const glow = sstep(DROP - 0.1, DROP + 0.4, t) * (1 - sstep(13.2, 15.2, t));
+    if (glow > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const g = ctx.createRadialGradient(540, -120, 40, 540, -120, 1100);
+      g.addColorStop(0, `rgba(255,236,190,${0.42 * glow})`);
+      g.addColorStop(1, 'rgba(255,236,190,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, SH);
+      ctx.restore();
+    }
+    return;
+  }
+  if (inShot(t, 'fall')) {
+    const lt = local(t, 'fall');
+    const shake = (0.35 + beatPulse(t, T.fall[0]) * 0.9) * (1 - prog(lt, 1.6, 3.0) * 0.7);
+    CAM.z = lerp(1.22, 1.32, prog(lt, 0, span('fall'))) + beatPulse(t) * 0.02;
+    CAM.fy = 540;
+    CAM.sx = noise1(t * 11) * 22 * shake; CAM.sy = noise1(t * 13 + 5) * 18 * shake;
+    backdrop(t);
+    crowdScene(t);
+    drawProtagonist(1);
+    drawRow(FRONT, 0, eInQuad(prog(lt, 0, 0.8)));
+    dust(t, lt);
+    return;
+  }
+  if (inShot(t, 'close1') || inShot(t, 'close2')) {
+    const key = inShot(t, 'close1') ? 'close1' : 'close2';
+    const k = prog(local(t, key), 0, span(key));
+    backdrop(t);
+    // 뒤로 흐릿한 군중
+    withLayer(0, () => drawRow({ ...ROWS[2], y: 120, w: 2400, x: -660 }, 0, 0, 7));
+    const s = key === 'close1' ? lerp(1.32, 1.42, k) : lerp(1.52, 1.6, k);
+    const cx = key === 'close1' ? 540 : 500;
+    drawFocused(IMG.prot, 860, key === 'close1' ? 760 : 700, s, cx, SH * 0.48, protGrade(1.04), (key === 'close1' ? -0.01 : 0.012) * (1 - k));
+    return;
+  }
+  if (inShot(t, 'mom') || inShot(t, 'dad')) {
+    const key = inShot(t, 'mom') ? 'mom' : 'dad';
+    const k = eInOutSine(prog(local(t, key), 0, span(key)));
+    backdrop(t);
+    const im = HALF.full0;
+    if (key === 'mom') drawFocused(im, 825, 780, lerp(1.55, 1.68, k), 540, SH * 0.5, grade(0.95, 0), lerp(-0.035, -0.01, k));
+    else drawFocused(im, lerp(1250, 1185, k), 790, lerp(1.6, 1.66, k), 540, SH * 0.5, grade(0.95, 0));
+    return;
+  }
+  // 배너 샷
+  const key = inShot(t, 'banner1') ? 'banner1' : 'banner2';
+  const k = prog(t, T.banner1[0], DUR);
+  CAM.z = lerp(1.0, 1.12, eInOutSine(k));
+  CAM.fy = 600;
+  CAM.sx = noise1(t * 0.5) * 4;
+  backdrop(t);
+  withLayer(0.5, () => drawRow({ ...ROWS[1], y: 40 }, 0, 0, 4));
+  banner(t);
+  withLayer(1, () => {
+    const im = IMG.prot;
+    const h = 1380, w = h * im.width / im.height;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 60;
+    ctx.filter = protGrade(1.02);
+    ctx.drawImage(im, 690 - w / 2, 120, w, h);
+    ctx.restore();
+  });
+  void key;
+}
+
+// 넘어지는 군중 발치에서 피어오르는 먼지
+function dust(t, lt) {
+  ctx.save();
+  for (let i = 0; i < 70; i++) {
+    const birth = hash(i * 3.3) * 1.2;
+    const age = lt - birth;
+    if (age < 0 || age > 2.2) continue;
+    const x = hash(i * 7.1) * W, y0 = SH * (0.72 + hash(i * 1.7) * 0.25);
+    const r = 30 + hash(i * 5.3) * 90 + age * 60;
+    const a = 0.16 * (1 - age / 2.2);
+    const g = ctx.createRadialGradient(x, y0 - age * 90, 0, x, y0 - age * 90, r);
+    g.addColorStop(0, `rgba(200,200,205,${a})`);
+    g.addColorStop(1, 'rgba(200,200,205,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y0 - age * 90 - r, r * 2, r * 2);
+  }
+  ctx.restore();
+}
+
+// 학교 깃발 같은 세로 배너 — 레퍼런스의 "Storm Class of" 배너 자리
+function banner(t) {
+  withLayer(0.8, () => {
+    const x = 70, w = 230;
+    ctx.save();
+    ctx.fillStyle = '#1b2b4d';
+    ctx.fillRect(x, -60, w, SH + 120);
+    ctx.strokeStyle = 'rgba(214,180,106,0.85)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 14, -60, w - 28, SH + 120);
+    // 방패 엠블럼
+    const ex = x + w / 2, ey = 120;
+    ctx.beginPath();
+    ctx.moveTo(ex - 44, ey - 46); ctx.lineTo(ex + 44, ey - 46); ctx.lineTo(ex + 44, ey + 6);
+    ctx.quadraticCurveTo(ex + 40, ey + 44, ex, ey + 62);
+    ctx.quadraticCurveTo(ex - 40, ey + 44, ex - 44, ey + 6);
+    ctx.closePath();
+    ctx.fillStyle = '#f2efe6'; ctx.fill();
+    ctx.fillStyle = '#1b2b4d';
+    ctx.font = '700 64px Fraktur';
+    ctx.textAlign = 'center';
+    ctx.fillText('S', ex, ey + 30);
+    // 세로 문구
+    ctx.translate(x + w / 2 + 6, 240);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = '#f2efe6';
+    ctx.font = '700 100px Fraktur';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(COPY.banner, 0, 0);
+    ctx.restore();
+  });
+}
+
+/* ---------- 텍스트 ---------- */
+function setFont(o) {
+  ctx.font = `${o.weight} ${o.size}px ${o.fam}`;
+  ctx.textAlign = o.align || 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.letterSpacing = (o.ls || 0) + 'px';
+}
+function header() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, SY);
+  // 빨간 태그
+  setFont({ weight: 600, size: 29, fam: 'Mont, NotoKR' });
+  const tw = ctx.measureText(COPY.tag).width;
+  ctx.fillStyle = '#b8141f';
+  ctx.beginPath(); ctx.roundRect(W / 2 - tw / 2 - 16, 222, tw + 32, 46, 6); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,214,90,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#ffe9a8';
+  ctx.fillText(COPY.tag, W / 2, 256);
+  setFont({ weight: 900, size: 66, fam: 'NotoKR', ls: -1.5 });
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(COPY.title1, W / 2, 368);
+  ctx.fillStyle = '#ffd400';
+  ctx.fillText(COPY.title2, W / 2, 466);
+  ctx.letterSpacing = '0px';
+}
+function lyrics(t) {
+  for (const [a, b, ko, en] of LYRICS) {
+    if (t < a || t >= b) continue;
+    const alpha = Math.min(sstep(a, a + 0.14, t), 1 - sstep(b - 0.1, b, t));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 10;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 6;
+    setFont({ weight: 900, size: 35, fam: 'NotoKR' });
+    ctx.strokeText(ko, W / 2, 1236);
+    ctx.fillStyle = '#ffd54a';
+    ctx.fillText(ko, W / 2, 1236);
+    setFont({ weight: 800, size: 45, fam: 'Mont, NotoKR' });
+    ctx.strokeText(en, W / 2, 1296);
+    ctx.fillText(en, W / 2, 1296);
+    ctx.restore();
+  }
+}
+function notes(t) {
+  for (const [a, b, lines] of NOTES) {
+    if (t < a || t >= b) continue;
+    // 타자기처럼 빠르게 채워진다
+    let budget = Math.floor((t - a) * 46);
+    const shown = lines.map(l => { const s = l.slice(0, Math.max(0, budget)); budget -= l.length; return s; });
+    setFont({ weight: 500, size: 27, fam: 'NotoKR' });
+    const full = Math.max(...lines.map(l => ctx.measureText(l).width));
+    const lh = 38, top = 1340;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(W / 2 - full / 2 - 16, top, full + 32, lh * lines.length + 16);
+    ctx.fillStyle = '#ffffff';
+    shown.forEach((s, i) => { if (s) ctx.fillText(s, W / 2, top + 36 + i * lh); });
+  }
+}
+
+/* ---------- 질감 ---------- */
+let NOISE;
+function buildNoise() {
+  NOISE = mk(256, 256);
+  const g = NOISE.getContext('2d'), img = g.createImageData(256, 256);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = hash(i * 0.37 + 1.3) * 255;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+}
+function finish(t) {
+  // 차갑고 영화 같은 톤 + 비네트 + 그레인 (장면 영역만)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, SY, W, SH); ctx.clip();
+  ctx.globalCompositeOperation = 'soft-light';
+  ctx.fillStyle = 'rgba(70,110,150,0.35)';
+  ctx.fillRect(0, SY, W, SH);
+  ctx.globalCompositeOperation = 'source-over';
+  const v = ctx.createRadialGradient(W / 2, SY + SH * 0.45, SH * 0.32, W / 2, SY + SH * 0.45, SH * 0.85);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, SY, W, SH);
+  const f = Math.floor(t * FPS);
+  ctx.globalAlpha = 0.06;
+  ctx.globalCompositeOperation = 'overlay';
+  const ox = -Math.floor(hash(f) * 256), oy = -Math.floor(hash(f + 0.5) * 256);
+  for (let y = SY + oy; y < H; y += 256) for (let x = ox; x < W; x += 256) ctx.drawImage(NOISE, x, y);
+  ctx.restore();
+  // 쓰러지는 순간의 섬광
+  const fl = 1 - clamp(Math.abs(t - T.fall[0] - 0.03) / 0.09);
+  if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${0.5 * fl})`; ctx.fillRect(0, SY, W, SH); }
+}
+
+/* ---------- 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, SY, W, SH); ctx.clip();
+  ctx.translate(0, SY);
+  sceneShot(t);
+  ctx.restore();
+  finish(t);
+  header();
+  lyrics(t);
+  notes(t);
+}
+
+/* ---------- 재생 / 렌더 훅 ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+window.DURATION = DUR;
+window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+
+async function boot() {
+  const [prot, crowd] = await Promise.all([load('assets/protagonist-cut.webp'), load('assets/parents-cut.webp')]);
+  IMG.prot = prot;
+  prepCrowd(crowd);
+  await Promise.all([
+    document.fonts.load('900 40px NotoKR', '가'), document.fonts.load('700 40px NotoKR', '가'), document.fonts.load('500 40px NotoKR', '가'),
+    document.fonts.load('600 40px Mont', 'A'), document.fonts.load('800 40px Mont', 'A'), document.fonts.load('700 40px Fraktur', 'S'),
+  ]);
+  buildNoise();
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+
+  const song = document.getElementById('song');
+  const seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  let playing = false, tAt = Number(params.get('t') || 0), t0 = performance.now();
+  render(tAt);
+  btn.onclick = () => {
+    playing = !playing;
+    btn.textContent = playing ? '일시정지' : '재생';
+    t0 = performance.now();
+    if (playing) { song.currentTime = tAt; song.play().catch(() => {}); } else song.pause();
+  };
+  seek.oninput = () => { tAt = Number(seek.value); song.currentTime = tAt; render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  (function loop(now) {
+    if (playing) {
+      tAt = song.duration && !song.paused ? song.currentTime : tAt + (now - t0) / 1000;
+      if (tAt >= DUR) { tAt = 0; song.currentTime = 0; }
+      render(tAt); seek.value = tAt; lab.textContent = tAt.toFixed(2) + 's';
+    }
+    t0 = now;
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+boot();
+</script>
+</body>
+</html>
