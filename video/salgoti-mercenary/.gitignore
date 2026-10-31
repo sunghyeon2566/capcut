@@ -1,0 +1,8 @@
+out/*
+fonts/*.ttf
+__pycache__/
+# 개인 정보: 팀원 사진, 사진·연락처가 담긴 결과 영상, 연락처
+assets/thumb.png
+assets/prize.png
+assets/game.png
+local.js
