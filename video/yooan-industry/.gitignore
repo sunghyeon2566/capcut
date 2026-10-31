@@ -1,0 +1,4 @@
+out/*
+!out/*.mp4
+fonts/*.ttf
+__pycache__/

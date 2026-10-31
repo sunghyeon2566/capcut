@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>유안산업 연혁</title>
+<style>
+  /* fetch_fonts.sh 가 받은 파일 이름 규칙: <Family>-<weight>.ttf */
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-500.ttf); font-weight: 500; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-700.ttf); font-weight: 700; }
+  @font-face { font-family: 'NotoKR'; src: url(fonts/NotoSansKR-900.ttf); font-weight: 900; }
+  @font-face { font-family: 'NotoSerif'; src: url(fonts/NotoSerifKR-700.ttf); font-weight: 700; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-600.ttf); font-weight: 600; }
+  @font-face { font-family: 'Mont'; src: url(fonts/Montserrat-800.ttf); font-weight: 800; }
+  html, body { margin: 0; height: 100%; background: #000; color: #aaa; font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { display: block; max-width: 100vw; max-height: calc(100vh - 56px); background: #000; }
+  .bar { display: flex; gap: 12px; align-items: center; width: min(100vw, 960px); padding: 0 12px; box-sizing: border-box; }
+  .bar button { background: #111; color: #eee; border: 1px solid #555; padding: 6px 12px; cursor: pointer; }
+  .bar input { flex: 1; }
+  body.render { display: block; }
+  body.render #c { max-width: none; max-height: none; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<audio id="snd" src="out/sound.wav" preload="auto"></audio>
+<script>
+/* ============================================================
+   유안산업(柳安産業) — 골판지 포장 회사 홍보 모션 영상
+   레퍼런스(검색의 역사: 네온 연도 숫자 + 선 아이콘 + 제목 + 진행 점, 장마다 색이 바뀌고
+   흰 섬광으로 넘어가며, 마지막은 점선 원 안의 두 줄 문구)의 구조와 리듬을 그대로 옮겼다.
+   모든 프레임은 시간 t만으로 결정된다. 무작위는 hash(n)로.
+   ============================================================ */
+
+/* ---------- 1. 설정 ---------- */
+const W = 1080, H = 1080, FPS = 30;
+const CH = 2.2;                               // 장 하나 = 2.2초 = 4박(약 109BPM) — sound.py와 같은 값
+const BPM = 240 / CH, BEAT = CH / 4;
+// 장: 연혁 5 + 제품 장점 3. 문구는 유안산업 브로슈어에 있는 것만
+const CHAPTERS = [
+  { top: '1984', act: 'HISTORY',  color: '#4d8dff', icon: 'factory', title: '유안산업 설립',      sub: '柳安産業 · Yooan Industry' },
+  { top: '1995', act: 'HISTORY',  color: '#ff4f6e', icon: 'holder',  title: '포장용 Holder',      sub: '의장등록 취득' },
+  { top: '1997', act: 'HISTORY',  color: '#33d17a', icon: 'cell',    title: '포장용 Cell',        sub: '실용신안등록 취득 · 법인전환' },
+  { top: '2000', act: 'HISTORY',  color: '#2fd0e0', icon: 'pallet',  title: '골판지 Pallet',      sub: '실용신안 및 의장등록 출원' },
+  { top: '2002', act: 'HISTORY',  color: '#9a6bff', icon: 'badge',   title: 'ISO 9001 인증획득',  sub: '1999 ISO 9002 · 2001 벤처기업 지정' },
+  { top: 'COST', act: 'PRODUCTS', color: '#ff8a3d', icon: 'process', title: '신기술로 비용 절감',  sub: 'Flexo Color Box · 7단계 공정을 4단계로' },
+  { top: 'SIZE', act: 'PRODUCTS', color: '#ffc93c', icon: 'stack',   title: '소량 다품종 생산',    sub: '규격은 자유롭게, 납기 걱정은 적게' },
+  { top: 'ECO',  act: 'PRODUCTS', color: '#7be36b', icon: 'eco',     title: '환경친화적 종이 포장', sub: '무공해 · 재생활용 가능' },
+];
+const T0 = CH;                                // 첫 장 시작(앞은 인트로)
+const T_OUT = T0 + CHAPTERS.length * CH;      // 점선 원 문구
+const T_END = T_OUT + CH;                     // 엔딩(로고)
+const DUR = T_END + 1.5 * CH;
+
+const COPY = {
+  eyebrow: 'YOOAN INDUSTRY · SINCE 1984',
+  intro: '유안산업의 발자취',
+  outEyebrow: 'BEFORE SERVICE',
+  out: ['포장은 더 좋게,', '원가 이익은 함께.'],
+  nameKo: '유안산업주식회사',
+  nameHan: '柳安産業株式會社',
+  cert: 'KSA 9001 / ISO 9001 인증업체',
+  products: '일반 Box · Flexo Color Box · Honey Cell · 골판지 Pallet',
+  url: 'www.yooan.co.kr',
+  addr: '충남 아산시 영인면',
+};
+
+const C = {
+  bg: '#050a13', navy: '#0d1731', white: '#f4f6fb', grey: '#9aa3b8',
+  yellow: '#f2c75c', sky: '#7cc4fa', accent: '#fdd165',
+  logoBlue: '#1f3fa8', logoRed: '#d9452e', logoRed2: '#ec8c6e',
+};
+
+/* ---------- 2. 수학 ---------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eOutExpo = k => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const eInOutCubic = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgba = (h, a) => { const [r, g, b] = hex(h); return `rgba(${r},${g},${b},${a})`; };
+
+const cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+if (!new URLSearchParams(location.search).has('render')) cv.style.aspectRatio = `${W} / ${H}`;
+const ctx = cv.getContext('2d');
+
+/* ---------- 3. 텍스트 ---------- */
+function setFont(o) {
+  ctx.font = `${o.weight ?? 700} ${o.size ?? 60}px ${o.fam ?? 'NotoKR'}`;
+  ctx.textAlign = o.align ?? 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.letterSpacing = (o.ls ?? 0) + 'px';
+}
+function text(s, x, y, o = {}) {
+  ctx.save();
+  setFont(o);
+  ctx.globalAlpha *= o.alpha ?? 1;
+  if (o.shadow) { ctx.shadowColor = o.shadow; ctx.shadowBlur = o.shadowBlur ?? 12; }
+  ctx.fillStyle = o.color ?? C.white;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function measure(s, o) { ctx.save(); setFont(o); const w = ctx.measureText(s).width; ctx.restore(); return w; }
+function rise(k, y, size, fn) {
+  if (k <= 0) return;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, y - size * 1.3, W, size * 1.7); ctx.clip();
+  ctx.translate(0, (1 - eOutExpo(k)) * size * 1.1);
+  ctx.globalAlpha *= clamp(k * 3);
+  fn();
+  ctx.restore();
+}
+// 네온 글자: 글자 바깥 윤곽만 남긴다(폰트 안쪽의 겹친 윤곽선이 보이지 않게
+// 굵은 윤곽에서 글자 면을 지운다) + 흐린 빛 + 밝은 안쪽 심
+const NEON = document.createElement('canvas'); NEON.width = W; NEON.height = 400;
+const CORE = document.createElement('canvas'); CORE.width = W; CORE.height = 400;
+function ring(cvs, s, size, fam, color, lw) {
+  const g = cvs.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over';
+  g.clearRect(0, 0, cvs.width, cvs.height);
+  g.font = `800 ${size}px ${fam}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.letterSpacing = '2px';
+  g.lineJoin = 'round'; g.strokeStyle = color; g.lineWidth = lw;
+  g.strokeText(s, W / 2, 300);
+  g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000'; g.fillText(s, W / 2, 300);
+}
+function neonText(s, x, y, size, color, a = 1, fam = 'Mont') {
+  ring(NEON, s, size, fam, color, 12);
+  ring(CORE, s, size, fam, 'rgba(255,255,255,0.75)', 3.5);
+  ctx.save();
+  ctx.globalAlpha *= a;
+  const dx = x - W / 2, dy = y - 300;
+  text(s, x, y, { fam, weight: 800, size, ls: 2, color: rgba(color, 0.1) });
+  ctx.shadowColor = color; ctx.shadowBlur = 36; ctx.drawImage(NEON, dx, dy);
+  ctx.shadowBlur = 12; ctx.drawImage(NEON, dx, dy);
+  ctx.shadowBlur = 0; ctx.drawImage(CORE, dx, dy);
+  ctx.restore();
+}
+
+/* ---------- 4. 배경: 남색 + 장 색의 위쪽 빛 + 원근 격자 ---------- */
+function backdrop(t, color, glow = 1) {
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(W / 2, H * 0.18, 20, W / 2, H * 0.3, W * 0.75);
+  g.addColorStop(0, rgba(color, 0.42 * glow)); g.addColorStop(0.45, rgba(color, 0.12 * glow)); g.addColorStop(1, 'rgba(5,10,19,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // 원근 격자(바닥 + 옅은 천장)
+  const vx = W / 2, vy = H * 0.42;
+  ctx.save(); ctx.lineWidth = 1.3;
+  for (let i = -12; i <= 12; i++) {
+    const bx = vx + i * 140;
+    ctx.strokeStyle = 'rgba(80,110,170,0.16)';
+    ctx.beginPath(); ctx.moveTo(vx + i * 8, vy); ctx.lineTo(bx * 1.0 + (bx - vx) * 1.4, H); ctx.stroke();
+    ctx.strokeStyle = 'rgba(80,110,170,0.07)';
+    ctx.beginPath(); ctx.moveTo(vx + i * 8, vy); ctx.lineTo(bx + (bx - vx) * 1.4, 0); ctx.stroke();
+  }
+  const scroll = (t * 0.25) % 1;
+  for (let j = 0; j < 9; j++) {
+    const d = Math.pow((j + scroll) / 9, 2.2);
+    const yb = vy + d * (H - vy), yt = vy - d * vy;
+    ctx.strokeStyle = `rgba(80,110,170,${0.18 * d + 0.03})`;
+    ctx.beginPath(); ctx.moveTo(0, yb); ctx.lineTo(W, yb); ctx.stroke();
+    ctx.strokeStyle = `rgba(80,110,170,${0.07 * d})`;
+    ctx.beginPath(); ctx.moveTo(0, yt); ctx.lineTo(W, yt); ctx.stroke();
+  }
+  ctx.restore();
+  // 가장자리 어둡게
+  const v = ctx.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, W * 0.75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+/* ---------- 5. 선 아이콘(그려지듯 나타나는 흰 선 + 장 색 빛) ---------- */
+function polyLen(p) { let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return L; }
+function strokePartial(p, k) {
+  if (k <= 0 || p.length < 2) return;
+  const L = polyLen(p) * k;
+  let acc = 0;
+  ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+  for (let i = 1; i < p.length; i++) {
+    const s = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
+    if (acc + s >= L) { const u = (L - acc) / s; ctx.lineTo(lerp(p[i - 1][0], p[i][0], u), lerp(p[i - 1][1], p[i][1], u)); break; }
+    ctx.lineTo(p[i][0], p[i][1]); acc += s;
+  }
+  ctx.stroke();
+}
+// 여러 선을 길이 순서대로 차례로 그린다
+function drawLines(lines, k, color, lw = 6) {
+  const lens = lines.map(polyLen), total = lens.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.shadowColor = color; ctx.shadowBlur = 16;
+  ctx.strokeStyle = C.white; ctx.lineWidth = lw;
+  lines.forEach((p, i) => { const kk = clamp((k * total - acc) / lens[i]); strokePartial(p, kk); acc += lens[i]; });
+  ctx.restore();
+}
+const rectP = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]];
+const arcP = (cx, cy, r, a0, a1, n = 40) => Array.from({ length: n + 1 }, (_, i) => { const a = lerp(a0, a1, i / n); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; });
+function fillRR(x, y, w, h, r, color, a = 1) {
+  ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = color;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); ctx.restore();
+}
+
+const ICONS = {
+  // 1984 공장: 톱니 지붕 공장이 그려지고 창에 차례로 불이 켜진다, 굴뚝 연기
+  factory(lt, col) {
+    const roof = [[-170, 130], [-170, -10]];
+    for (let i = 0; i < 4; i++) { const x = -170 + i * 85; roof.push([x, -80], [x + 85, -10]); }
+    roof.push([170, 130]);
+    const lines = [[[-220, 130], [220, 130]], roof, rectP(110, -150, 34, 100)];
+    drawLines(lines, eInOutCubic(prog(lt, 0.15, 1.0)), col);
+    for (let i = 0; i < 4; i++) {
+      const k = prog(lt, 0.9 + i * 0.12, 1.05 + i * 0.12);
+      if (k > 0) { fillRR(-140 + i * 78, 25, 46, 46, 6, C.yellow, k); }
+    }
+    for (let i = 0; i < 3; i++) {
+      const ph = ((lt - 1.0) * 0.8 + i / 3) % 1;
+      if (lt < 1.0) continue;
+      ctx.save(); ctx.globalAlpha = (1 - ph) * 0.8; ctx.fillStyle = C.sky;
+      ctx.beginPath(); ctx.arc(127 + ph * 30, -160 - ph * 90, 10 + ph * 14, 0, TAU); ctx.fill(); ctx.restore();
+    }
+  },
+  // 1995 Holder: 상자에 제품이 내려앉고 양쪽 홀더가 밀려 들어와 잡아 준다
+  holder(lt, col) {
+    const box = [[[-170, -40], [-170, 130], [170, 130], [170, -40]], [[-170, -40], [-225, -95]], [[170, -40], [225, -95]]];
+    drawLines(box, eInOutCubic(prog(lt, 0.15, 0.75)), col);
+    const kd = eOutCubic(prog(lt, 0.6, 1.0)), py = lerp(-260, 30, kd);
+    if (kd > 0) { fillRR(-85, py - 50, 170, 100, 16, C.sky, clamp(kd * 2)); fillRR(-60, py - 25, 120, 12, 6, 'rgba(5,10,19,0.35)', clamp(kd * 2)); }
+    const ph = prog(lt, 0.95, 1.3), kh = eOutBack(ph);
+    if (ph > 0) {
+      [-1, 1].forEach(s => {
+        const x = s * lerp(300, 128, kh);
+        ctx.save(); ctx.globalAlpha *= clamp(ph * 4);
+        fillRR(x - 32, -10, 64, 130, 10, C.yellow);
+        ctx.fillStyle = C.bg; ctx.fillRect(x - 32 + (s > 0 ? 0 : 40), 20, 24, 70);
+        ctx.restore();
+      });
+    }
+  },
+  // 1997 Cell: 접혀 있던 칸막이가 아코디언처럼 펼쳐지고 칸이 채워진다
+  cell(lt, col) {
+    const ke = eOutBack(prog(lt, 0.2, 0.85)), sx = lerp(0.12, 1, ke), w = 300 * sx, h = 220;
+    ctx.save(); ctx.globalAlpha = clamp(prog(lt, 0.1, 0.3) * 2);
+    const x0 = -w / 2, y0 = -h / 2 + 10;
+    const lines = [rectP(x0, y0, w, h)];
+    for (let i = 1; i < 5; i++) lines.push([[x0 + w * i / 5, y0], [x0 + w * i / 5, y0 + h]]);
+    for (let j = 1; j < 3; j++) lines.push([[x0, y0 + h * j / 3], [x0 + w, y0 + h * j / 3]]);
+    drawLines(lines, 1, col, 5);
+    for (let c = 0; c < 15; c++) {
+      const k = prog(lt, 0.85 + c * 0.03, 1.0 + c * 0.03);
+      if (k <= 0) continue;
+      const cx = x0 + w * ((c % 5) + 0.5) / 5, cy = y0 + h * (Math.floor(c / 5) + 0.5) / 3;
+      ctx.beginPath(); ctx.arc(cx, cy, 20 * eOutBack(k) * sx, 0, TAU); ctx.fillStyle = c % 3 ? C.sky : C.yellow; ctx.fill();
+    }
+    ctx.restore();
+  },
+  // 2000 골판지 Pallet: 받침 블록이 놓이고 위판이 내려앉는다
+  pallet(lt, col) {
+    const blocks = [-180, -40, 100].map((x, i) => ({ x, k: eOutBack(prog(lt, 0.15 + i * 0.12, 0.45 + i * 0.12)) }));
+    blocks.forEach(b => { if (b.k > 0) { ctx.save(); ctx.translate(b.x + 40, 95); ctx.scale(1, b.k); fillRR(-40, -45, 80, 90, 6, C.yellow); ctx.restore(); } });
+    drawLines([[[-220, 145], [220, 145]]], eOutCubic(prog(lt, 0.1, 0.5)), col);
+    const kd = eOutCubic(prog(lt, 0.55, 0.95)), dy = lerp(-200, 0, kd);
+    if (kd > 0) {
+      ctx.save(); ctx.globalAlpha = clamp(kd * 2); ctx.translate(0, dy);
+      drawLines([[[-220, 50], [-160, -10], [280, -10], [220, 50], [-220, 50]], rectP(-220, 50, 440, 22), [[220, 72], [280, 12], [280, -10]]], 1, col, 5);
+      ctx.restore();
+    }
+    if (kd >= 1) {                                          // 내려앉을 때 먼지
+      const k = prog(lt, 0.95, 1.35);
+      for (let i = 0; i < 10; i++) { const s = i < 5 ? -1 : 1, a = hash(i) * 0.6; ctx.fillStyle = rgba(C.sky, 1 - k); ctx.beginPath(); ctx.arc(s * (230 + k * 60 * (1 + a)), 140 - k * 40 * (0.5 + a), 4, 0, TAU); ctx.fill(); }
+    }
+  },
+  // 2002 인증 배지: 원 + 리본 + 체크
+  badge(lt, col) {
+    const pr = prog(lt, 0.7, 1.0), kr = eOutBack(pr);
+    if (pr > 0) {
+      [-1, 1].forEach(s => {
+        ctx.save(); ctx.translate(s * 40, 70); ctx.rotate(s * 0.25); ctx.scale(1, kr);
+        ctx.fillStyle = C.yellow; ctx.beginPath(); ctx.moveTo(-28, 0); ctx.lineTo(28, 0); ctx.lineTo(28, 110); ctx.lineTo(0, 88); ctx.lineTo(-28, 110); ctx.closePath(); ctx.fill(); ctx.restore();
+      });
+    }
+    if (pr > 0) { ctx.save(); ctx.fillStyle = 'rgba(8,8,24,0.92)'; ctx.beginPath(); ctx.arc(0, -20, 110, 0, TAU); ctx.fill(); ctx.restore(); }   // 리본 윗부분을 가린다
+    drawLines([arcP(0, -20, 110, -Math.PI / 2, Math.PI * 1.5, 60), arcP(0, -20, 84, -Math.PI / 2, Math.PI * 1.5, 50)], eInOutCubic(prog(lt, 0.15, 0.75)), col);
+    drawLines([[[-38, -22], [-10, 8], [44, -50]]], eOutCubic(prog(lt, 0.85, 1.15)), col, 11);
+    const ks = eOutBack(prog(lt, 1.15, 1.45));             // 벤처 별
+    if (ks > 0) {
+      ctx.save(); ctx.translate(150, -120); ctx.scale(ks, ks); ctx.rotate(lt * 0.8);
+      ctx.fillStyle = C.sky; ctx.beginPath();
+      for (let i = 0; i < 10; i++) { const r = i % 2 ? 12 : 30, a = i * Math.PI / 5 - Math.PI / 2; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  },
+  // Flexo: 7단계(기존 Offset)와 4단계(유안 Flexo)를 나란히 — 아래 줄이 먼저 끝난다
+  process(lt, col) {
+    const row = (n, y, x0, x1, t0, t1, c, r, label) => {
+      const k = prog(lt, t0, t1);
+      text(label, x0 - 40, y + 9, { size: 26, weight: 700, align: 'right', color: c === C.yellow ? C.white : C.grey });
+      for (let i = 0; i < n; i++) {
+        const x = lerp(x0, x1, i / (n - 1)), ki = prog(k, i / n, (i + 1) / n);
+        if (i > 0) { ctx.strokeStyle = rgba(c, 0.8); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(lerp(x0, x1, (i - 1) / (n - 1)) + r, y); ctx.lineTo(lerp(lerp(x0, x1, (i - 1) / (n - 1)) + r, x - r, clamp(ki * 2)), y); ctx.stroke(); }
+        if (ki > 0.4) { ctx.beginPath(); ctx.arc(x, y, r * eOutBack(prog(ki, 0.4, 1)), 0, TAU); ctx.fillStyle = c; ctx.fill(); }
+      }
+      const done = prog(lt, t1, t1 + 0.2);
+      if (done > 0) text(`${n}단계`, x1 + r + 26, y + 10, { size: 30, weight: 900, align: 'left', color: c === C.yellow ? C.yellow : C.grey, alpha: done });
+    };
+    row(7, -70, -140, 190, 0.2, 1.4, '#6b7488', 14, 'Offset');
+    row(4, 70, -140, 80, 0.2, 0.75, C.yellow, 22, 'Flexo');
+  },
+  // 소량 다품종: 크기가 다른 상자들이 차례로 쌓인다
+  stack(lt, col) {
+    const boxes = [[-190, 140, 150, 110], [-30, 140, 110, 150], [90, 140, 120, 80], [-170, 30, 110, 75], [-35, -10, 80, 70], [95, 60, 90, 60], [-130, -45, 60, 50]];
+    boxes.forEach(([x, by, w, h], i) => {
+      const k = eOutBack(prog(lt, 0.15 + i * 0.13, 0.45 + i * 0.13));
+      if (k <= 0) return;
+      const y = by - h - (1 - k) * 160;
+      ctx.save(); ctx.globalAlpha = clamp(k * 2);
+      if (i % 3 === 1) fillRR(x, y, w, h, 6, rgba(C.yellow, 0.9));
+      drawLines([rectP(x, y, w, h), [[x + w / 2, y], [x + w / 2, y + h * 0.35]]], 1, col, 4.5);
+      ctx.restore();
+    });
+  },
+  // 환경친화: 상자 둘레를 도는 세 화살표
+  eco(lt, col) {
+    const kb = eOutBack(prog(lt, 0.15, 0.5));
+    if (kb > 0) { ctx.save(); ctx.scale(kb, kb); fillRR(-55, -45, 110, 90, 10, rgba('#7be36b', 0.85)); drawLines([rectP(-55, -45, 110, 90), [[0, -45], [0, -10]]], 1, col, 4.5); ctx.restore(); }
+    const k = eInOutCubic(prog(lt, 0.3, 1.1)), rot = lt * 0.6;
+    ctx.save(); ctx.rotate(rot);
+    for (let i = 0; i < 3; i++) {
+      const a0 = i * TAU / 3 + 0.25, a1 = a0 + (TAU / 3 - 0.5) * k;
+      drawLines([arcP(0, 0, 150, a0, a1, 30)], 1, col, 9);
+      if (k > 0.95) {
+        const ax = Math.cos(a1) * 150, ay = Math.sin(a1) * 150, dir = a1 + Math.PI / 2;
+        ctx.save(); ctx.translate(ax, ay); ctx.rotate(dir); ctx.fillStyle = C.white; ctx.shadowColor = col; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(-10, -16); ctx.lineTo(-10, 16); ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+    }
+    ctx.restore();
+  },
+};
+
+/* ---------- 6. 진행 점(레퍼런스의 아래쪽 타임라인) ---------- */
+function progressBar(t, a = 1) {
+  if (a <= 0) return;
+  const y = H * 0.94, x0 = W * 0.1, x1 = W * 0.9, n = CHAPTERS.length;
+  const pos = clamp((t - T0) / (CHAPTERS.length * CH));
+  const xAt = i => lerp(x0, x1, i / (n - 1));
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.strokeStyle = 'rgba(160,170,190,0.28)'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+  // 현재 장 안에서 다음 점을 향해 흰 선이 자란다
+  const ci = Math.floor((t - T0) / CH), lk = eOutCubic(prog((t - T0) % CH, 0.2, 1.6));
+  const head = ci >= n - 1 ? x1 : lerp(xAt(ci), xAt(Math.min(ci + 1, n - 1)), ci < 0 ? 0 : lk);
+  if (ci >= 0) { ctx.strokeStyle = C.white; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(head, y); ctx.stroke(); }
+  CHAPTERS.forEach((c, i) => {
+    const on = t >= T0 + i * CH;
+    ctx.beginPath(); ctx.arc(xAt(i), y, on ? 7 : 6, 0, TAU);
+    if (on) { ctx.fillStyle = c.color; ctx.shadowColor = c.color; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0; }
+    else { ctx.fillStyle = C.bg; ctx.fill(); ctx.strokeStyle = 'rgba(220,226,240,0.7)'; ctx.lineWidth = 2; ctx.stroke(); }
+  });
+  ctx.restore();
+}
+
+/* ---------- 7. 장면 ---------- */
+function introScene(lt) {
+  backdrop(lt, CHAPTERS[0].color, 0.9);
+  const out = prog(lt, CH - 0.3, CH);
+  ctx.save(); ctx.globalAlpha = 1 - out;
+  rise(prog(lt, 0.15, 0.55), 470, 26, () => text(COPY.eyebrow, W / 2, 470, { fam: 'Mont', weight: 600, size: 24, ls: 7, color: '#6fa2ff' }));
+  rise(prog(lt, 0.3, 0.75), 570, 88, () => text(COPY.intro, W / 2, 570, { size: 88, weight: 900, ls: -2 }));
+  const k = eInOutCubic(prog(lt, 0.7, 1.3)), uw = 420;
+  const g = ctx.createLinearGradient(W / 2 - uw / 2, 0, W / 2 + uw / 2, 0);
+  g.addColorStop(0, C.logoBlue); g.addColorStop(0.35, '#4d8dff'); g.addColorStop(0.65, C.logoRed); g.addColorStop(1, C.accent);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(W / 2 - uw / 2, 612, uw * k, 7, 3.5); ctx.fill();
+  ctx.restore();
+}
+function chapterScene(i, lt, t) {
+  const c = CHAPTERS[i];
+  backdrop(t, c.color, 1);
+  const out = prog(lt, CH - 0.28, CH);
+  ctx.save(); ctx.globalAlpha = 1 - out;
+  // 장 이름(작은 머리말)
+  text(c.act, W / 2, 86, { fam: 'Mont', weight: 600, size: 18, ls: 8, color: rgba(c.color, 0.85), alpha: clamp(prog(lt, 0.05, 0.4) * 2) });
+  // 네온 연도/단어
+  const ky = prog(lt, 0.0, 0.45);
+  ctx.save();
+  if (ky < 1) ctx.filter = `blur(${((1 - eOutCubic(ky)) * 10).toFixed(1)}px)`;
+  const flick = lt < 0.5 ? (hash(Math.floor(lt * 30)) > 0.35 ? 1 : 0.55) : 1;
+  neonText(c.top, W / 2, 262, c.top.length > 4 ? 150 : 170, c.color, clamp(ky * 1.5) * flick);
+  ctx.restore();
+  // 아이콘
+  ctx.save(); ctx.translate(W / 2, 540);
+  ICONS[c.icon](lt, c.color);
+  ctx.restore();
+  // 제목 + 설명
+  rise(prog(lt, 0.35, 0.75), 852, 64, () => text(c.title, W / 2, 852, { size: 64, weight: 900, ls: -1.5 }));
+  rise(prog(lt, 0.55, 0.95), 912, 28, () => text(c.sub, W / 2, 912, { size: 28, weight: 500, color: C.grey }));
+  ctx.restore();
+}
+function outroScene(lt, t) {
+  const col = '#9a6bff';
+  backdrop(t, col, 1.1);
+  const out = prog(lt, CH - 0.3, CH);
+  ctx.save(); ctx.globalAlpha = 1 - out;
+  const kc = eOutCubic(prog(lt, 0.0, 0.8)), r = lerp(250, 345, kc);
+  ctx.save(); ctx.translate(W / 2, H / 2 - 20); ctx.rotate(lt * 0.25);
+  ctx.setLineDash([16, 14]); ctx.strokeStyle = `rgba(210,215,235,${0.55 * kc})`; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); ctx.restore();
+  rise(prog(lt, 0.15, 0.5), 400, 20, () => text(COPY.outEyebrow, W / 2, 400, { fam: 'Mont', weight: 600, size: 20, ls: 8, color: C.accent }));
+  rise(prog(lt, 0.25, 0.65), 505, 70, () => text(COPY.out[0], W / 2, 505, { size: 70, weight: 900, ls: -1.5 }));
+  rise(prog(lt, 0.5, 0.9), 600, 70, () => text(COPY.out[1], W / 2, 600, { size: 70, weight: 900, ls: -1.5, color: C.accent }));
+  ctx.restore();
+}
+// 유안산업 로고(브로슈어 표지를 보고 벡터로 다시 그림): 파란 ㄴ자 + 흰 줄무늬 빨간 타원
+function logo(cx, cy, s, a = 1) {
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(cx - s / 2, cy - s * 0.3);
+  ctx.fillStyle = C.logoBlue;
+  ctx.fillRect(0, s * 0.02, s * 0.34, s * 0.58); ctx.fillRect(0, s * 0.42, s, s * 0.18);
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(s * 0.68, s * 0.2, s * 0.3, s * 0.2, 0, 0, TAU); ctx.clip();
+  const g = ctx.createLinearGradient(0, 0, 0, s * 0.4);
+  g.addColorStop(0, C.logoRed); g.addColorStop(1, C.logoRed2);
+  ctx.fillStyle = g; ctx.fillRect(s * 0.36, 0, s * 0.64, s * 0.42);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(s * 0.36, s * 0.17, s * 0.64, s * 0.026); ctx.fillRect(s * 0.36, s * 0.235, s * 0.64, s * 0.026);
+  ctx.restore();
+  ctx.restore();
+}
+function endScene(lt, t) {
+  backdrop(t, '#4d8dff', 0.8);
+  const kc = eOutBack(prog(lt, 0.1, 0.55));
+  if (kc > 0) {
+    ctx.save(); ctx.translate(W / 2, 300); ctx.scale(kc, kc);
+    ctx.shadowColor = 'rgba(80,140,255,0.6)'; ctx.shadowBlur = 40;
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(-120, -95, 240, 190, 28); ctx.fill();
+    ctx.shadowBlur = 0;
+    logo(0, 0, 170);
+    ctx.restore();
+  }
+  rise(prog(lt, 0.35, 0.75), 505, 74, () => text(COPY.nameKo, W / 2, 505, { size: 74, weight: 900, ls: -1 }));
+  rise(prog(lt, 0.5, 0.9), 562, 30, () => text(`${COPY.nameHan}  ·  YOOAN INDUSTRY`, W / 2, 562, { fam: 'NotoSerif', size: 30, weight: 700, color: C.grey, ls: 2 }));
+  const kp = eOutBack(prog(lt, 0.75, 1.1));
+  if (kp > 0) {
+    const o = { size: 26, weight: 700 }, pw = measure(COPY.cert, o) + 56;
+    ctx.save(); ctx.globalAlpha = clamp(kp * 2); ctx.translate(W / 2, 630); ctx.scale(kp, kp);
+    ctx.strokeStyle = 'rgba(253,209,101,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-pw / 2, -28, pw, 56, 28); ctx.stroke();
+    text(COPY.cert, 0, 9, { ...o, color: C.accent });
+    ctx.restore();
+  }
+  rise(prog(lt, 0.95, 1.3), 724, 28, () => text(COPY.products, W / 2, 724, { size: 28, weight: 700, color: '#d8deeb' }));
+  const ku = prog(lt, 1.2, 1.8);
+  if (ku > 0) {
+    const n = Math.floor(COPY.url.length * eOutCubic(ku));
+    text(COPY.url.slice(0, n) + (n < COPY.url.length ? '_' : ''), W / 2, 830, { fam: 'Mont', weight: 800, size: 54, color: C.white, shadow: 'rgba(80,140,255,0.8)', shadowBlur: 20 });
+  }
+  rise(prog(lt, 1.5, 1.9), 890, 26, () => text(COPY.addr, W / 2, 890, { size: 26, weight: 500, color: C.grey }));
+}
+
+/* ---------- 8. 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  let barA = 0;
+  if (t < T0) introScene(t);
+  else if (t < T_OUT) { const i = Math.floor((t - T0) / CH); chapterScene(i, t - T0 - i * CH, t); barA = 1; }
+  else if (t < T_END) { outroScene(t - T_OUT, t); barA = 1 - prog(t, T_OUT, T_OUT + 0.4); }
+  else endScene(t - T_END, t);
+  progressBar(t, barA);
+  // 장이 바뀔 때 새 장의 색을 띤 흰 섬광(레퍼런스의 밝은 전환)
+  const bounds = [T0, ...CHAPTERS.map((_, i) => T0 + (i + 1) * CH)];
+  bounds.forEach((b, i) => {
+    const d = t - b;
+    if (d < -0.05 || d > 0.3) return;
+    const a = d < 0 ? (d + 0.05) / 0.05 * 0.5 : 0.5 * Math.exp(-d * 12);
+    const c = i < CHAPTERS.length ? CHAPTERS[i].color : '#9a6bff';
+    ctx.fillStyle = `rgba(235,238,245,${a})`; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = rgba(c, a * 0.35); ctx.fillRect(0, 0, W, H);
+  });
+  const fi = 1 - prog(t, 0, 0.4);
+  if (fi > 0) { ctx.fillStyle = `rgba(0,0,0,${fi})`; ctx.fillRect(0, 0, W, H); }
+}
+
+/* ---------- 9. 재생 / 렌더 훅(render.mjs가 쓰는 약속) ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+window.DURATION = DUR;
+window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+
+async function boot() {
+  await Promise.all([
+    document.fonts.load('900 40px NotoKR', '가'), document.fonts.load('700 40px NotoKR', '가'), document.fonts.load('500 40px NotoKR', '가'),
+    document.fonts.load('700 40px NotoSerif', '柳安'), document.fonts.load('600 40px Mont', 'A'), document.fonts.load('800 40px Mont', '0'),
+  ]);
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+  const snd = document.getElementById('snd'), seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  seek.max = DUR;
+  let playing = false, tAt = Number(params.get('t') || 0), t0 = performance.now();
+  render(tAt);
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? '일시정지' : '재생'; t0 = performance.now(); if (playing) { snd.currentTime = tAt; snd.play().catch(() => {}); } else snd.pause(); };
+  seek.oninput = () => { tAt = Number(seek.value); snd.currentTime = tAt; render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  (function loop(now) {
+    if (playing) {
+      tAt = snd.duration && !snd.paused ? snd.currentTime : tAt + (now - t0) / 1000;
+      if (tAt >= DUR) { tAt = 0; snd.currentTime = 0; }
+      render(tAt); seek.value = tAt; lab.textContent = tAt.toFixed(2) + 's';
+    }
+    t0 = now;
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+boot();
+</script>
+</body>
+</html>
