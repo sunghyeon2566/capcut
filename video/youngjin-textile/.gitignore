@@ -1,0 +1,5 @@
+out/*
+fonts/*.ttf
+__pycache__/
+# 연락처(엔딩)
+local.js
