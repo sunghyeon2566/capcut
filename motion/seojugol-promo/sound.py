@@ -8,9 +8,9 @@ import numpy as np
 
 from sound_kit import (SR, Mix, band, bell, click, impact, noise, pad, pop, riser, thud, tick, tt, whoosh, hz)
 
-DUR = 48.5
-T = {"hook": 0.0, "fire": 3.0, "hang": 5.5, "tilt": 8.5, "menu": 10.0, "sides": 12.5, "gather": 18.0,
-     "reserve": 23.0, "reviews": 27.0, "montage": 35.0, "logo": 40.5}
+DUR = 49.5
+T = {"hook": 0.0, "fire": 3.0, "hang": 5.5, "tilt": 8.5, "menu": 11.0, "sides": 13.5, "gather": 19.0,
+     "reserve": 24.0, "reviews": 28.0, "montage": 36.0, "logo": 41.5}
 rng = np.random.default_rng(21)
 
 
@@ -50,7 +50,7 @@ m.place(whoosh(0.7, 300, 5000), 0.95, 0.4, pan=0.4)
 m.place(riser(0.6), 2.4, 0.4, rev=0.2)
 m.place(impact(), T["fire"], 0.5, rev=0.3)
 # ② 장작불
-m.place(crackle(2.6), T["fire"], 0.55, rev=0.15)
+m.place(crackle(2.6), T["fire"], 0.5, rev=0.15)
 m.place(bell([hz("E", 5), hz("B", 5)], d=1.6), T["fire"] + 1.9, 0.35, rev=0.35)
 # ③ 360°
 m.place(whoosh(0.5), T["hang"] - 0.3, 0.35, pan=-0.3)
@@ -63,6 +63,9 @@ for at, pan in ((T["tilt"], 0.3), (T["menu"], -0.3), (T["sides"], 0.4)):
     m.place(whoosh(0.45, 500, 7000), at - 0.3, 0.38, pan=pan)
     m.place(thud(), at, 0.35)
 m.place(pop(950), T["menu"] + 1.05, 0.22, rev=0.2)
+m.place(pop(1050), T["tilt"] + 1.15, 0.26, pan=0.3, rev=0.2)
+m.place(pop(1150), T["menu"] + 1.55, 0.24, pan=-0.3, rev=0.2)
+m.place(pop(800), T["sides"] + 4.25, 0.2, rev=0.2)
 m.place(whoosh(0.6, 300, 4000), T["sides"] + 2.6, 0.3)
 m.place(pop(900), T["sides"] + 3.35, 0.28, pan=0.3, rev=0.2)
 m.place(pop(1200), T["sides"] + 3.85, 0.24, pan=0.35, rev=0.2)
