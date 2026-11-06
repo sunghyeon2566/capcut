@@ -252,19 +252,22 @@ function resolveChannels_(participants) {
   const sheet = getOrCreateSheet_(SHEET.PARTICIPANTS);
   participants.forEach((p) => {
     if (p.channelId) return;
-    let found;
+    let found = null;
+    let failure = '';
     try {
       found = resolveChannel_(p.link);
     } catch (e) {
-      found = null;
+      failure = /YouTube is not defined/.test(e.message)
+        ? 'YouTube 서비스가 꺼져 있음 - Apps Script > 서비스 + > YouTube Data API v3 추가'
+        : '확인 실패: ' + e.message;
     }
     if (found) {
       p.channelId = found.id;
       p.status = found.viaSearch ? '검색으로 찾음 - 맞는 채널인지 확인' : '확인됨';
       sheet.getRange(p.row, 4, 1, 3).setValues([[found.id, safe_(found.title), p.status]]);
     } else {
-      p.status = '채널을 찾을 수 없음 - 링크 확인';
-      sheet.getRange(p.row, 6).setValue(p.status);
+      p.status = failure || `채널을 찾을 수 없음 - 링크 확인 (읽은 값: ${p.link})`;
+      sheet.getRange(p.row, 6).setValue(safe_(p.status));
     }
   });
 }
@@ -301,7 +304,10 @@ function resolveChannel_(link) {
 
 /** 수강생이 적어낸 링크(여러 형태)를 해석한다. */
 function parseChannelInput_(raw) {
-  let s = String(raw || '').trim();
+  let s = String(raw || '')
+    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, ' ')
+    .replace(/＠/g, '@')
+    .trim();
   if (!s) return null;
   try {
     s = decodeURIComponent(s);
@@ -627,18 +633,41 @@ function parsePrizes_(raw) {
 function readParticipants_() {
   const sheet = getOrCreateSheet_(SHEET.PARTICIPANTS);
   if (sheet.getLastRow() < 2) return [];
-  return sheet
-    .getRange(2, 1, sheet.getLastRow() - 1, PARTICIPANT_HEADERS.length)
-    .getValues()
+  const range = sheet.getRange(2, 1, sheet.getLastRow() - 1, Math.max(PARTICIPANT_HEADERS.length, sheet.getLastColumn()));
+  const values = range.getValues();
+  const richTexts = range.getRichTextValues();
+  return values
     .map((row, i) => ({
       row: i + 2,
       name: String(row[0]).trim(),
       channelName: String(row[1]).trim(),
-      link: String(row[2]).trim(),
+      link: findLink_(row, richTexts[i]),
       channelId: String(row[3]).trim(),
       status: String(row[5]).trim(),
     }))
     .filter((p) => p.link);
+}
+
+/**
+ * 채널 링크 칸(C)을 읽는다. 글자에 하이퍼링크가 걸려 있으면 실제 주소를 쓰고,
+ * C칸이 비어 있으면 같은 줄의 다른 칸에서 유튜브 주소나 @핸들을 찾는다.
+ */
+function findLink_(row, richRow) {
+  const linkOf = (col) => {
+    const rich = richRow && richRow[col];
+    const url = rich && (rich.getLinkUrl() || (rich.getRuns().map((r) => r.getLinkUrl()).filter(Boolean)[0]));
+    return String(url || row[col] || '').trim();
+  };
+  const looksLikeChannel = (text) => /youtu|(^|\s)@\S|\bUC[\w-]{22}\b/i.test(text);
+
+  const main = linkOf(2);
+  if (main) return main;
+  for (let col = 0; col < row.length; col++) {
+    if (col === 3 || col === 4 || col === 5) continue; // 자동 칸은 건너뛴다
+    const text = linkOf(col);
+    if (looksLikeChannel(text)) return text;
+  }
+  return '';
 }
 
 // ───────────────────────── 도우미 ─────────────────────────
