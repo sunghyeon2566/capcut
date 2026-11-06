@@ -15,6 +15,7 @@ const SHEET = {
   VIDEOS: '영상목록',
 };
 const TZ = 'Asia/Seoul';
+const NO_PUBLIC_VIDEOS = 'NO_PUBLIC_VIDEOS';
 const BOARD_HEADER_ROW = 4;
 const BOARD_FIXED_COLS = ['순위', '이름', '채널명', '상태', '업로드 일수', '누락 일수', '영상 수', '총 조회수', '상금', '구독자'];
 const PARTICIPANT_HEADERS = ['이름', '채널명', '채널 링크', '채널ID (자동)', '확인된 채널명 (자동)', '상태 (자동)'];
@@ -232,7 +233,10 @@ function refreshAll() {
       try {
         return { participant: p, videos: fetchVideos_(p.channelId, period), error: '' };
       } catch (e) {
-        return { participant: p, videos: [], error: '영상 조회 실패: ' + e.message };
+        const error = e.message === NO_PUBLIC_VIDEOS
+          ? '공개 영상이 없는 채널 - 영상 올리는 채널 링크가 맞는지 확인'
+          : '영상 조회 실패: ' + e.message;
+        return { participant: p, videos: [], error: error };
       }
     });
 
@@ -349,7 +353,8 @@ function fetchVideos_(channelId, period) {
     try {
       res = YouTube.PlaylistItems.list('contentDetails', { playlistId: uploadsId, maxResults: 50, pageToken: pageToken });
     } catch (e) {
-      if (/not ?found/i.test(e.message)) return []; // 영상이 하나도 없는 채널
+      // 공개 영상이 하나도 없는 채널은 업로드 목록 자체가 없다
+      if (/not ?found|cannot be found|playlistNotFound|찾을 수 없/i.test(e.message)) throw new Error(NO_PUBLIC_VIDEOS);
       throw e;
     }
     let anyRecent = false;
