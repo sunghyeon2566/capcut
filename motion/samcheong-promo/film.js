@@ -254,6 +254,7 @@ const PHOTOS = [
   ['jeon', 'assets/jeon.jpg', 0.5, 0.5],      // 노릇노릇 바삭하게 부친 감자전
   ['jjuk', 'assets/jjuk.jpg', 0.5, 0.5],      // 매콤한 쭈꾸미 볶음, 양파 · 대파 · 참깨
   ['kimchi', 'assets/kimchi.jpg', 0.4, 0.6],  // 테이블의 고추양념 · 배추김치 · 열무김치 (pot 사진에서 잘라냄)
+  ['store', 'assets/store.jpg', 0.42, 0.42],  // 가게 외관: 붉은 벽돌 · 남색 차양 · '삼청동수제비' 간판 · 101-1
 ];
 function loadImage(src) { return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
 async function loadPhotos() {
@@ -642,7 +643,7 @@ function sMontage(lt, t, d) {
   }
   ctx.restore();
 }
-// ⑩ 가게 소개글: 엄선된 재료, 편안한 분위기, 푸짐한 인심 (가게 한 상 사진)
+// ⑩ 가게 외관 사진 + 가게 소개글: 엄선된 재료, 편안한 분위기, 푸짐한 인심
 function sStore(lt, t, d) {
   background(t, o(W * 0.7, W * 0.5), o(H * 0.45, H * 0.62));
   const k = eOutExpo(prog(lt, 0.05, 0.7)), out = d - 0.35;
@@ -652,13 +653,20 @@ function sStore(lt, t, d) {
   ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 40;
   ctx.fillStyle = '#000'; ctx.beginPath(); ctx.roundRect(-cw / 2, -ch / 2, cw, ch, 36); ctx.fill(); ctx.shadowColor = 'transparent';
   ctx.beginPath(); ctx.roundRect(-cw / 2, -ch / 2, cw, ch, 36); ctx.clip();
-  cover(ctx, CACHE.spoon, -cw / 2, -ch / 2, cw, ch, 1.04 + 0.04 * lt, 0.5, 0.5);
-  smoke(ctx, -cw * 0.25, -ch / 2, cw * 0.5, ch * 0.5, t * 1.2, 4, 0.12);
+  cover(ctx, CACHE.store, -cw / 2, -ch / 2, cw, ch, 1.04 + 0.04 * lt);
   const sx = lerp(-cw, cw, prog(lt, 1.0, 2.2));
-  const gr = ctx.createLinearGradient(sx - 140, 0, sx + 140, 0); gr.addColorStop(0, 'rgba(255,240,215,0)'); gr.addColorStop(0.5, 'rgba(255,240,215,0.28)'); gr.addColorStop(1, 'rgba(255,240,215,0)');
-  ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+  const gr = ctx.createLinearGradient(sx - 140, 0, sx + 140, 0); gr.addColorStop(0, 'rgba(255,240,215,0)'); gr.addColorStop(0.5, 'rgba(255,240,215,0.3)'); gr.addColorStop(1, 'rgba(255,240,215,0)');
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.fillRect(-cw / 2, -ch / 2, cw, ch * 0.55); ctx.restore();
+  // 사진 설명 (받은 외관 사진에 보이는 것)
+  const lk = prog(lt, 1.3, 1.8);
+  if (lk > 0) {
+    const lab = '붉은 벽돌 · 남색 차양 · 101-1', lw = measure(lab, { weight: 700, size: 22 }) + 44;
+    ctx.globalAlpha = eOutCubic(lk);
+    ctx.fillStyle = 'rgba(12,10,8,0.72)'; ctx.beginPath(); ctx.roundRect(-cw / 2 + 28, ch / 2 - 80 + (1 - eOutCubic(lk)) * 16, lw, 50, 25); ctx.fill();
+    text(lab, -cw / 2 + 50, ch / 2 - 47 + (1 - eOutCubic(lk)) * 16, { weight: 700, size: 22, color: '#fff' });
+  }
   ctx.restore();
-  eyebrow('OUR STORY', TXT.x, o(388, TXT.eb), lt, 0.3, out);
+  eyebrow('FIND US', TXT.x, o(388, TXT.eb), lt, 0.3, out);
   blurHead([[['엄선된 재료,', C.fg]], [['편안한 분위기,', C.fg]], [['푸짐한 인심.', C.acc]]], TXT.x - 2, o(480, TXT.hd), lt, 0.4, { size: o(76, 78), out });
   subline('— 삼청동수제비 가게 소개글에서', TXT.x + 2, o(480 + 2 * 76 * 1.1 + 70, subY(3, 78)), lt, 1.2, out);
 }
