@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>봉고뒷고기 — 리뷰 맛집</title>
+<style>
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-Medium.otf); font-weight: 500; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-SemiBold.otf); font-weight: 600; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-Bold.otf); font-weight: 700; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-ExtraBold.otf); font-weight: 800; }
+  @font-face { font-family: 'Mono'; src: url(fonts/JetBrainsMono-Regular.ttf); font-weight: 400; }
+  html, body { margin: 0; height: 100%; background: #000; color: #aaa; font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { display: block; max-width: 100vw; max-height: calc(100vh - 56px); background: #000; }
+  .bar { display: flex; gap: 12px; align-items: center; width: min(100vw, 960px); padding: 0 12px; box-sizing: border-box; }
+  .bar button { background: #111; color: #eee; border: 1px solid #555; padding: 6px 12px; cursor: pointer; }
+  .bar input { flex: 1; }
+  body.render { display: block; }
+  body.render #c { max-width: none; max-height: none; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<audio id="snd" src="out/sound.wav" preload="auto"></audio>
+<script>
+/* ============================================================
+   봉고뒷고기 홍보 모션 — 레퍼런스(앱 런칭 필름)의 문법:
+   어두운 조명 배경 + 휴대폰 화면 + 튀어나오는 카드 + 블러로 맺히는 굵은 제목(끝 단어 강조색)
+   + 작은 모노 머리말. 리뷰를 중심에: 리뷰 키워드, 리뷰 카드, 리뷰 타자.
+   음식·간판·지도는 받은 실사 이미지(assets/). 모든 프레임은 시간 t 만으로 결정된다.
+   ============================================================ */
+
+/* ---------- 1. 설정 ---------- */
+const W = 1920, H = 1080, FPS = 30, DUR = 50.0;
+const BPM = 120, BEAT = 60 / BPM;
+const T = {
+  hook:    [0, 3.0],     // 리뷰가 먼저 알아본 집 → 휴대폰 (숯불 사진)
+  scan:    [3.0, 5.5],   // 사진 속으로 — 리뷰 키워드 찾기
+  three:   [5.5, 8.5],   // 고기는 딱 세 가지 (카운터 + 카드)
+  tilt:    [8.5, 11.0],  // 뒷고기는 쫀득, 특목살은 부드럽게 (리뷰 카드)
+  ssam:    [11.0, 14.0], // 고기 질이 좋아요 (쌈 사진 + 키워드 배지)
+  menu:    [14.0, 19.5], // 메뉴 목록 → 기본 상차림 + 반찬 / 마무리는 된장국수
+  reviews: [19.5, 27.5], // (보라) 리뷰 타자 + 리뷰 카드 두 장
+  montage: [27.5, 33.0], // 화면 다섯 개
+  store:   [33.0, 37.5], // (밤) 불 켜진 간판
+  map:     [37.5, 44.5], // (밤) 지도 + 핀 + 주소
+  end:     [44.5, DUR],  // 봉고뒷고기 + 주소 + 전화
+};
+
+const C = {
+  bg: '#0b0706',
+  ember: '#4b1d10',
+  night: '#13254a',
+  plum: '#2b1a4a',
+  acc: '#FF9A4D',     // 숯불 주황
+  acc2: '#FF5A36',
+  fg: '#F7F3EE',
+  muted: 'rgba(247,243,238,0.58)',
+  ui: '#ffffff', uiInk: '#16120f', uiMuted: '#8b847d', uiChip: '#f4eee7', uiBtn: '#E8582E',
+};
+
+// 화면 문구 — 사용자가 준 사진·리뷰·리뷰 요약·지도·매장 정보에서만
+const COPY = {
+  brand: '봉고뒷고기',
+  tag: 'DAEGU · DANSAN-GIL 7-15',
+  addr: '대구 동구 단산길 7-15',
+  near: '단산저수지 바로 앞 · 이시아폴리스 건너편',
+  tel: '053-984-1235',
+  r1: '이시아폴리스 맛집 뒷고기 쫄깃 꼬숩 맛있네요 미나리도 판매중이라 같이 먹었어요 특목살은 부드럽고 뒷고기는 쫀득하고 둘다매력있어요 친절한 사장님들 덕분에 잘먹고갑니다',
+  r1a: '“뒷고기 쫄깃 꼬숩,', r1b: '맛있네요”',
+  r2: '고기 다 드시고 꼭 된장국수로 마무리 해주세요. 사진은 못찍었지만 진짜 맛있었어요.',
+  r3: '고기가 신선해서 잡내가없고 그래서인지 봉무동 구석진데인데도 손님이 많네요',
+};
+
+/* ---------- 2. 수학 ---------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const sstep = (a, b, v) => { const k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eOutExpo = k => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const eInCubic = k => k * k * k;
+const eInOutCubic = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const eInOutQuint = k => (k < 0.5 ? 16 * k ** 5 : 1 - Math.pow(-2 * k + 2, 5) / 2);
+const eOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+const inT = (t, k) => t >= T[k][0] && t < T[k][1];
+
+const cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+
+/* ---------- 3. 글자 ---------- */
+function setFont(g, o) {
+  g.font = `${o.weight ?? 800} ${o.size ?? 60}px ${o.fam ?? 'Pre'}`;
+  g.textAlign = o.align ?? 'left';
+  g.textBaseline = 'alphabetic';
+  g.letterSpacing = (o.ls ?? 0) + 'px';
+}
+function text(s, x, y, o = {}, g = ctx) {
+  g.save(); setFont(g, o);
+  g.globalAlpha *= o.alpha ?? 1;
+  if (o.shadow) { g.shadowColor = o.shadow; g.shadowBlur = o.shadowBlur ?? 20; }
+  g.fillStyle = o.color ?? C.fg;
+  g.fillText(s, x, y);
+  g.restore();
+}
+function measure(s, o, g = ctx) { g.save(); setFont(g, o); const w = g.measureText(s).width; g.restore(); return w; }
+const HEAD = { weight: 800, size: 96, ls: -2.5 };   // 큰 제목 (레퍼런스의 굵은 그로테스크)
+
+/* 블러에서 맺히는 제목. lines: [[[글자, 색], ...], ...]  (어절 단위로 차례로)
+   k0: 등장 시작(장면 시간), out: 사라지기 시작 시각(없으면 안 사라짐) */
+function blurHead(lines, x, y, lt, k0, o = {}) {
+  const st = { ...HEAD, ...o };
+  const lh = st.size * (o.lh ?? 1.1);
+  const outK = o.out != null ? sstep(o.out, o.out + 0.35, lt) : 0;
+  let idx = 0;
+  lines.forEach((segs, li) => {
+    const words = [];
+    segs.forEach(([s, col]) => s.split(/(?<= )/).forEach(w => w && words.push([w, col])));
+    const total = words.reduce((a, [w]) => a + measure(w, st), 0);
+    let cx = st.align === 'center' ? x - total / 2 : st.align === 'right' ? x - total : x;
+    words.forEach(([w, col]) => {
+      const k = eOutCubic(prog(lt, k0 + idx * 0.07, k0 + idx * 0.07 + 0.55));
+      idx++;
+      const ww = measure(w, st);
+      const a = k * (1 - outK);
+      if (a > 0.01) {
+        ctx.save();
+        const b = (1 - k) * 18 + outK * 14;
+        if (b > 0.4) ctx.filter = `blur(${b.toFixed(1)}px)`;
+        ctx.globalAlpha = a;
+        text(w, cx + (1 - k) * 18, y + li * lh, { ...st, align: 'left', color: col });
+        ctx.restore();
+      }
+      cx += ww;
+    });
+  });
+}
+// ● MONO LABEL
+function eyebrow(label, x, y, lt, k0, out, color = C.acc) {
+  const k = prog(lt, k0, k0 + 0.4) * (out != null ? 1 - prog(lt, out, out + 0.3) : 1);
+  if (k <= 0) return;
+  ctx.save(); ctx.globalAlpha = k;
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x + 5, y - 6, 4.5, 0, TAU); ctx.fill();
+  const shown = label.slice(0, Math.ceil(label.length * clamp(prog(lt, k0, k0 + 0.5) * 1.2)));
+  text(shown, x + 20, y, { fam: 'Mono', weight: 400, size: 17, ls: 5, color: 'rgba(247,243,238,0.72)' });
+  ctx.restore();
+}
+function subline(s, x, y, lt, k0, out, o = {}) {
+  const k = prog(lt, k0, k0 + 0.5) * (out != null ? 1 - prog(lt, out, out + 0.3) : 1);
+  if (k <= 0) return;
+  text(s, x, y, { weight: 500, size: 27, ls: -0.3, color: C.muted, alpha: eOutCubic(k), ...o });
+}
+
+/* ---------- 4. 배경: 장면마다 빛 색이 바뀌는 비네트 ---------- */
+function glowColorAt(t) {
+  // 리뷰 장면은 보라, 간판·지도 장면은 밤하늘 남색
+  const toPlum = sstep(T.reviews[0] - 0.4, T.reviews[0] + 0.3, t) * (1 - sstep(T.montage[0] - 0.4, T.montage[0] + 0.3, t));
+  const toNight = sstep(T.store[0] - 0.4, T.store[0] + 0.3, t) * (1 - sstep(T.end[0] - 0.4, T.end[0] + 0.3, t));
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const E = p(C.ember), Pl = p(C.plum), N = p(C.night);
+  return E.map((v, i) => Math.round(v + (Pl[i] - v) * toPlum + (N[i] - v) * toNight));
+}
+function background(t, gx = W * 0.62, gy = H * 0.42, strength = 1) {
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const [r, g, b] = glowColorAt(t);
+  const R = 1250;
+  const gr = ctx.createRadialGradient(gx, gy, 0, gx, gy, R);
+  gr.addColorStop(0, `rgba(${r},${g},${b},${0.95 * strength})`);
+  gr.addColorStop(0.45, `rgba(${r},${g},${b},${0.42 * strength})`);
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  // 아래쪽 은은한 숯불 빛
+  const g2 = ctx.createLinearGradient(0, H, 0, H * 0.55);
+  g2.addColorStop(0, `rgba(${Math.min(255, r + 40)},${g},${Math.max(0, b - 10)},0.16)`); g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+}
+let NOISE;
+function buildNoise() {
+  NOISE = mk(256, 256);
+  const g = NOISE.getContext('2d'), img = g.createImageData(256, 256);
+  for (let i = 0; i < img.data.length; i += 4) { const v = hash(i * 0.41 + 2.7) * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+  g.putImageData(img, 0, 0);
+}
+function grain(t, alpha = 0.045) {
+  const f = Math.floor(t * FPS / 2);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.globalCompositeOperation = 'overlay';
+  const ox = -Math.floor(hash(f) * 256), oy = -Math.floor(hash(f + 0.5) * 256);
+  for (let y = oy; y < H; y += 256) for (let x = ox; x < W; x += 256) ctx.drawImage(NOISE, x, y);
+  ctx.restore();
+}
+function vignette(s = 0.5) {
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.42, W / 2, H / 2, W * 0.66);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${s})`);
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+/* ---------- 5. 그리기 도구 · 연기 ---------- */
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function lin(g, x0, y0, x1, y1, stops) { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+function rad(g, x, y, r0, r1, stops, x1 = x, y1 = y) { const gr = g.createRadialGradient(x, y, r0, x1, y1, r1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+function smoke(g, x, y, w, h, t, n = 5, alpha = 0.22) {
+  g.save(); g.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const ph = (t * 0.25 + hash(i * 3.7)) % 1;
+    const sx = x + w * (0.3 + hash(i) * 0.4), sy = y + h * (1 - ph) ;
+    g.strokeStyle = `rgba(235,225,215,${alpha * Math.sin(ph * Math.PI)})`; g.lineWidth = w * 0.06 * (0.5 + ph);
+    g.filter = `blur(${(w * 0.02).toFixed(1)}px)`;
+    g.beginPath(); g.moveTo(sx, sy);
+    for (let k = 1; k <= 6; k++) g.lineTo(sx + Math.sin(k * 0.9 + t * 1.3 + i) * w * 0.06 * k * 0.4, sy - k * h * 0.06);
+    g.stroke();
+  }
+  g.filter = 'none'; g.restore();
+}
+function embers(g, x, y, w, h, t, n = 26) {
+  g.save();
+  for (let i = 0; i < n; i++) {
+    const ph = (t * (0.35 + hash(i) * 0.3) + hash(i * 5.1)) % 1;
+    const px = x + w * (0.25 + hash(i * 2.2) * 0.5) + Math.sin(t * 2 + i) * w * 0.03, py = y + h * (1 - ph);
+    g.fillStyle = `rgba(255,${140 + Math.floor(hash(i) * 80)},60,${Math.sin(ph * Math.PI) * 0.9})`;
+    g.beginPath(); g.arc(px, py, (1.5 + hash(i * 3) * 2.5) * (w / 400), 0, TAU); g.fill();
+  }
+  g.restore();
+}
+function steam(g, x, y, w, h, t) { smoke(g, x, y, w, h, t * 1.4, 4, 0.18); }
+
+/* ============================================================
+   6. 휴대폰 화면 (390×844 점 좌표) — 밝은 앱 화면
+   ============================================================ */
+const SW = 390, SH = 844;
+function statusBar(g, dark = false) {
+  const c = dark ? '#fff' : '#111';
+  text('9:41', 38, 34, { weight: 700, size: 16, color: c }, g);
+  g.fillStyle = c;
+  [0, 1, 2, 3].forEach(i => g.fillRect(292 + i * 6, 30 - i * 3, 4, 4 + i * 3));
+  g.beginPath(); g.arc(328, 31, 7, Math.PI * 1.2, Math.PI * 1.8); g.lineWidth = 2.4; g.strokeStyle = c; g.stroke();
+  g.beginPath(); g.arc(328, 31, 3.6, Math.PI * 1.2, Math.PI * 1.8); g.stroke();
+  rr(g, 342, 22, 24, 12, 3.5); g.lineWidth = 1.5; g.stroke(); g.fillRect(345, 25, 16, 6);
+}
+function island(g) { g.fillStyle = '#000'; rr(g, SW / 2 - 62, 11, 124, 36, 18); g.fill(); }
+function btn(g, x, y, w, h, label, k = 1) {
+  g.save(); g.globalAlpha *= k;
+  rr(g, x, y, w, h, h / 2); g.fillStyle = C.uiBtn; g.fill();
+  text(label, x + w / 2, y + h / 2 + 6, { weight: 700, size: 16, align: 'center', color: '#fff' }, g);
+  g.restore();
+}
+function chip(g, x, y, label, on = false) {
+  const w = measure(label, { weight: 600, size: 13 }, g) + 24;
+  rr(g, x, y, w, 28, 14); g.fillStyle = on ? '#fde9d6' : C.uiChip; g.fill();
+  text(label, x + 12, y + 19, { weight: 600, size: 13, color: on ? '#b5541a' : '#6e5a48' }, g);
+  return w;
+}
+function lines(g, x, y, w, n, gap = 16, col = '#e9e4de') { g.fillStyle = col; for (let i = 0; i < n; i++) { rr(g, x, y + i * gap, w * (i === n - 1 ? 0.6 : 1 - hash(i + x) * 0.15), 7, 3.5); g.fill(); } }
+function cover(g, img, x, y, w, h, zoom = 1, px, py) {
+  px = px ?? img.fx ?? 0.5; py = py ?? img.fy ?? 0.5;
+  const s = Math.max(w / img.width, h / img.height) * zoom, dw = img.width * s, dh = img.height * s;
+  g.drawImage(img, x + (w - dw) * px, y + (h - dh) * py, dw, dh);
+}
+
+// 매장 실사 사진 — [이름, 파일, 초점 x, 초점 y]
+const CACHE = {};
+const PHOTOS = [
+  ['grill', 'assets/grill.jpg', 0.5, 0.5],    // 숯불 위 철망에서 노릇하게 익는 고기
+  ['table', 'assets/table.jpg', 0.5, 0.42],   // 생고기 한 판 + 후드 + 쌈채소·양파절임·쌈장
+  ['ssam', 'assets/ssam.jpg', 0.45, 0.6],     // 쌈 한 입 (고기 + 양파 + 쌈장)
+  ['store', 'assets/store.jpg', 0.5, 0.45],   // 밤에 불 켜진 간판
+  ['map', 'assets/map.png', 0.515, 0.43],     // 지도 (봉고뒷고기 표시)
+  ['sides', 'assets/sides.jpg', 0.5, 0.5],    // 상차림 사진 아래쪽: 양파절임·쌈채소·쌈장
+];
+function loadImage(src) { return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
+async function loadPhotos() {
+  await Promise.all(PHOTOS.map(async ([k, src, fx, fy]) => { const im = await loadImage(src); if (im) { im.fx = fx; im.fy = fy; CACHE[k] = im; } }));
+}
+const MAP_PIN = [584 / 1135, 302 / 701];   // 지도 이미지 속 가게 위치
+
+// A. 숯불 화면 (레퍼런스의 카메라 화면 자리)
+function scrHero(g, t) {
+  cover(g, CACHE.grill, 0, 0, SW, SH, 1.06 + 0.01 * t);
+  smoke(g, SW * 0.2, SH * 0.2, SW * 0.6, SH * 0.5, t, 4, 0.1);
+  g.fillStyle = lin(g, 0, 0, 0, 120, [[0, 'rgba(0,0,0,0.55)'], [1, 'rgba(0,0,0,0)']]); g.fillRect(0, 0, SW, 120);
+  statusBar(g, true);
+  rr(g, SW / 2 - 84, 60, 168, 32, 16); g.fillStyle = 'rgba(0,0,0,0.5)'; g.fill();
+  text('봉고뒷고기 · 숯불 뒷고기', SW / 2, 81, { weight: 700, size: 13, align: 'center', color: '#fff' }, g);
+  g.fillStyle = lin(g, 0, SH - 160, 0, SH, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0.6)']]); g.fillRect(0, SH - 160, SW, 160);
+  g.strokeStyle = '#fff'; g.lineWidth = 4; g.beginPath(); g.arc(SW / 2, SH - 78, 30, 0, TAU); g.stroke();
+  g.fillStyle = C.uiBtn; g.beginPath(); g.arc(SW / 2, SH - 78, 23, 0, TAU); g.fill();
+}
+// B. 사진 + 흰 시트
+function scrDish(g, t, img, title, sub, chips, btnLabel, o = {}) {
+  g.fillStyle = C.ui; g.fillRect(0, 0, SW, SH);
+  cover(g, img, 0, 0, SW, 430, 1.0 + (o.zoom || 0));
+  statusBar(g, true);
+  g.fillStyle = 'rgba(255,255,255,0.9)'; g.beginPath(); g.arc(34, 78, 16, 0, TAU); g.fill();
+  g.strokeStyle = '#111'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(38, 71); g.lineTo(31, 78); g.lineTo(38, 85); g.stroke();
+  rr(g, 0, 410, SW, SH - 410, 26); g.fillStyle = C.ui; g.fill();
+  g.fillStyle = '#ddd5cc'; rr(g, SW / 2 - 20, 420, 40, 5, 2.5); g.fill();
+  text(title, 26, 470, { weight: 800, size: 27, ls: -0.5, color: C.uiInk }, g);
+  text(sub, 26, 498, { weight: 500, size: 14, color: C.uiMuted }, g);
+  let cx = 26; chips.forEach((c, i) => { cx += chip(g, cx, 520, c, i === 0) + 8; });
+  lines(g, 26, 578, SW - 52, 3);
+  rr(g, 26, 640, SW - 52, 86, 18); g.fillStyle = '#faf6f1'; g.fill();
+  text(o.boxTitle || '리뷰 요약', 44, 670, { weight: 700, size: 14, color: C.uiInk }, g);
+  text(o.boxSub || '가성비 · 내부도 깔끔', 44, 697, { weight: 500, size: 13, color: C.uiMuted }, g);
+  btn(g, 26, SH - 92, SW - 52, 54, btnLabel);
+}
+// C. 메뉴 (설명은 리뷰에서)
+const MENU = [
+  ['뒷고기', '“쫄깃 꼬숩 맛있네요”', '#FF9A4D', 'grill'],
+  ['특목살', '“부드럽고”', '#E8582E', null],
+  ['소갈비살', '부드러운 식감으로 인기 (리뷰 요약)', '#c0392b', null],
+  ['미나리', '“판매중이라 같이 먹었어요”', '#3f8a3a', null],
+  ['된장국수', '“꼭 된장국수로 마무리”', '#a8742a', null],
+];
+function scrMenu(g, t) {
+  g.fillStyle = '#faf7f3'; g.fillRect(0, 0, SW, SH);
+  statusBar(g);
+  text('메뉴', 26, 102, { weight: 800, size: 30, color: C.uiInk }, g);
+  rr(g, SW - 112, 82, 86, 28, 14); g.fillStyle = '#fde9d6'; g.fill();
+  text('리뷰 추천', SW - 69, 101, { weight: 700, size: 13, align: 'center', color: '#b5541a' }, g);
+  let cx = 26; ['전체', '고기', '추가', '식사'].forEach((c, i) => { cx += chip(g, cx, 128, c, i === 0) + 8; });
+  MENU.forEach(([name, desc, col, img], i) => {
+    const y = 176 + i * 116;
+    rr(g, 20, y, SW - 40, 102, 20); g.fillStyle = '#fff'; g.fill();
+    g.save(); rr(g, 32, y + 13, 76, 76, 16); g.clip();
+    if (img && CACHE[img]) cover(g, CACHE[img], 32, y + 13, 76, 76, 1.4);
+    else { g.fillStyle = lin(g, 32, y + 13, 108, y + 89, [[0, col], [1, '#2a1a12']]); g.fillRect(32, y + 13, 76, 76); text(name[0], 70, y + 64, { weight: 800, size: 30, align: 'center', color: '#fff' }, g); }
+    g.restore();
+    text(name, 126, y + 45, { weight: 800, size: 19, color: C.uiInk }, g);
+    text(desc, 126, y + 72, { weight: 500, size: 13, color: C.uiMuted }, g);
+  });
+}
+// D. 리뷰 쓰기 + 키보드
+function scrReview(g, t, typed, kOn = 1) {
+  g.fillStyle = '#faf7f3'; g.fillRect(0, 0, SW, SH);
+  statusBar(g);
+  text('리뷰', 26, 100, { weight: 800, size: 30, color: C.uiInk }, g);
+  text('봉고뒷고기, 어떠셨나요?', 26, 126, { weight: 500, size: 14, color: C.uiMuted }, g);
+  let cx = 26;
+  [['🥩 고기 질이 좋아요', 0.0], ['친절해요', 0.3], ['가성비가 좋아요', 0.6]].forEach(([c, at]) => { cx += chip(g, cx, 146, c, kOn > at) + 8; });
+  rr(g, 20, 192, SW - 40, 184, 18); g.fillStyle = '#fff'; g.fill();
+  const words = typed.split(' '); let line = '', y = 226; const lns = [];
+  words.forEach(w => { const tr = line ? line + ' ' + w : w; if (measure(tr, { weight: 500, size: 15 }, g) > SW - 80 && line) { lns.push(line); line = w; } else line = tr; });
+  if (line) lns.push(line);
+  const shown = lns.slice(-6);
+  shown.forEach((l, i) => text(l, 40, y + i * 24, { weight: 500, size: 15, color: C.uiInk }, g));
+  if (Math.floor(t * 2.5) % 2 === 0) { const last = shown[shown.length - 1] || ''; g.fillStyle = C.uiBtn; g.fillRect(42 + measure(last, { weight: 500, size: 15 }, g), y + (Math.max(1, shown.length) - 1) * 24 - 15, 2, 19); }
+  rr(g, SW - 68, 392, 48, 32, 16); g.fillStyle = C.uiBtn; g.fill();
+  text('등록', SW - 44, 413, { weight: 700, size: 13, align: 'center', color: '#fff' }, g);
+  g.fillStyle = '#d6d2cd'; g.fillRect(0, SH - 300, SW, 300);
+  const rowsK = [['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'], ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'], ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ']];
+  const hit = Math.floor(t * 9) % 26;
+  rowsK.forEach((row, r) => row.forEach((ch, i) => {
+    const kw = 33, x = (SW - row.length * (kw + 4.5)) / 2 + i * (kw + 4.5), y2 = SH - 286 + r * 54;
+    rr(g, x, y2, kw, 44, 6); g.fillStyle = (r * 10 + i) === hit && typed.length < COPY.r1.length ? '#bdb7b0' : '#fff'; g.fill();
+    text(ch, x + kw / 2, y2 + 29, { weight: 500, size: 19, align: 'center', color: '#111' }, g);
+  }));
+  rr(g, 96, SH - 124, 198, 44, 6); g.fillStyle = '#fff'; g.fill();
+  rr(g, 20, SH - 124, 68, 44, 6); g.fillStyle = '#b9b3ac'; g.fill(); rr(g, SW - 88, SH - 124, 68, 44, 6); g.fill();
+  text('스페이스', SW / 2 - 1, SH - 96, { weight: 500, size: 14, align: 'center', color: '#555' }, g);
+}
+// E. 방문자 리뷰 목록 (몽타주용)
+function scrReviewList(g, t) {
+  g.fillStyle = '#faf7f3'; g.fillRect(0, 0, SW, SH);
+  statusBar(g);
+  text('방문자 리뷰', 26, 102, { weight: 800, size: 28, color: C.uiInk }, g);
+  [[COPY.r1, '저녁 방문 · 데이트'], [COPY.r3, '저녁 방문 · 바로 입장'], [COPY.r2, '저녁 방문 · 예약 후 이용']].forEach(([r, meta], i) => {
+    const y = 128 + i * 228;
+    rr(g, 20, y, SW - 40, 212, 20); g.fillStyle = '#fff'; g.fill();
+    g.fillStyle = ['#f3c9a8', '#c9d8f3', '#d8eccb'][i]; g.beginPath(); g.arc(50, y + 34, 16, 0, TAU); g.fill();
+    text(meta, 76, y + 40, { weight: 600, size: 13, color: C.uiMuted }, g);
+    const words = r.split(' '); let line = '', yy = y + 76, n = 0;
+    for (const w of words) { const tr = line ? line + ' ' + w : w; if (measure(tr, { weight: 500, size: 15 }, g) > SW - 84 && line) { text(line, 36, yy, { weight: 500, size: 15, color: C.uiInk }, g); yy += 24; line = w; if (++n >= 4) { line = ''; break; } } else line = tr; }
+    if (line) text(line, 36, yy, { weight: 500, size: 15, color: C.uiInk }, g);
+    if (i === 1) { rr(g, 36, y + 170, 150, 28, 14); g.fillStyle = '#fbeee3'; g.fill(); text('🥩 고기 질이 좋아요', 48, y + 189, { weight: 700, size: 12, color: '#b5541a' }, g); }
+  });
+}
+
+/* ============================================================
+   8. 장면
+   ============================================================ */
+// 따옴표 리뷰 카드 (흰 카드 안)
+function quoteCard(g, w, h, quote, meta, tag, size = 22) {
+  g.fillStyle = '#fde9d6'; g.beginPath(); g.arc(44, 42, 18, 0, TAU); g.fill();
+  text('“', 44, 58, { weight: 800, size: 34, align: 'center', color: '#E8582E' }, g);
+  text(meta, 74, 48, { weight: 600, size: 15, color: C.uiMuted }, g);
+  const words = quote.split(' '); let line = '', yy = 92 + size * 0.3;
+  words.forEach(wd => { const tr = line ? line + ' ' + wd : wd; if (measure(tr, { weight: 700, size }, g) > w - 64 && line) { text(line, 30, yy, { weight: 700, size, color: C.uiInk }, g); yy += size * 1.45; line = wd; } else line = tr; });
+  text(line, 30, yy, { weight: 700, size, color: C.uiInk }, g);
+  if (tag) { const tw = measure(tag, { weight: 700, size: 15 }, g) + 30; rr(g, 30, h - 52, tw, 32, 16); g.fillStyle = '#fbeee3'; g.fill(); text(tag, 45, h - 30, { weight: 700, size: 15, color: '#b5541a' }, g); }
+}
+
+// ① 리뷰가 먼저 알아본 집 → 휴대폰
+function sHook(lt, t) {
+  background(t, W * 0.6, H * 0.45, 0.9 + 0.1 * Math.sin(t * 2));
+  const enter = eInOutQuint(prog(lt, 1.15, 2.1));
+  const tx = lerp(W / 2, 150, enter);
+  blurHead([[['리뷰가 먼저 ', C.fg], ['알아본 집.', C.acc]]], tx, H / 2 + 34, lt, 0.25, { size: enter > 0 ? lerp(86, 74, enter) : 86, align: enter > 0.02 ? 'left' : 'center' });
+  if (lt > 1.0) {
+    const px = (lt2) => lerp(W + 420, W * 0.72, eOutExpo(prog(lt2, 1.1, 2.0)));
+    const zoom = eInCubic(prog(lt, 2.4, 3.0));
+    phone(lerp(px(lt), W / 2, zoom), lerp(H / 2 + 20, H / 2 + 60, zoom), scrHero, t, { s: lerp(0.98, 2.6, zoom), vx: vel(px, lt) * 1.2 });
+  }
+}
+// ② 숯불 사진 속으로 — 리뷰 키워드 찾기
+function sScan(lt, t, d) {
+  const z = 1.0 + 0.05 * lt, jx = W * 0.4, jw = W * 0.6;
+  cover(ctx, CACHE.grill, jx, 0, jw, H, z, 0.5, 0.55);
+  smoke(ctx, jx + jw * 0.2, H * 0.05, jw * 0.6, H * 0.6, t, 4, 0.12);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, jx, H);
+  const gl = ctx.createLinearGradient(jx, 0, jx + 300, 0); gl.addColorStop(0, 'rgba(11,7,6,1)'); gl.addColorStop(1, 'rgba(11,7,6,0)'); ctx.fillStyle = gl; ctx.fillRect(jx, 0, 300, H);
+  const out = 1 - sstep(d - 0.3, d, lt);
+  // 고리
+  const k = prog(lt, 0.2, 1.4), cx = W * 0.72, cy = H * 0.5, R = 74;
+  ctx.save(); ctx.globalAlpha = clamp(lt * 3) * out;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.arc(cx, cy, R + 30, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = C.acc; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + TAU * eOutCubic(k)); ctx.stroke();
+  text(`${Math.round(eOutCubic(k) * 100)}%`, cx, cy + 11, { weight: 700, size: 30, align: 'center', color: '#fff' });
+  text(k < 1 ? '리뷰 키워드 찾는 중...' : '리뷰 키워드', cx, cy + R + 48, { weight: 700, size: 23, align: 'center', color: '#fff', shadow: 'rgba(0,0,0,0.8)' });
+  ctx.restore();
+  // 리뷰에서 나온 말들이 고리 둘레로
+  [['쫄깃', -0.95, -0.55, 0.9], ['꼬숩', 0.95, -0.4, 1.1], ['부드럽고', -1.0, 0.55, 1.3], ['신선해서', 0.95, 0.6, 1.5]].forEach(([w, dx, dy, at]) => {
+    const kk = prog(lt, at, at + 0.35);
+    if (kk <= 0) return;
+    const x = cx + dx * 230, y = cy + dy * 230, s = 0.6 + 0.4 * eOutBack(kk);
+    const tw = measure(w, { weight: 800, size: 30 }) + 44;
+    ctx.save(); ctx.globalAlpha = clamp(kk * 2) * out; ctx.translate(x, y); ctx.scale(s, s);
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 24; ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.roundRect(-tw / 2, -30, tw, 60, 30); ctx.fill(); ctx.shadowColor = 'transparent';
+    text(w, 0, 11, { weight: 800, size: 30, align: 'center', color: '#E8582E' });
+    ctx.restore();
+  });
+  eyebrow('REVIEW SCAN', 120, 438, lt, 0.2, d - 0.35);
+  blurHead([[['리뷰가 말하는', C.fg]], [['그 맛.', C.acc]]], 118, 530, lt, 0.3, { size: 80, out: d - 0.35 });
+  subline('방문 리뷰에 적힌 말 그대로', 122, 682, lt, 0.9, d - 0.35);
+}
+// ③ 고기는 딱 세 가지
+function sThree(lt, t, d) {
+  background(t, W * 0.7, H * 0.45);
+  const inK = eOutExpo(prog(lt, 0, 0.55));
+  const px = lerp(W * 0.86, W * 0.72, inK);
+  phone(px, H / 2 + 10, (g, tt) => scrDish(g, tt, CACHE.table, '봉고뒷고기', '숯불 철망 위에 한 판', ['뒷고기', '특목살', '소갈비살'], '메뉴 보기'), t, { s: 0.95, alpha: clamp(lt * 4) });
+  const k = prog(lt, 0.2, 1.1), n = Math.min(3, Math.floor(k * 3.999));
+  ctx.save();
+  if (k < 0.95) ctx.filter = `blur(${((0.95 - k) * 10).toFixed(1)}px)`;
+  ctx.globalAlpha = clamp(lt * 4) * (1 - sstep(d - 0.3, d, lt));
+  text(String(n), 140, 470, { weight: 800, size: 190, ls: -6, color: C.fg });
+  text('가지', 140 + measure(String(n), { weight: 800, size: 190, ls: -6 }) + 18, 468, { weight: 800, size: 54, color: C.acc });
+  ctx.restore();
+  blurHead([[['고기는 딱 ', C.fg], ['세 가지.', C.acc]]], 142, 566, lt, 0.8, { size: 56, out: d - 0.35 });
+  subline('리뷰 요약 · 합리적인 가격의 세 가지 고기', 144, 618, lt, 1.2, d - 0.35);
+  const ck = prog(lt, 1.35, 1.95), cxp = lerp(px - 120, W * 0.4, eOutCubic(ck));
+  card(cxp - 230, 650, 460, 108, ck * (1 - sstep(d - 0.25, d, lt)), (g, w, h) => {
+    text('메뉴', 26, 36, { weight: 700, size: 15, color: C.uiMuted }, g);
+    let x = 26; ['뒷고기', '특목살', '소갈비살'].forEach((c, i) => { const cw = measure(c, { weight: 800, size: 19 }, g) + 30; rr(g, x, 52, cw, 38, 19); g.fillStyle = ['#fde9d6', '#fbe1d8', '#f6dcdc'][i]; g.fill(); text(c, x + 15, 78, { weight: 800, size: 19, color: ['#b5541a', '#b8401f', '#a3302a'][i] }, g); x += cw + 10; });
+  });
+}
+// ④ 뒷고기는 쫀득, 특목살은 부드럽게 (기울어진 화면 + 리뷰 카드)
+function sTilt(lt, t, d) {
+  background(t, W * 0.35, H * 0.5);
+  const tk = eOutCubic(prog(lt, 0, 0.5)), out = d - 0.35;
+  const scr = (g, tt) => scrDish(g, tt, CACHE.grill, '뒷고기 · 특목살', '숯불에 노릇하게', ['쫀득', '부드럽게', '숯불 향'], '메뉴 보기', { zoom: 0.05 * lt, boxTitle: '리뷰 한 줄', boxSub: '“둘다 매력있어요”' });
+  phone(lerp(W * 0.6, W * 0.34, tk), H / 2 + 20, scr, t, { s: 0.92, rot: lerp(0, -0.7, tk), tilt: lerp(0, -0.12, tk), vx: lt < 0.4 ? -30 * (1 - tk) : 0 });
+  blurHead([[['뒷고기는 쫀득,', C.fg]], [['특목살은 부드럽게.', C.acc]]], W * 0.53, 400, lt, 0.25, { size: 76, out });
+  const ck = prog(lt, 0.9, 1.4);
+  card(W * 0.53, 520, 760, 220, ck * (1 - sstep(out, d, lt)), (g, w, h) => quoteCard(g, w, h, '특목살은 부드럽고 뒷고기는 쫀득하고 둘다 매력있어요', '방문 리뷰 · 저녁 · 데이트', null, 36));
+}
+// ⑤ 고기 질이 좋아요 (쌈 사진)
+function sSsam(lt, t, d) {
+  background(t, W * 0.68, H * 0.45);
+  const k = eOutCubic(prog(lt, 0, 0.5)), out = d - 0.35;
+  const scr = (g, tt) => scrDish(g, tt, CACHE.ssam, '한 쌈 크게', '쌈채소 위에 고기 한 점, 양파, 쌈장', ['쌈채소', '양파', '쌈장'], '메뉴 보기', { zoom: 0.04 * lt, boxTitle: '리뷰 키워드', boxSub: '고기 질이 좋아요' });
+  phone(lerp(W * 0.38, W * 0.72, k), H / 2 + 14, scr, t, { s: 0.95, rot: lerp(-0.7, 0, k), tilt: lerp(-0.12, 0, k) });
+  eyebrow('REVIEW KEYWORD', 140, 380, lt, 0.2, out);
+  blurHead([[['고기 질이', C.fg]], [['좋아요.', C.acc]]], 140, 470, lt, 0.35, { size: 90, out });
+  subline('“고기가 신선해서 잡내가 없고” — 방문 리뷰', 144, 630, lt, 1.0, out);
+  const ck = prog(lt, 1.3, 1.8);
+  card(140, 672, 380, 90, ck * (1 - sstep(out, d, lt)), (g, w, h) => {
+    rr(g, 18, 18, w - 36, h - 36, (h - 36) / 2); g.fillStyle = '#fbeee3'; g.fill();
+    text('🥩  고기 질이 좋아요', w / 2, 56, { weight: 800, size: 22, align: 'center', color: '#b5541a' }, g);
+  }, { r: 45 });
+}
+// ⑥ 메뉴 → 기본 상차림 + 반찬 / 마무리는 된장국수
+function sMenu(lt, t, d) {
+  background(t, W * 0.35, H * 0.45);
+  const whipIn = (x) => lerp(-500, W * 0.3, eOutExpo(prog(x, 0, 0.55)));
+  const detail = sstep(2.6, 3.1, lt), zoomK = eInOutCubic(prog(lt, 2.7, 3.3));
+  const scr = (g, tt) => {
+    scrMenu(g, tt);
+    if (detail > 0) { g.save(); g.globalAlpha = detail; scrDish(g, tt, CACHE.table, '기본 상차림', '양파절임 · 콩나물무침 · 김치', ['쌈채소', '양파절임', '쌈장'], '함께 주문하기', { boxTitle: '추가', boxSub: '미나리 · 된장국수' }); g.restore(); }
+  };
+  phone(whipIn(lt) + zoomK * 40, H / 2 + 10 + zoomK * 40, scr, t, { s: 0.95 + zoomK * 0.1, vx: vel(whipIn, lt) });
+  eyebrow('MENU', W * 0.53, 400, lt, 0.35, 2.4);
+  blurHead([[['고기 다 먹고,', C.fg]], [['마무리는 된장국수.', C.acc]]], W * 0.53, 490, lt, 0.4, { size: 76, out: 2.4 });
+  subline('“꼭 된장국수로 마무리 해주세요” — 방문 리뷰', W * 0.53 + 3, 640, lt, 0.9, 2.4);
+  const ck = prog(lt, 3.2, 3.8);
+  card(W * 0.47, 210, 860, 316, ck * (1 - sstep(d - 0.3, d, lt)), (g, w, h) => {
+    cover(g, CACHE.sides, 0, 0, w, h, 1.0, 0.5, 0.5);
+    g.fillStyle = lin(g, 0, h * 0.55, 0, h, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0.6)']]); g.fillRect(0, 0, w, h);
+    text('양파절임 · 쌈채소 · 쌈장', 26, h - 24, { weight: 700, size: 20, color: '#fff' }, g);
+  }, { r: 24 });
+  const ck2 = prog(lt, 3.7, 4.2);
+  card(W * 0.5, 560, 600, 150, ck2 * (1 - sstep(d - 0.3, d, lt)), (g, w, h) => {
+    text('기본 반찬 (리뷰 요약)', 26, 40, { weight: 700, size: 16, color: C.uiMuted }, g);
+    [['양파절임', '#fde9d6', '#b5541a'], ['콩나물무침', '#f3f0d8', '#7a6a1a'], ['김치', '#fde3dc', '#c0392b']].forEach(([s, bg, fg], i) => {
+      const x = 26 + i * 184; rr(g, x, 62, 172, 62, 16); g.fillStyle = bg; g.fill();
+      text(s, x + 86, 102, { weight: 800, size: 21, align: 'center', color: fg }, g);
+    });
+  });
+  const ck3 = prog(lt, 4.2, 4.7);
+  if (ck3 > 0) { ctx.save(); ctx.globalAlpha = 1 - sstep(d - 0.3, d, lt);
+    blurHead([[['미나리도 ', C.fg], ['함께.', C.acc]]], W * 0.5, 800, lt, 4.2, { size: 60 });
+    subline('“미나리도 판매중이라 같이 먹었어요” — 방문 리뷰', W * 0.5 + 3, 858, lt, 4.5); ctx.restore(); }
+}
+// ⑦ (보라) 리뷰 — 타자 + 카드 두 장
+function sReviews(lt, t, d) {
+  background(t, W * 0.72, H * 0.45);
+  const k = eOutExpo(prog(lt, 0.05, 0.6));
+  const typed = COPY.r1.slice(0, Math.floor(clamp((lt - 0.6) * 26, 0, COPY.r1.length)));
+  const shrink = eInOutCubic(prog(lt, 4.0, 4.7));
+  phone(lerp(W * 0.95, W * 0.74, k), H / 2 + 14, (g, tt) => scrReview(g, tt, typed, prog(lt, 1.0, 3.5)), t, { s: 0.98 });
+  eyebrow('REVIEWS', 120, lerp(410, 168, shrink), lt, 0.3);
+  const sz = lerp(76, 34, shrink), x0 = 118, y0 = lerp(510, 236, shrink);
+  const l1 = COPY.r1a, l2 = COPY.r1b, n = Math.floor(clamp((lt - 0.6) * 9, 0, l1.length + l2.length));
+  const s1 = l1.slice(0, Math.min(n, l1.length)), s2 = n > l1.length ? l2.slice(0, n - l1.length) : '';
+  text(s1, x0, y0, { ...HEAD, size: sz });
+  text(s2, x0, y0 + sz * 1.12, { ...HEAD, size: sz, color: C.acc });
+  if (n < l1.length + l2.length && Math.floor(lt * 2.5) % 2 === 0) { ctx.fillStyle = C.acc; ctx.fillRect(x0 + measure(n > l1.length ? s2 : s1, { ...HEAD, size: sz }) + 8, y0 + (n > l1.length ? sz * 1.12 : 0) - sz * 0.8, 4, sz * 0.9); }
+  subline('방문 리뷰 · 저녁 방문 · 데이트', x0 + 2, y0 + sz * 1.12 + 60 * (1 - shrink) + 40, lt, 2.6);
+  card(W * 0.2, 330, 640, 250, prog(lt, 4.7, 5.3), (g, w, h) => quoteCard(g, w, h, COPY.r3, '방문 리뷰 · 저녁 · 바로 입장', '🥩 고기 질이 좋아요'), { rot: -0.02 });
+  card(W * 0.27, 560, 600, 190, prog(lt, 5.3, 5.9), (g, w, h) => quoteCard(g, w, h, '고기 다 드시고 꼭 된장국수로 마무리 해주세요. 진짜 맛있었어요.', '방문 리뷰 · 저녁 · 예약 후 이용'), { rot: 0.015 });
+  blurHead([[['리뷰가 ', C.fg], ['증명하는 맛집.', C.acc]]], 118, 860, lt, 6.1, { size: 66 });
+}
+// ⑧ 화면 다섯 개
+function sMontage(lt, t, d) {
+  background(t, W * 0.5, H * 0.62);
+  const screens = [
+    (g, tt) => scrReviewList(g, tt),
+    (g, tt) => scrMenu(g, tt),
+    (g, tt) => scrHero(g, tt),
+    (g, tt) => scrDish(g, tt, CACHE.ssam, '한 쌈 크게', '쌈채소 위에 고기 한 점, 양파, 쌈장', ['쌈채소', '양파', '쌈장'], '메뉴 보기', { boxTitle: '리뷰 키워드', boxSub: '고기 질이 좋아요' }),
+    (g, tt) => scrDish(g, tt, CACHE.table, '기본 상차림', '양파절임 · 콩나물무침 · 김치', ['쌈채소', '양파절임', '쌈장'], '함께 주문하기'),
+  ];
+  const out = eInCubic(prog(lt, d - 0.6, d));
+  screens.forEach((fn, i) => {
+    const off = i - 2, kk = eOutExpo(prog(lt, 0.1 + Math.abs(off) * 0.12, 0.8 + Math.abs(off) * 0.12));
+    const x = W / 2 + off * 330 * lerp(0.6, 1, kk), y = H * 0.6 + (1 - kk) * 500 + Math.abs(off) * 14 + out * 700;
+    phone(x, y, fn, t, { s: i === 2 ? 0.68 : 0.6, rot: -off * 0.32, alpha: clamp(kk * 2) });
+  });
+  const swap = 3.2;
+  ctx.save(); ctx.globalAlpha = 1 - out;
+  if (lt < swap + 0.2) blurHead([[['쫄깃. ', C.fg], ['꼬숩. ', C.fg], ['신선.', C.acc]]], W / 2, 190, lt, 0.4, { size: 72, align: 'center', out: swap - 0.3 });
+  if (lt > swap - 0.1) blurHead([[['리뷰 맛집 ', C.fg], ['봉고뒷고기.', C.acc]]], W / 2, 190, lt, swap, { size: 72, align: 'center' });
+  ctx.restore();
+}
+// ⑨ (밤) 불 켜진 간판
+function sStore(lt, t, d) {
+  background(t, W * 0.7, H * 0.4);
+  const k = eOutExpo(prog(lt, 0.05, 0.7)), out = d - 0.35;
+  const cw = 640, ch = 860, cx = lerp(W + 400, W * 0.7, k), cy = H / 2;
+  ctx.save();
+  ctx.translate(cx, cy); ctx.rotate(lerp(0.06, 0.012, k));
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 40;
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.roundRect(-cw / 2, -ch / 2, cw, ch, 36); ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.beginPath(); ctx.roundRect(-cw / 2, -ch / 2, cw, ch, 36); ctx.clip();
+  cover(ctx, CACHE.store, -cw / 2, -ch / 2, cw, ch, 1.08 + 0.04 * lt, 0.5, 0.42);
+  // 간판을 훑는 빛
+  const sx = lerp(-cw, cw, prog(lt, 1.0, 2.2));
+  const gr = ctx.createLinearGradient(sx - 120, 0, sx + 120, 0); gr.addColorStop(0, 'rgba(255,240,210,0)'); gr.addColorStop(0.5, 'rgba(255,240,210,0.35)'); gr.addColorStop(1, 'rgba(255,240,210,0)');
+  ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.fillRect(-cw / 2, -ch / 2, cw, ch * 0.45);
+  ctx.restore();
+  eyebrow('FIND US', 120, 418, lt, 0.3, out);
+  blurHead([[['불 켜진 간판,', C.fg]], [['봉고 뒷고기.', C.acc]]], 118, 510, lt, 0.4, { size: 86, out });
+  subline('대구 동구 봉무동, 밤에도 환하게', 122, 668, lt, 1.0, out);
+}
+// ⑩ (밤) 지도 + 핀 + 주소
+function sMap(lt, t, d) {
+  background(t, W * 0.68, H * 0.45);
+  const k = eOutExpo(prog(lt, 0.05, 0.7)), out = d - 0.3;
+  const mw = 1080, mh = 668, mx = lerp(W + 200, 760, k), my = (H - mh) / 2 + 10;
+  const ZM = 0.55, zoom = 1 + ZM * eInOutCubic(prog(lt, 0.8, 3.0));
+  const img = CACHE.map, [fx, fy] = MAP_PIN;
+  // 핀이 화면 안에서 차지할 자리: 확대될수록 카드 가운데로
+  const s0 = Math.max(mw / img.width, mh / img.height), s = s0 * zoom;
+  const dw = img.width * s, dh = img.height * s;
+  const zk = (zoom - 1) / ZM, pinTx = lerp(mw * fx, mw * 0.5, zk), pinTy = lerp(mh * fy, mh * 0.56, zk);
+  const ix = pinTx - dw * fx, iy = pinTy - dh * fy;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 70; ctx.shadowOffsetY = 34;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(mx, my, mw, mh, 30); ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.beginPath(); ctx.roundRect(mx, my, mw, mh, 30); ctx.clip();
+  ctx.drawImage(img, mx + ix, my + iy, dw, dh);
+  // 핀
+  const px = mx + pinTx, py = my + pinTy;
+  const pk = prog(lt, 1.0, 1.5);
+  for (let i = 0; i < 3; i++) {
+    const ph = ((lt - 1.4) * 0.7 + i / 3) % 1;
+    if (lt < 1.4) break;
+    ctx.strokeStyle = `rgba(232,88,46,${0.7 * (1 - ph)})`; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(px, py, 20 + ph * 130, (20 + ph * 130) * 0.6, 0, 0, TAU); ctx.stroke();
+  }
+  if (pk > 0) {
+    const drop = (1 - eOutBack(pk)) * -80;
+    ctx.save(); ctx.translate(px, py + drop);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0, -drop, 16, 6, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = C.uiBtn; ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(-30, -36, -30, -78, 0, -80); ctx.bezierCurveTo(30, -78, 30, -36, 0, 0); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -52, 11, 0, TAU); ctx.fill();
+    ctx.restore();
+    const lk = prog(lt, 1.4, 1.9);
+    if (lk > 0) {
+      const tw = measure('봉고뒷고기', { weight: 800, size: 24 }) + 40;
+      ctx.save(); ctx.globalAlpha = lk;
+      ctx.fillStyle = '#16120f'; ctx.beginPath(); ctx.roundRect(px - tw / 2, py - 150, tw, 46, 23); ctx.fill();
+      text('봉고뒷고기', px, py - 119, { weight: 800, size: 24, align: 'center', color: '#fff' });
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+  // 왼쪽 글
+  eyebrow('LOCATION', 120, 360, lt, 0.3, out);
+  blurHead([[['대구 동구', C.fg]], [['단산길 7-15', C.acc]]], 118, 452, lt, 0.4, { size: 84, out });
+  const lines2 = [['단산저수지 바로 앞', 1.6], ['이시아폴리스 건너편', 1.9], ['☎ ' + COPY.tel, 2.3]];
+  lines2.forEach(([s2, at], i) => {
+    const kk = prog(lt, at, at + 0.4) * (1 - prog(lt, out, out + 0.3));
+    if (kk <= 0) return;
+    const y = 640 + i * 62;
+    ctx.save(); ctx.globalAlpha = eOutCubic(kk);
+    ctx.fillStyle = i < 2 ? C.acc : 'rgba(247,243,238,0.4)'; ctx.beginPath(); ctx.arc(130, y - 10, 6, 0, TAU); ctx.fill();
+    text(s2, 152 + (1 - eOutCubic(kk)) * 20, y, { weight: 700, size: 34, color: i < 2 ? C.fg : 'rgba(247,243,238,0.75)' });
+    ctx.restore();
+  });
+}
+// ⑪ 봉고뒷고기 + 주소 + 전화
+function sEnd(lt, t, d) {
+  background(t, W / 2, H * 0.42, 0.85);
+  ctx.save(); ctx.globalAlpha = 0.3 * sstep(0, 1.2, lt); ctx.filter = 'blur(16px) brightness(0.5) saturate(1.15)';
+  cover(ctx, CACHE.grill, -40, -40, W + 80, H + 80, 1.05 + 0.01 * lt); ctx.restore();
+  const vg = ctx.createRadialGradient(W / 2, H * 0.5, 100, W / 2, H * 0.5, W * 0.6); vg.addColorStop(0, 'rgba(11,7,6,0.55)'); vg.addColorStop(1, 'rgba(11,7,6,0.85)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  // 리뷰 맛집 알약
+  const pk = prog(lt, 0.15, 0.6);
+  if (pk > 0) {
+    const pw = measure('리뷰 맛집', { weight: 800, size: 28 }) + 56;
+    ctx.save(); ctx.globalAlpha = clamp(pk * 2); ctx.translate(W / 2, H * 0.27); ctx.scale(0.7 + 0.3 * eOutBack(pk), 0.7 + 0.3 * eOutBack(pk));
+    ctx.fillStyle = C.uiBtn; ctx.beginPath(); ctx.roundRect(-pw / 2, -30, pw, 60, 30); ctx.fill();
+    text('리뷰 맛집', 0, 10, { weight: 800, size: 28, align: 'center', color: '#fff' }); ctx.restore();
+  }
+  const wo = { weight: 800, size: 156, ls: -5 };
+  const tw = measure(COPY.brand, wo), wk = eOutCubic(prog(lt, 0.4, 1.1));
+  ctx.save(); ctx.beginPath(); ctx.rect(W / 2 - tw / 2 - 20, H * 0.31, (tw + 40) * wk, 220); ctx.clip();
+  text(COPY.brand, W / 2 - (1 - wk) * 40, H * 0.5, { ...wo, align: 'center', color: C.fg });
+  ctx.restore();
+  text(COPY.tag, W / 2, H * 0.5 + 66, { fam: 'Mono', weight: 400, size: 22, ls: 9, align: 'center', color: C.acc, alpha: prog(lt, 1.0, 1.5) });
+  blurHead([[['리뷰가 증명하는 ', C.fg], ['숯불 뒷고기', C.acc]]], W / 2, H * 0.67, lt, 1.4, { size: 50, align: 'center', weight: 700 });
+  const ik = prog(lt, 2.0, 2.6);
+  if (ik > 0) {
+    ctx.save(); ctx.globalAlpha = eOutCubic(ik);
+    ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(W / 2 - 520, H * 0.735, 1040, 1.5);
+    text(`${COPY.addr} · ${COPY.near}`, W / 2, H * 0.735 + 62, { weight: 600, size: 30, align: 'center', color: C.fg });
+    text(`☎ ${COPY.tel}`, W / 2, H * 0.735 + 114, { weight: 500, size: 28, align: 'center', color: 'rgba(247,243,238,0.72)' });
+    ctx.restore();
+  }
+  const end = sstep(d - 0.6, d, lt);
+  if (end > 0) { ctx.fillStyle = `rgba(0,0,0,${end * 0.85})`; ctx.fillRect(0, 0, W, H); }
+}
+
+const SCENES = [
+  [T.hook, sHook], [T.scan, sScan], [T.three, sThree], [T.tilt, sTilt], [T.ssam, sSsam], [T.menu, sMenu],
+  [T.reviews, sReviews], [T.montage, sMontage], [T.store, sStore], [T.map, sMap], [T.end, sEnd],
+];
+
+/* ---------- 7. 휴대폰 본체 ---------- */
+const PW = 430, PH = 880, PR = 1.5;   // 화면 밖 캔버스 해상도 배율
+const PHONE = mk(Math.round(PW * PR), Math.round(PH * PR));
+const PC = PHONE.getContext('2d');
+function renderPhone(screenFn, t) {
+  const g = PC;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, PHONE.width, PHONE.height);
+  g.scale(PR, PR);
+  // 옆 버튼
+  g.fillStyle = '#3a3836'; rr(g, -3, 190, 6, 60, 3); g.fill(); rr(g, -3, 270, 6, 90, 3); g.fill(); rr(g, PW - 3, 250, 6, 110, 3); g.fill();
+  // 테두리(티타늄)
+  rr(g, 0, 0, PW, PH, 68); g.fillStyle = lin(g, 0, 0, PW, PH, [[0, '#6d6a66'], [0.5, '#2c2a28'], [1, '#55524e']]); g.fill();
+  rr(g, 5, 5, PW - 10, PH - 10, 63); g.fillStyle = '#050505'; g.fill();
+  // 화면
+  const sx = (PW - SW) / 2, sy = (PH - SH) / 2;
+  g.save(); rr(g, sx, sy, SW, SH, 52); g.clip(); g.translate(sx, sy);
+  screenFn(g, t);
+  island(g);
+  g.restore();
+  // 유리 반사
+  g.save(); rr(g, sx, sy, SW, SH, 52); g.clip();
+  g.fillStyle = lin(g, 0, 0, PW, PH * 0.6, [[0, 'rgba(255,255,255,0.10)'], [0.45, 'rgba(255,255,255,0.02)'], [0.46, 'rgba(255,255,255,0)'], [1, 'rgba(255,255,255,0)']]);
+  g.fillRect(0, 0, PW, PH); g.restore();
+}
+/* 휴대폰을 장면에 놓는다. o: { s 크기, rot 기울기(-1..1), vx 이동 속도(px/프레임, 흐림용), alpha, shadow } */
+function phone(cx, cy, screenFn, t, o = {}) {
+  renderPhone(screenFn, t);
+  const s = (o.s ?? 1) / PR, rot = o.rot ?? 0;
+  ctx.save();
+  ctx.globalAlpha *= o.alpha ?? 1;
+  ctx.translate(cx, cy);
+  // 회전(3D 느낌): 가로로 눌리고 한쪽이 위로 기운다
+  ctx.transform(1 - Math.abs(rot) * 0.28, rot * 0.16, rot * -0.05, 1, 0, 0);
+  ctx.rotate(o.tilt ?? 0);
+  ctx.scale(s, s);
+  // 그림자
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 40;
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.roundRect(-PHONE.width / 2 + 20, -PHONE.height / 2 + 20, PHONE.width - 40, PHONE.height - 40, 90); ctx.fill(); ctx.restore();
+  const v = o.vx ?? 0, vy = o.vy ?? 0;
+  if (Math.abs(v) + Math.abs(vy) > 2) {   // 움직임 흐림: 진행 방향으로 여러 장
+    const n = 8;
+    for (let i = 0; i < n; i++) { ctx.globalAlpha = (o.alpha ?? 1) * (i === n - 1 ? 1 : 0.22); ctx.drawImage(PHONE, -PHONE.width / 2 - (v * (n - 1 - i) / n) / s, -PHONE.height / 2 - (vy * (n - 1 - i) / n) / s); }
+  } else ctx.drawImage(PHONE, -PHONE.width / 2, -PHONE.height / 2);
+  ctx.restore();
+}
+// 떠 있는 카드 (흰 둥근 상자)
+function card(x, y, w, h, k, fn, o = {}) {
+  if (k <= 0) return;
+  ctx.save();
+  ctx.globalAlpha *= clamp(k * 2) * (o.alpha ?? 1);
+  const s = 0.7 + 0.3 * eOutBack(clamp(k));
+  ctx.translate(x + w / 2, y + h / 2); ctx.scale(s, s); ctx.rotate(o.rot ?? 0);
+  if (k < 0.6) ctx.filter = `blur(${((0.6 - k) * 20).toFixed(1)}px)`;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 24;
+  ctx.fillStyle = o.fill ?? '#fff'; ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, o.r ?? 26); ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, o.r ?? 26); ctx.clip();
+  ctx.translate(-w / 2, -h / 2);
+  fn(ctx, w, h);
+  ctx.restore();
+}
+// 장면 사이 덜컥 움직임 속도(흐림용)
+const vel = (f, t) => (f(t) - f(t - 1 / FPS));
+
+/* ---------- 9. 전환 ---------- */
+// 밝은 빛줄기가 훑고 지나간다 (모임 장면 들어갈 때)
+function lightSweep(t, at) {
+  const k = prog(t, at - 0.35, at + 0.35);
+  if (k <= 0 || k >= 1) return;
+  const x = lerp(W * 1.1, -W * 0.1, eInOutCubic(k));
+  const a = Math.sin(k * Math.PI);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createLinearGradient(x - 260, 0, x + 260, 0);
+  g.addColorStop(0, 'rgba(150,230,240,0)'); g.addColorStop(0.5, `rgba(200,245,250,${0.85 * a})`); g.addColorStop(1, 'rgba(150,230,240,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+// 하얗게 번지는 섬광 (리뷰 장면 들어갈 때)
+function whiteBloom(t, at) {
+  const a = 1 - clamp(Math.abs(t - at) / 0.3);
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = eOutCubic(a) * 0.92; ctx.fillStyle = '#f4f1ff'; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+function whip(t, at) {   // 짧은 가로 흐림 (휙)
+  const a = 1 - clamp(Math.abs(t - at) / 0.12);
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = 0.35 * a; ctx.filter = `blur(${(14 * a).toFixed(1)}px)`; ctx.drawImage(cv, 40 * a, 0); ctx.restore();
+}
+
+/* ---------- 10. 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  for (const [[a, b], fn] of SCENES) if (t >= a && t < b) { fn(t - a, t, b - a); break; }
+  [T.three[0], T.tilt[0], T.ssam[0], T.menu[0], T.montage[0], T.map[0]].forEach(at => whip(t, at));
+  lightSweep(t, T.store[0]);
+  whiteBloom(t, T.reviews[0]);
+  if (t < 0.5) { ctx.fillStyle = `rgba(0,0,0,${1 - t / 0.5})`; ctx.fillRect(0, 0, W, H); }
+  vignette(0.5);
+  grain(t, 0.04);
+}
+
+/* ---------- 11. 재생 / 렌더 훅 ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+else cv.style.aspectRatio = `${W} / ${H}`;
+window.DURATION = DUR;
+window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+
+async function boot() {
+  await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Pre`, '가A')).concat([document.fonts.load('400 40px Mono', 'A')]));
+  buildNoise();
+  await loadPhotos();
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+  const snd = document.getElementById('snd'), seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  seek.max = DUR;
+  let playing = false, tAt = Number(params.get('t') || 0), t0 = performance.now();
+  render(tAt);
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? '일시정지' : '재생'; t0 = performance.now(); if (playing) { snd.currentTime = tAt; snd.play().catch(() => {}); } else snd.pause(); };
+  seek.oninput = () => { tAt = Number(seek.value); snd.currentTime = tAt; render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  (function loop(now) {
+    if (playing) { tAt = snd.duration && !snd.paused ? snd.currentTime : tAt + (now - t0) / 1000; if (tAt >= DUR) { tAt = 0; snd.currentTime = 0; } render(tAt); seek.value = tAt; lab.textContent = tAt.toFixed(2) + 's'; }
+    t0 = now; requestAnimationFrame(loop);
+  })(performance.now());
+}
+boot();
+</script>
+</body>
+</html>
