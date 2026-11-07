@@ -403,8 +403,9 @@ function quoteCard(g, w, h, quote, meta, tag, size = 22) {
 function sHook(lt, t) {
   background(t, W * 0.6, H * 0.45, 0.9 + 0.1 * Math.sin(t * 2));
   const enter = eInOutQuint(prog(lt, 1.15, 2.1));
-  const tx = lerp(W / 2, 150, enter);
-  blurHead([[['리뷰가 먼저 ', C.fg], ['알아본 집.', C.acc]]], tx, H / 2 + 34, lt, 0.25, { size: enter > 0 ? lerp(86, 74, enter) : 86, align: enter > 0.02 ? 'left' : 'center' });
+  // 왼쪽 끝을 이어서 움직인다 (가운데 정렬 → 왼쪽 정렬로 바꿀 때 튀지 않게)
+  const sz = lerp(86, 74, enter), tw = measure('리뷰가 먼저 알아본 집.', { ...HEAD, size: sz });
+  blurHead([[['리뷰가 먼저 ', C.fg], ['알아본 집.', C.acc]]], lerp(W / 2 - tw / 2, 150, enter), H / 2 + 34, lt, 0.25, { size: sz });
   if (lt > 1.0) {
     const px = (lt2) => lerp(W + 420, W * 0.72, eOutExpo(prog(lt2, 1.1, 2.0)));
     const zoom = eInCubic(prog(lt, 2.4, 3.0));
