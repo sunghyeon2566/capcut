@@ -1,6 +1,6 @@
 /* ============================================================
    시그니엘 서울 STAY 홍보 모션 — 레퍼런스(앱 런칭 필름)의 문법, STAY 실내의 노란 의자 빛깔.
-   '미쉐린 3스타 셰프 야닉 알레노'를 앞세우고 리뷰를 중심에: 리뷰 키워드, 리뷰 카드, 리뷰 타자.
+   '미슐랭 맛집'과 '미쉐린 3스타 셰프 야닉 알레노'를 앞세우고 리뷰를 중심에: 리뷰 키워드, 리뷰 카드, 리뷰 타자.
    사진은 받은 실사 이미지(assets/), 지도는 받은 지도를 보고 다시 그린 약도.
    window.ORIENT = 'h'(16:9) | 'v'(9:16). 모든 프레임은 시간 t 만으로 결정된다.
    ============================================================ */
@@ -11,9 +11,9 @@ const W = V ? 1080 : 1920, H = V ? 1920 : 1080, FPS = 30, DUR = 55.0;
 const o = (h, v) => (V ? v : h);                   // 가로 값, 세로 값
 const BPM = 120, BEAT = 60 / BPM;
 const T = {
-  hook:    [0, 3.0],     // 시그니엘 서울 81층, STAY → 휴대폰 (캐비아 카놀리 사진)
+  hook:    [0, 3.0],     // 미슐랭 맛집, STAY → 휴대폰 (캐비아 카놀리 사진)
   scan:    [3.0, 5.5],   // 사진 속으로 — 리뷰 키워드
-  seal:    [5.5, 8.5],   // '미쉐린 3스타 셰프 야닉 알레노' 배지 쾅 + 창의적인 프랑스 요리
+  seal:    [5.5, 8.5],   // '미슐랭 맛집' 도장 쾅 + 셰프 야닉 알레노 + 창의적인 프랑스 요리
   tilt:    [8.5, 11.0],  // 한 코스, 한 코스 (볼오방 사진 + 리뷰 카드)
   sauce:   [11.0, 14.0], // 산미와 감칠맛, 소스가 킥 (새우 사진 + 맛 배지)
   menu:    [14.0, 19.5], // 런치 · 디너 · 와인 페어링 · 글루텐프리 · 비건 → 카놀리 + 리뷰
@@ -22,7 +22,7 @@ const T = {
   montage: [32.0, 37.5], // 화면 다섯 개
   store:   [37.5, 42.0], // STAY 실내 사진 + 서울 시내가 한눈에 (가게 소개글)
   map:     [42.0, 49.0], // 약도 + 주소
-  end:     [49.0, DUR],  // STAY + 잊지 못할 다이닝
+  end:     [49.0, DUR],  // 미슐랭 맛집 도장 + STAY + 잊지 못할 다이닝
 };
 
 const C = {
@@ -268,7 +268,7 @@ async function loadPhotos() {
 }
 const KJ = 'Pre, NotoKR';
 
-/* '미쉐린 3스타 셰프 야닉 알레노' 배지 — 가게 소개글 문구. 별 모양이나 미쉐린 로고 없이 글자만 */
+/* '미슐랭 맛집' 도장 — 별이나 미쉐린 로고 없이 글자만 */
 function sealBadge(g, x, y, r, o2 = {}) {
   g.save(); g.translate(x, y); g.rotate(o2.rot ?? 0);
   g.fillStyle = lin(g, -r, -r, r, r, [[0, '#FFF0A8'], [0.5, '#F5C84A'], [1, '#C9962A']]);
@@ -279,7 +279,7 @@ function sealBadge(g, x, y, r, o2 = {}) {
   g.strokeStyle = 'rgba(80,55,5,0.55)'; g.lineWidth = Math.max(1.5, r * 0.02);
   g.beginPath(); g.arc(0, 0, r * 0.86, 0, TAU); g.stroke();
   g.setLineDash([r * 0.025, r * 0.03]); g.beginPath(); g.arc(0, 0, r * 0.6, 0, TAU); g.stroke(); g.setLineDash([]);
-  const ring = '미쉐린 3스타 셰프 · YANNICK ALLÉNO · 미쉐린 3스타 셰프 · YANNICK ALLÉNO · ';
+  const ring = 'STAY · SIGNIEL SEOUL · 시그니엘 서울 · STAY · SIGNIEL SEOUL · 시그니엘 서울 · ';
   const fs = r * 0.105;
   setFont(g, { weight: 800, size: fs, align: 'center' });
   g.fillStyle = '#3f2c04';
@@ -290,9 +290,8 @@ function sealBadge(g, x, y, r, o2 = {}) {
     g.save(); g.rotate(th); g.fillText(c, 0, -r * 0.69); g.restore();
     acc += ws[i];
   });
-  text('CHEF', 0, -r * 0.2, { fam: 'Mono', weight: 400, size: r * 0.11, ls: r * 0.03, align: 'center', color: '#5a4008' }, g);
-  text('야닉', 0, r * 0.08, { weight: 800, size: r * 0.26, align: 'center', color: '#33240a' }, g);
-  text('알레노', 0, r * 0.37, { weight: 800, size: r * 0.26, align: 'center', color: '#33240a' }, g);
+  text('미슐랭', 0, -r * 0.01, { weight: 800, size: r * 0.29, ls: -r * 0.008, align: 'center', color: '#33240a' }, g);
+  text('맛집', 0, r * 0.33, { weight: 800, size: r * 0.31, align: 'center', color: '#33240a' }, g);
   g.restore();
 }
 
@@ -301,7 +300,7 @@ function scrHero(g, t) {
   cover(g, CACHE.cannoli, 0, 0, SW, SH, 1.06 + 0.01 * t);
   g.fillStyle = lin(g, 0, 0, 0, 120, [[0, 'rgba(0,0,0,0.5)'], [1, 'rgba(0,0,0,0)']]); g.fillRect(0, 0, SW, 120);
   statusBar(g, true);
-  const lab = 'STAY · 시그니엘 서울 81층', lw = measure(lab, { weight: 700, size: 13 }, g) + 30;
+  const lab = 'STAY · 미슐랭 맛집', lw = measure(lab, { weight: 700, size: 13 }, g) + 30;
   rr(g, SW / 2 - lw / 2, 60, lw, 32, 16); g.fillStyle = 'rgba(0,0,0,0.5)'; g.fill();
   text(lab, SW / 2, 81, { weight: 700, size: 13, align: 'center', color: '#fff' }, g);
   g.fillStyle = lin(g, 0, SH - 160, 0, SH, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0.55)']]); g.fillRect(0, SH - 160, SW, 160);
@@ -425,18 +424,18 @@ const PHX = o(W * 0.72, W / 2), PHY = o(H / 2 + 10, H * 0.64), PHS = o(0.95, 1.0
 /* ============================================================
    8. 장면
    ============================================================ */
-// ① 시그니엘 서울 81층, STAY → 휴대폰
+// ① 미슐랭 맛집, STAY → 휴대폰
 function sHook(lt, t) {
   background(t, W * 0.6, H * 0.45, 0.9 + 0.1 * Math.sin(t * 2));
   const enter = eInOutQuint(prog(lt, 1.15, 2.1));
   const sz = lerp(o(86, 92), o(74, 84), enter);
   if (!V) {   // 가로: 한 줄로 가운데 → 왼쪽으로 (왼쪽 끝을 이어서 움직여 튀지 않게)
-    const one = [[['시그니엘 서울 81층, ', C.fg], ['STAY.', C.acc]]];
-    const tw = measure('시그니엘 서울 81층, STAY.', { ...HEAD, size: sz });
+    const one = [[['미슐랭 맛집, ', C.fg], ['STAY.', C.acc]]];
+    const tw = measure('미슐랭 맛집, STAY.', { ...HEAD, size: sz });
     blurHead(one, lerp(W / 2 - tw / 2, 150, enter), H / 2 + 34, lt, 0.25, { size: sz });
   } else {
-    const tw = measure('시그니엘 서울 81층,', { ...HEAD, size: sz });
-    blurHead([[['시그니엘 서울 81층,', C.fg]], [['STAY.', C.acc]]], lerp(W / 2 - tw / 2, TXT.x, enter), lerp(H * 0.44, TXT.hd, enter), lt, 0.25, { size: sz });
+    const tw = measure('미슐랭 맛집,', { ...HEAD, size: sz });
+    blurHead([[['미슐랭 맛집,', C.fg]], [['STAY.', C.acc]]], lerp(W / 2 - tw / 2, TXT.x, enter), lerp(H * 0.44, TXT.hd, enter), lt, 0.25, { size: sz });
   }
   if (lt > 1.0) {
     const zoom = eInCubic(prog(lt, 2.4, 3.0));
@@ -472,15 +471,15 @@ function sScan(lt, t, d) {
   blurHead([[['리뷰가 말하는', C.fg]], [['그 한 접시.', C.acc]]], TXT.x - 2, TXT.hd, lt, 0.3, { size: TXT.hdS, out: d - 0.35 });
   subline('방문 리뷰에 적힌 말 그대로', TXT.x + 2, subY(2), lt, 0.9, d - 0.35);
 }
-// ③ '미쉐린 3스타 셰프 야닉 알레노' 배지 + 창의적인 프랑스 요리
+// ③ '미슐랭 맛집' 도장 쾅 + 미쉐린 3스타 셰프 야닉 알레노 + 창의적인 프랑스 요리
 function sSeal(lt, t, d) {
   background(t, o(W * 0.3, W * 0.4), o(H * 0.4, H * 0.3));
   const out = d - 0.35, fade = 1 - sstep(d - 0.3, d, lt);
   const inK = eOutExpo(prog(lt, 0, 0.55));
-  const scr = (g, tt) => scrDish(g, tt, CACHE.hall, 'STAY', '시그니엘 서울 81층 · 프렌치', ['미쉐린 3스타 셰프', '런치', '디너'], '예약하기', { seal: true, boxTitle: '가게 소개글', boxSub: '“창의적인 프랑스 요리를 선보입니다”' });
+  const scr = (g, tt) => scrDish(g, tt, CACHE.hall, 'STAY', '시그니엘 서울 81층 · 프렌치', ['미슐랭 맛집', '런치', '디너'], '예약하기', { seal: true, boxTitle: '가게 소개글', boxSub: '“창의적인 프랑스 요리를 선보입니다”' });
   if (!V) phone(lerp(W * 0.86, PHX, inK), PHY, scr, t, { s: PHS, alpha: clamp(lt * 4) });
   else phone(PHX, lerp(H + 400, PHY + 160, inK), scr, t, { s: PHS * 0.88, alpha: clamp(lt * 4) });
-  // 배지: 크게 떠 있다가 쾅 (0.6초)
+  // 도장: 크게 떠 있다가 쾅 (0.6초)
   const sx = TXT.x + o(160, 170), sy = o(330, 420), r = o(150, 170);
   const sk = prog(lt, 0.2, 0.6);
   if (sk > 0) {
@@ -497,7 +496,7 @@ function sSeal(lt, t, d) {
       ctx.beginPath(); ctx.arc(sx, sy, r * (1.02 + eOutCubic(wk) * 0.9), 0, TAU); ctx.stroke(); ctx.restore();
     }
   }
-  // 배지 오른쪽: 셰프 이름
+  // 도장 오른쪽: 셰프 이름
   const nx = sx + r + o(50, 46);
   eyebrow('MICHELIN 3-STAR CHEF', nx, sy - o(34, 40), lt, 0.8, out);
   blurHead([[[COPY.chef, C.fg]]], nx - 2, sy + o(40, 40), lt, 0.9, { size: o(60, 62), out });
@@ -644,8 +643,8 @@ function sMontage(lt, t, d) {
   ctx.save(); ctx.globalAlpha = 1 - out;
   if (lt < swap + 0.2) blurHead([[['섬세하게. ', C.fg], ['조화롭게. ', C.fg], ['특별하게.', C.acc]]], W / 2, ty, lt, 0.4, { size: o(72, 66), align: 'center', out: swap - 0.3 });
   if (lt > swap - 0.1) {
-    if (!V) blurHead([[['시그니엘 서울 81층 ', C.fg], ['STAY.', C.acc]]], W / 2, ty, lt, swap, { size: 72, align: 'center' });
-    else blurHead([[['시그니엘 서울 81층', C.fg]], [['STAY.', C.acc]]], W / 2, ty - 40, lt, swap, { size: 76, align: 'center' });
+    if (!V) blurHead([[['시그니엘 서울 미슐랭 맛집 ', C.fg], ['STAY.', C.acc]]], W / 2, ty, lt, swap, { size: 72, align: 'center' });
+    else blurHead([[['시그니엘 서울 미슐랭 맛집', C.fg]], [['STAY.', C.acc]]], W / 2, ty - 40, lt, swap, { size: 70, align: 'center' });
   }
   ctx.restore();
 }
@@ -750,7 +749,7 @@ function sMap(lt, t, d) {
     ctx.restore();
     const lk = prog(lt, 1.4, 1.9);
     if (lk > 0) {
-      const lab = '시그니엘 서울 STAY · 81층', tw = measure(lab, { weight: 800, size: 22 }) + 40;
+      const lab = 'STAY · 미슐랭 맛집 · 81층', tw = measure(lab, { weight: 800, size: 22 }) + 40;
       ctx.save(); ctx.globalAlpha = lk;
       ctx.fillStyle = '#141416'; ctx.beginPath(); ctx.roundRect(pinX - tw / 2, pinY + 26, tw, 46, 23); ctx.fill();   // 받은 지도처럼 핀 아래에 이름
       text(lab, pinX, pinY + 57, { weight: 800, size: 22, align: 'center', color: '#fff' });
@@ -771,7 +770,7 @@ function sMap(lt, t, d) {
     ctx.restore();
   });
 }
-// ⑫ STAY + 잊지 못할 다이닝
+// ⑫ 미슐랭 맛집 도장 + STAY + 잊지 못할 다이닝
 function sEnd(lt, t, d) {
   background(t, W / 2, H * 0.42, 0.85);
   ctx.save(); ctx.globalAlpha = 0.32 * sstep(0, 1.2, lt); ctx.filter = 'blur(16px) brightness(0.5) saturate(1.1)';
