@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>삼청동수제비 — 시네마 광고 16:9</title>
+<style>
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-Medium.otf); font-weight: 500; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-SemiBold.otf); font-weight: 600; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-Bold.otf); font-weight: 700; }
+  @font-face { font-family: 'Pre'; src: url(fonts/Pretendard-ExtraBold.otf); font-weight: 800; }
+  @font-face { font-family: 'Brush'; src: url(fonts/NanumBrushScript-400.ttf); font-weight: 400; }
+  @font-face { font-family: 'Batang'; src: url(fonts/GowunBatang-700.ttf); font-weight: 700; }
+  html, body { margin: 0; height: 100%; background: #000; color: #aaa; font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { display: block; max-width: 100vw; max-height: calc(100vh - 56px); background: #000; aspect-ratio: 16 / 9; }
+  .bar { display: flex; gap: 12px; align-items: center; width: min(100vw, 960px); padding: 0 12px; box-sizing: border-box; }
+  .bar button { background: #111; color: #eee; border: 1px solid #555; padding: 6px 12px; cursor: pointer; }
+  .bar input { flex: 1; }
+  body.render { display: block; }
+  body.render #c { max-width: none; max-height: none; }
+  body.render .bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="time">0.00s</span>
+</div>
+<audio id="snd" src="out/sound.wav" preload="auto"></audio>
+<script>
+/* ============================================================
+   삼청동수제비 — 시네마 광고 (30초 · 16:9)
+   레퍼런스(고기집 시네마 광고)의 문법: 위아래 검은 띠, 어두운 웜톤 접사, 얕은 초점,
+   125BPM 4박마다 하드컷, 왼쪽 아래 두 줄 자막(첫 줄 보통 · 둘째 줄 굵게 들여쓰기),
+   왼쪽 위 작은 로고, 중간의 이름표 쇼케이스, 끝에 큰 로고 + 한 줄 + 위치 상자.
+   받은 사진 세 장(항아리 수제비 · 숟가락 수제비 · 쭈꾸미)을 여러 컷으로 나눠 쓴다.
+   모든 프레임은 시간 t 만으로 결정된다.
+   ============================================================ */
+const W = 1920, H = 1080, FPS = 30, DUR = 30.0;
+const BEAT = 60 / 125;                 // 레퍼런스 음악 125BPM, 컷은 박 위에
+const BAR = 104;                       // 위아래 검은 띠 높이 (레퍼런스와 같은 비율)
+
+const C = { gold: '#E9C77B', fg: '#FFFFFF', ink: '#1b1410' };
+const GRADE = 'brightness(0.72) contrast(1.2) saturate(1.12) sepia(0.14)';   // 따뜻하고 어두운 톤
+
+// 화면 문구 — 사용자가 준 정보(가게 이름 · 미슐랭 맛집 · 주소)와 앞서 받은 리뷰 · 가게 소개글에서 다듬은 문장
+const COPY = {
+  brand: '삼청동수제비',
+  badge: '미슐랭 맛집',
+  subs: [
+    // [첫 줄, 둘째 줄, 시작, 끝]
+    ['재료 하나하나에', '정성을 들여 빚습니다', 4.0, 9.45],
+    ['깊게 우려낸 멸치 육수와', '얇게 떠 낸 수제비', 9.85, 15.2],
+    ['줄 서서 먹는', '미슐랭 맛집', 16.85, 18.2, true],
+    ['매콤하게 볶아낸 쭈꾸미,', '수제비와 함께라 더 좋습니다', 18.5, 22.9],
+    ['어머니가 만들어주신', '그 맛 그대로 준비합니다', 23.2, 26.25],
+  ],
+  tagline: '한 번 맛보면, 줄 서는 이유를 압니다',
+  place: '삼청동수제비 · 서울 종로구 삼청로 101-1',
+};
+
+/* ---------- 수학 ---------- */
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const sstep = (a, b, v) => { const k = clamp((v - a) / (b - a)); return k * k * (3 - 2 * k); };
+const eOutCubic = k => 1 - Math.pow(1 - k, 3);
+const eInOutSine = k => -(Math.cos(Math.PI * k) - 1) / 2;
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+const cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const BUF = mk(W, H), bctx = BUF.getContext('2d');
+
+/* ---------- 글자 ---------- */
+function setFont(g, o) {
+  g.font = `${o.weight ?? 700} ${o.size ?? 48}px ${o.fam ?? 'Pre'}`;
+  g.textAlign = o.align ?? 'left'; g.textBaseline = 'alphabetic';
+  g.letterSpacing = (o.ls ?? 0) + 'px';
+}
+function text(s, x, y, o = {}, g = ctx) {
+  g.save(); setFont(g, o);
+  g.globalAlpha *= o.alpha ?? 1;
+  if (o.shadow !== false) { g.shadowColor = o.shadow ?? 'rgba(0,0,0,0.75)'; g.shadowBlur = o.shadowBlur ?? 18; g.shadowOffsetY = 2; }
+  if (o.blur > 0.3) g.filter = `blur(${o.blur.toFixed(1)}px)`;
+  g.fillStyle = o.color ?? C.fg;
+  g.fillText(s, x, y);
+  g.restore();
+}
+function measure(s, o) { ctx.save(); setFont(ctx, o); const w = ctx.measureText(s).width; ctx.restore(); return w; }
+
+/* ---------- 사진 ---------- */
+const IMG = {};
+const PHOTOS = [['pot', 'assets/pot.jpg'], ['spoon', 'assets/spoon.jpg'], ['jjuk', 'assets/jjuk.jpg']];
+function loadImage(src) { return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
+
+/* 한 컷: 사진의 한 곳(cx, cy: 사진 안 0~1)을 화면 가운데에 두고 z배로 확대, 컷 동안 천천히 밀고 당긴다.
+   얕은 초점: 흐린 사진 위에, 초점 자리(fx, fy: 화면 0~1, fr: 반지름)만 선명한 사진을 겹친다. */
+function shot(img, k, s) {
+  const e = eInOutSine(k);
+  const cx = lerp(s.cx[0], s.cx[1], e), cy = lerp(s.cy[0], s.cy[1], e), z = lerp(s.z[0], s.z[1], e);
+  const sc = Math.max(W / img.width, H / img.height) * z, dw = img.width * sc, dh = img.height * sc;
+  const dx = clamp(W / 2 - cx * dw, W - dw, 0), dy = clamp(H / 2 - cy * dh, H - dh, 0);
+  ctx.save(); ctx.filter = `blur(${s.blur ?? 6}px) ${GRADE}`; ctx.drawImage(img, dx - 20, dy - 20, dw + 40, dh + 40); ctx.restore();
+  bctx.setTransform(1, 0, 0, 1, 0, 0); bctx.globalCompositeOperation = 'source-over'; bctx.clearRect(0, 0, W, H);
+  bctx.filter = GRADE; bctx.drawImage(img, dx, dy, dw, dh); bctx.filter = 'none';
+  const [fx, fy, fr] = s.focus ?? [0.5, 0.5, 0.5];
+  const gr = bctx.createRadialGradient(fx * W, fy * H, fr * W * 0.35, fx * W, fy * H, fr * W);
+  gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  bctx.globalCompositeOperation = 'destination-in'; bctx.fillStyle = gr; bctx.fillRect(0, 0, W, H);
+  bctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(BUF, 0, 0);
+  if (s.steam) steam(s.steam, k);
+}
+/* 김: 흰 연기 줄기가 천천히 오른다 */
+function steam([sx, sy, sw, sh], k, n = 6) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.globalCompositeOperation = 'screen';
+  const t = k * 4;
+  for (let i = 0; i < n; i++) {
+    const ph = (t * 0.22 + hash(i * 3.7)) % 1;
+    const x0 = sx * W + sw * W * (0.15 + hash(i) * 0.7), y0 = sy * H + sh * H * (1 - ph);
+    ctx.strokeStyle = `rgba(255,248,238,${0.16 * Math.sin(ph * Math.PI)})`;
+    ctx.lineWidth = sw * W * 0.07 * (0.6 + ph);
+    ctx.filter = 'blur(14px)';
+    ctx.beginPath(); ctx.moveTo(x0, y0);
+    for (let j = 1; j <= 6; j++) ctx.lineTo(x0 + Math.sin(j * 0.9 + t * 1.6 + i) * sw * W * 0.05 * j * 0.4, y0 - j * sh * H * 0.08);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ---------- 컷 목록 (시작 시각은 모두 125BPM 박 위) ---------- */
+const b = n => +(n * BEAT).toFixed(3);
+const SHOTS = [
+  // [시작, 끝, 사진, 설정]
+  [0, b(8), 'pot', { cx: [0.5, 0.56], cy: [0.56, 0.54], z: [1.0, 1.1], focus: [0.62, 0.55, 0.55], blur: 4, steam: [0.42, 0.12, 0.38, 0.45] }],
+  [b(8), b(12), 'pot', { cx: [0.71, 0.67], cy: [0.47, 0.5], z: [2.0, 2.18], focus: [0.58, 0.5, 0.42], blur: 8, steam: [0.25, 0.05, 0.6, 0.6] }],
+  [b(12), b(16), 'spoon', { cx: [0.27, 0.31], cy: [0.43, 0.41], z: [1.9, 2.06], focus: [0.42, 0.45, 0.4], blur: 8 }],
+  [b(16), b(20), 'pot', { cx: [0.31, 0.27], cy: [0.42, 0.44], z: [1.75, 1.88], focus: [0.5, 0.52, 0.42], blur: 8 }],
+  [b(20), b(22.5), 'spoon', { cx: [0.36, 0.37], cy: [0.73, 0.69], z: [2.1, 2.22], focus: [0.55, 0.55, 0.42], blur: 8 }],
+  [b(22.5), b(28), 'pot', { cx: [0.64, 0.68], cy: [0.56, 0.54], z: [1.35, 1.5], focus: [0.56, 0.55, 0.5], blur: 6, steam: [0.3, 0.05, 0.5, 0.55] }],
+  [b(28), b(32), 'spoon', { cx: [0.42, 0.47], cy: [0.52, 0.5], z: [1.12, 1.24], focus: [0.36, 0.48, 0.45], blur: 6 }],
+  [b(32), b(35), 'jjuk', { cx: [0.5, 0.5], cy: [0.52, 0.48], z: [1.0, 1.07], focus: [0.5, 0.5, 0.55], blur: 4 }],          // 쇼케이스 ① 쭈꾸미 이름표
+  [b(35), b(38), 'pot', { cx: [0.6, 0.63], cy: [0.55, 0.55], z: [1.08, 1.16], focus: [0.62, 0.55, 0.55], blur: 4, steam: [0.42, 0.1, 0.4, 0.45] }],  // 쇼케이스 ② 수제비 이름표
+  [b(38), b(41), 'jjuk', { cx: [0.5, 0.52], cy: [0.34, 0.31], z: [1.8, 1.96], focus: [0.5, 0.45, 0.4], blur: 9 }],
+  [b(41), b(44), 'jjuk', { cx: [0.72, 0.68], cy: [0.68, 0.66], z: [1.7, 1.86], focus: [0.55, 0.5, 0.42], blur: 9 }],
+  [b(44), b(48), 'spoon', { cx: [0.5, 0.52], cy: [0.5, 0.5], z: [1.04, 1.12], focus: [0.3, 0.5, 0.5], blur: 6 }],
+  [b(48), b(51), 'spoon', { cx: [0.24, 0.26], cy: [0.38, 0.36], z: [2.3, 2.42], focus: [0.5, 0.48, 0.4], blur: 9 }],
+  [b(51), b(55), 'pot', { cx: [0.6, 0.62], cy: [0.56, 0.55], z: [1.15, 1.26], focus: [0.6, 0.55, 0.5], blur: 6, steam: [0.4, 0.08, 0.4, 0.5] }],
+  [b(55), DUR, 'pot', { cx: [0.66, 0.68], cy: [0.52, 0.5], z: [1.55, 1.68], focus: [0.68, 0.5, 0.42], blur: 8, steam: [0.48, 0.05, 0.4, 0.55] }],   // 엔딩
+];
+const T_DROP = b(32), T_END = b(55);
+
+/* ---------- 레퍼런스의 장치들 ---------- */
+function bars(t) {   // 위아래 검은 띠 — 처음엔 화면을 거의 덮고 있다가 열린다
+  const k = eOutCubic(prog(t, 0.05, 0.75)), hh = lerp(H / 2 - 30, BAR, k);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, hh); ctx.fillRect(0, H - hh, W, hh);
+}
+/* 로고: 붓글씨 '삼청동수제비' + 김이 오르는 그릇 마크 (공식 로고가 아님) */
+function logo(x, y, size, alpha = 1, blur = 0) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (blur > 0.3) ctx.filter = `blur(${blur.toFixed(1)}px)`;
+  text(COPY.brand, x, y, { fam: 'Brush', weight: 400, size, color: '#fff', shadowBlur: 18 });
+  const tw = measure(COPY.brand, { fam: 'Brush', weight: 400, size });
+  // 그릇 마크: 마지막 글자 위
+  const mx = x + tw - size * 0.42, my = y - size * 0.92, s = size / 100;
+  ctx.strokeStyle = '#fff'; ctx.lineCap = 'round'; ctx.lineWidth = 5 * s;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.moveTo(mx - 26 * s, my); ctx.quadraticCurveTo(mx, my + 34 * s, mx + 26 * s, my); ctx.closePath(); ctx.stroke();
+  for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(mx + i * 11 * s, my - 6 * s); ctx.bezierCurveTo(mx + i * 11 * s - 7 * s, my - 16 * s, mx + i * 11 * s + 7 * s, my - 24 * s, mx + i * 11 * s, my - 34 * s); ctx.stroke(); }
+  ctx.restore();
+}
+/* 두 줄 자막: 첫 줄(보통)이 먼저, 둘째 줄(굵게, 들여쓰기)이 이어서 — 흐림에서 맺히며 */
+function subtitle(t, [l1, l2, a, z, gold]) {
+  if (t < a - 0.01 || t > z + 0.4) return;
+  const out = 1 - sstep(z - 0.25, z + 0.1, t);
+  const gap = gold ? 0.22 : 0.5;   // 쇼케이스의 짧은 자막은 두 줄을 거의 함께
+  const k1 = eOutCubic(prog(t, a, a + 0.5)), k2 = eOutCubic(prog(t, a + gap, a + gap + 0.5));
+  const o1 = { weight: 500, size: 46, ls: -0.5 }, o2 = { weight: 700, size: gold ? 62 : 52, ls: -0.8 };
+  text(l1, 150 + (1 - k1) * 12, 560, { ...o1, alpha: k1 * out * 0.92, blur: (1 - k1) * 10 });
+  text(l2, 214 + (1 - k2) * 12, 654, { ...o2, alpha: k2 * out, blur: (1 - k2) * 10, color: gold ? C.gold : C.fg });
+}
+/* 쇼케이스의 나무 이름표 (레퍼런스의 '오겹살' 나무패를 빌려온 장치) */
+function woodTag(x, y, label, k, rot = 0) {
+  if (k <= 0) return;
+  const w = 74, h = 54 * label.length + 60;
+  ctx.save(); ctx.globalAlpha = clamp(k * 2);
+  ctx.translate(x, y + (1 - eOutCubic(k)) * 40); ctx.rotate(rot);
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 24; ctx.shadowOffsetX = 8; ctx.shadowOffsetY = 10;
+  const gr = ctx.createLinearGradient(-w / 2, 0, w / 2, 0); gr.addColorStop(0, '#b07c47'); gr.addColorStop(0.5, '#d2a46b'); gr.addColorStop(1, '#9f6c3c');
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.roundRect(-w / 2, -h, w, h, 6); ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(90,55,25,0.25)'; ctx.lineWidth = 1.5;   // 나뭇결
+  for (let i = 0; i < 7; i++) { const gx = -w / 2 + 8 + i * 10 + hash(i) * 4; ctx.beginPath(); ctx.moveTo(gx, -h + 4); ctx.bezierCurveTo(gx + 3, -h * 0.6, gx - 3, -h * 0.3, gx + 1, -4); ctx.stroke(); }
+  [...label].forEach((ch, i) => text(ch, 0, -h + 74 + i * 54, { fam: 'Batang', weight: 700, size: 44, align: 'center', color: '#4a2c12', shadow: 'rgba(255,230,190,0.35)', shadowBlur: 2 }));
+  ctx.restore();
+}
+function lightLeak(t, a, z, side = 1) {   // 따뜻한 빛번짐
+  const k = prog(t, a, z); if (k <= 0 || k >= 1) return;
+  const x = side > 0 ? lerp(-W * 0.2, W * 0.5, k) : lerp(W * 1.2, W * 0.5, k);
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = Math.sin(k * Math.PI) * 0.35;
+  const g = ctx.createRadialGradient(x, H * 0.3, 0, x, H * 0.3, W * 0.55); g.addColorStop(0, 'rgba(255,170,90,0.9)'); g.addColorStop(1, 'rgba(255,120,40,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+let NOISE;
+function grain(t) {
+  if (!NOISE) { NOISE = mk(256, 256); const g = NOISE.getContext('2d'), im = g.createImageData(256, 256); for (let i = 0; i < im.data.length; i += 4) { const v = hash(i * 0.37 + 1.3) * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } g.putImageData(im, 0, 0); }
+  const f = Math.floor(t * 12);
+  ctx.save(); ctx.globalAlpha = 0.06; ctx.globalCompositeOperation = 'overlay';
+  const ox = -Math.floor(hash(f) * 256), oy = -Math.floor(hash(f + 0.5) * 256);
+  for (let y = oy; y < H; y += 256) for (let x = ox; x < W; x += 256) ctx.drawImage(NOISE, x, y);
+  ctx.restore();
+}
+function vignette() {
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.72)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  const l = ctx.createLinearGradient(0, 0, W * 0.55, 0);   // 자막 쪽(왼쪽)을 조금 더 어둡게
+  l.addColorStop(0, 'rgba(0,0,0,0.5)'); l.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = l; ctx.fillRect(0, 0, W, H);
+}
+
+/* ---------- 한 프레임 ---------- */
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  for (const [a, z, key, s] of SHOTS) if (t >= a && t < z) { shot(IMG[key], (t - a) / (z - a), s); break; }
+  vignette();
+  lightLeak(t, 0.2, 3.6, 1);
+  lightLeak(t, T_END + 0.2, DUR, -1);
+
+  // 쇼케이스: 나무 이름표
+  if (t >= T_DROP && t < b(35)) woodTag(W * 0.74, H * 0.78, '쭈꾸미', prog(t, T_DROP + 0.15, T_DROP + 0.55), 0.06);
+  if (t >= b(35) && t < b(38)) woodTag(W * 0.86, H * 0.8, '수제비', prog(t, b(35) + 0.15, b(35) + 0.55), -0.05);
+
+  // 자막
+  COPY.subs.forEach(s => subtitle(t, s));
+
+  // 왼쪽 위 작은 로고 (오프닝 · 엔딩 제외)
+  const smallA = sstep(b(8), b(8) + 0.3, t) * (1 - sstep(T_END - 0.2, T_END, t));
+  logo(70, 200, 56, smallA * 0.95);
+
+  // 오프닝: 큰 로고 + 미슐랭 맛집
+  if (t < b(8)) {
+    const k = eOutCubic(prog(t, 0.6, 1.5)), out = 1 - sstep(b(8) - 0.45, b(8) - 0.05, t);
+    logo(230, 800, 150, k * out, (1 - k) * 14);
+    text(COPY.badge, 240, 868, { weight: 600, size: 30, ls: 10, color: C.gold, alpha: prog(t, 1.4, 2.0) * out });
+  }
+  // 엔딩: 큰 로고 + 미슐랭 맛집 + 한 줄 + 위치 상자
+  if (t >= T_END) {
+    const lt = t - T_END;
+    const k = eOutCubic(prog(lt, 0.1, 0.9));
+    logo(190, 600, 170, k, (1 - k) * 14);
+    const bk = prog(lt, 0.6, 1.1);
+    if (bk > 0) {
+      const bw = measure(COPY.badge, { weight: 700, size: 24, ls: 4 }) + 40;
+      ctx.save(); ctx.globalAlpha = eOutCubic(bk);
+      ctx.strokeStyle = C.gold; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(196, 384, bw, 44, 22); ctx.stroke();
+      text(COPY.badge, 216, 415, { weight: 700, size: 24, ls: 4, color: C.gold });
+      ctx.restore();
+    }
+    const tk = eOutCubic(prog(lt, 0.9, 1.5));
+    text(COPY.tagline, 196 + (1 - tk) * 12, 700, { weight: 700, size: 42, ls: -0.5, alpha: tk, blur: (1 - tk) * 8 });
+    const pk = eOutCubic(prog(lt, 1.3, 1.8));
+    if (pk > 0) {
+      const o = { weight: 700, size: 26 }, pw = measure(COPY.place, o) + 28;
+      ctx.save(); ctx.globalAlpha = pk; ctx.fillStyle = '#fff'; ctx.fillRect(196, 730, pw, 42); ctx.restore();
+      text(COPY.place, 210, 760, { ...o, color: C.ink, alpha: pk, shadow: false });
+    }
+  }
+  // 드롭 순간 짧은 섬광
+  const fl = 1 - clamp(Math.abs(t - T_DROP) / 0.12);
+  if (fl > 0) { ctx.save(); ctx.globalAlpha = fl * 0.55; ctx.fillStyle = '#fff6ea'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+
+  grain(t);
+  bars(t);
+  const end = sstep(DUR - 0.9, DUR, t);
+  if (end > 0) { ctx.fillStyle = `rgba(0,0,0,${end})`; ctx.fillRect(0, 0, W, H); }
+}
+
+/* ---------- 재생 / 렌더 훅 ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has('render');
+if (RENDER) document.body.classList.add('render');
+window.DURATION = DUR; window.FPS = FPS;
+window.renderFrame = t => render(t);
+window.captureFrame = t => { render(t); return cv.toDataURL('image/png'); };
+async function boot() {
+  await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Pre`, '가A'))
+    .concat([document.fonts.load('400 40px Brush', '삼청동수제비'), document.fonts.load('700 40px Batang', '쭈꾸미수제비')]));
+  await Promise.all(PHOTOS.map(async ([k, src]) => { IMG[k] = await loadImage(src); }));
+  window.sceneReady = true;
+  if (RENDER) { render(Number(params.get('t') || 0)); return; }
+  const snd = document.getElementById('snd'), seek = document.getElementById('seek'), btn = document.getElementById('play'), lab = document.getElementById('time');
+  seek.max = DUR;
+  let playing = false, tAt = Number(params.get('t') || 0), t0 = performance.now();
+  render(tAt);
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? '일시정지' : '재생'; t0 = performance.now(); if (playing) { snd.currentTime = tAt; snd.play().catch(() => {}); } else snd.pause(); };
+  seek.oninput = () => { tAt = Number(seek.value); snd.currentTime = tAt; render(tAt); lab.textContent = tAt.toFixed(2) + 's'; };
+  (function loop(now) {
+    if (playing) { tAt = snd.duration && !snd.paused ? snd.currentTime : tAt + (now - t0) / 1000; if (tAt >= DUR) { tAt = 0; snd.currentTime = 0; } render(tAt); seek.value = tAt; lab.textContent = tAt.toFixed(2) + 's'; }
+    t0 = now; requestAnimationFrame(loop);
+  })(performance.now());
+}
+boot();
+</script>
+</body>
+</html>
