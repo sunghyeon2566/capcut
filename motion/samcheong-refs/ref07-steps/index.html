@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>삼청동수제비 · 레퍼런스 7 (흰 바탕 단계)</title>
+<style>html,body{margin:0;background:#fff}canvas{display:block;max-width:100vw;max-height:100vh;margin:auto}</style></head>
+<body><canvas id="c"></canvas>
+<script>window.CONF = { w: 1920, h: 1080, dur: 15 };</script>
+<script src="../_lib/lib.js"></script>
+<script>
+/* 레퍼런스 7 문법: 하얀 바탕 · 왼쪽 위 '01 제목.' · 입력창에 글 쓰면 카드가 생김 · 카드 부채꼴 · 표에 카드가 하나씩 · 체크 · 오르는 곡선 · 검은 로고 */
+const RED = '#E5483B', INK = '#111', MUTE = '#8b8b8b';
+const T = { intro: [0, 1.0], s1: [1.0, 3.3], s2: [3.3, 5.4], s3: [5.4, 8.4], s4: [8.4, 10.4], s5: [10.4, 12.6], logo: [12.6, 15] };
+function white() { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); }
+function stepTitle(n, s, lt) {
+  riseText(n, 70, 80, prog(lt, 0, 0.3), { weight: 700, size: 22, color: RED, dy: 12 });
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(108, 72, 60 * eOutCubic(prog(lt, 0.1, 0.4)), 2);
+  riseText(s, 66, 150, prog(lt, 0.05, 0.4), { weight: 800, size: 56, color: INK, ls: -1.5, dy: 18 });
+}
+function softCard(x, y, w, h, r = 16, a = 1) { ctx.save(); ctx.globalAlpha *= a; shadowed(() => fillRR(x, y, w, h, r, '#fff'), 'rgba(0,0,0,0.12)', 50, 20); rr(x, y, w, h, r); ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); }
+function poster(cx, cy, w, h, key, l1, l2, o = {}) {
+  photoCard(IMG[key], cx, cy, w, h, { r: 14, rot: o.rot ?? 0, s: o.s ?? 1, alpha: o.alpha ?? 1, shadowColor: 'rgba(0,0,0,0.25)', shadowBlur: 40, z: o.z ?? 1.05,
+    after: (ww, hh) => { const g = ctx.createLinearGradient(0, -hh / 2, 0, 0); g.addColorStop(0, 'rgba(255,248,236,0.85)'); g.addColorStop(1, 'rgba(255,248,236,0)'); ctx.fillStyle = g; ctx.fillRect(-ww / 2, -hh / 2, ww, hh * 0.5);
+      text(l1, -ww / 2 + 22, -hh / 2 + 50 * (ww / 300), { fam: FAM.serif, weight: 700, size: 30 * (ww / 300), color: '#5a3a1c' }); text(l2, -ww / 2 + 22, -hh / 2 + 88 * (ww / 300), { fam: FAM.serif, weight: 700, size: 30 * (ww / 300), color: '#5a3a1c' }); } });
+}
+function sIntro(lt) { white(); riseText('한 그릇.', W / 2, H / 2 + 40, prog(lt, 0.05, 0.45), { weight: 800, size: 120, align: 'center', color: INK, ls: -3 }); }
+function s1(lt, t) {
+  white(); stepTitle('01', '한 그릇.', lt);
+  const q = '항아리 수제비 하나 주세요', mv = eInOutCubic(prog(lt, 1.15, 1.5));
+  const by = lerp(H / 2, H - 170, mv);
+  softCard(W / 2 - 330, by - 40, 660, 80, 40, 1 - mv * 0.2);
+  text('✎', W / 2 - 296, by + 12, { weight: 700, size: 28, color: INK });
+  const s = typed(q, prog(lt, 0.2, 1.05)); text(s, W / 2 - 256, by + 12, { weight: 600, size: 28, color: INK });
+  if (lt < 1.1) caret(W / 2 - 256 + measure(s, { weight: 600, size: 28 }), by + 12, 28, t, INK);
+  fillRR(W / 2 + 270, by - 22, 44, 44, 22, INK); text('↑', W / 2 + 292, by + 12, { weight: 800, size: 24, align: 'center', color: '#fff' });
+  const pk = eOutBack(prog(lt, 1.3, 1.8));
+  if (pk > 0) poster(W / 2, H / 2 + 10, 360, 460, 'pot', '항아리', '가득.', { s: pk, rot: lerp(0.05, 0, pk) });
+}
+function s2(lt) {
+  white(); stepTitle('02', '곁들임까지.', lt);
+  const cards = [['kimchi', '김치', '수제비와'], ['jeon', '감자전', '노릇노릇'], ['pot', '항아리', '가득.'], ['jjuk', '쭈꾸미', '별미'], ['spoon', '수제비', '한 숟갈']];
+  const fan = eInOutCubic(prog(lt, 0.2, 0.9));
+  cards.forEach(([k, a, b], i) => {
+    const off = i - 2, x = W / 2 + off * 290 * fan, rot = off * 0.06 * (1 - fan) - off * 0.02, y = H / 2 + 40 + Math.abs(off) * 14 * fan;
+    poster(x, y, 270, 340, k, a, b, { rot, alpha: i === 2 ? 1 : clamp(fan * 2) });
+  });
+}
+const COLS = ['수제비', '감자전', '쭈꾸미', '김치', '분위기'];
+const CHIPS = [[0, 0, 'spoon', '국물 미쳤어요'], [1, 0, 'jeon', '진짜 최고'], [2, 1, 'jjuk', '정말 별미'], [3, 0, 'kimchi', '김치도 맛있었어요'], [0, 1, 'pot', '항아리 가득'], [4, 0, 'store', '명분이 있다'], [1, 2, 'jeon', '바삭하게'], [0, 2, 'spoon', '쫄깃한 식감'], [4, 2, 'store', '또 재방문']];
+function board(lt, checks) {
+  const x0 = 120, y0 = 230, cw = (W - 240) / 5, rh = 210;
+  softCard(x0 - 20, y0 - 20, W - 200, 740, 20);
+  COLS.forEach((c, i) => text(c, x0 + i * cw + cw / 2, y0 + 30, { weight: 700, size: 24, align: 'center', color: MUTE }));
+  ['점심', '오후', '저녁'].forEach((r, j) => text(r, x0 + 4, y0 + 140 + j * rh, { weight: 600, size: 18, color: '#b5b5b5' }));
+  ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth = 1.5; for (let i = 1; i < 5; i++) { ctx.beginPath(); ctx.moveTo(x0 + i * cw, y0 + 60); ctx.lineTo(x0 + i * cw, y0 + 690); ctx.stroke(); }
+  CHIPS.forEach(([c, r, key, q], i) => {
+    const k = eOutCubic(prog(lt, 0.3 + i * 0.18, 0.7 + i * 0.18)); if (k <= 0) return;
+    const x = x0 + c * cw + 22, y = y0 + 80 + r * rh + (1 - k) * -60, w = cw - 44;
+    ctx.save(); ctx.globalAlpha = clamp(k * 1.5);
+    photoCard(IMG[key], x + 60, y + 60, 110, 100, { r: 10, shadowBlur: 16, shadowDy: 6 });
+    text('방문 리뷰', x + 128, y + 40, { weight: 600, size: 16, color: MUTE });
+    text(q, x + 128, y + 74, { weight: 700, size: 21, color: INK });
+    const ck = checks ? eOutBack(prog(checks, 0.1 + i * 0.1, 0.4 + i * 0.1)) : 0;
+    if (ck > 0) { fillRR(x + 128, y + 92, 104 * ck, 30, 15, '#e7f6ec'); text('✓ 또 올게요', x + 140, y + 113, { weight: 700, size: 16, color: '#1f8a4c', alpha: ck }); }
+    ctx.restore();
+  });
+}
+function s3(lt) { white(); stepTitle('03', '리뷰가 쌓이고.', lt); board(lt, 0); }
+function s4(lt) { white(); stepTitle('04', '다시 찾게 됩니다.', lt); board(9, lt); }
+function s5(lt) {
+  white(); stepTitle('05', '줄 서는 집.', lt);
+  const x0 = 220, x1 = W - 220, y0 = 860, y1 = 320, k = eInOutCubic(prog(lt, 0.2, 1.6));
+  const f = u => [lerp(x0, x1, u), lerp(y0, y1, Math.pow(u, 1.6)) + Math.sin(u * 9) * 14];
+  ctx.save(); const g = ctx.createLinearGradient(0, y1, 0, y0); g.addColorStop(0, 'rgba(31,138,76,0.18)'); g.addColorStop(1, 'rgba(31,138,76,0)');
+  ctx.beginPath(); ctx.moveTo(x0, y0 + 40); for (let u = 0; u <= k; u += 0.01) ctx.lineTo(...f(u)); ctx.lineTo(f(k)[0], y0 + 40); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath(); for (let u = 0; u <= k; u += 0.01) { const [x, y] = f(u); u ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.strokeStyle = '#1f8a4c'; ctx.lineWidth = 5; ctx.stroke(); ctx.restore();
+  ['첫 방문', '두 번째', '세 번째', '또', '또 한 번'].forEach((s, i) => text(s, lerp(x0, x1, i / 4), y0 + 90, { weight: 600, size: 22, align: 'center', color: MUTE }));
+  ['pot', 'jeon', 'jjuk', 'spoon', 'store'].forEach((key, i) => {
+    const u = i / 4; if (u > k + 0.06) return; const [x, y] = f(u);
+    photoCard(IMG[key], x, y - 70, 130, 100, { r: 10, s: eOutBack(prog(k, u - 0.06, u + 0.04)), shadowBlur: 18 });
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1f8a4c'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.fill(); ctx.stroke();
+  });
+  const tk = eOutBack(prog(lt, 1.5, 1.9)); if (tk > 0) { const [x, y] = f(1); ctx.save(); ctx.translate(x - 90, y - 190); ctx.scale(tk, tk); fillRR(-70, -26, 140, 52, 26, RED); text('미슐랭 맛집', 0, 9, { weight: 800, size: 22, align: 'center' }); ctx.restore(); }
+}
+function sLogo(lt) {
+  white();
+  const k = eOutBack(prog(lt, 0.05, 0.5));
+  ctx.save(); ctx.translate(W / 2, H / 2 - 120); ctx.scale(k, k); bowlIcon(0, 0, 1.5, INK, 9); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(0, H / 2 - 20, W, 200); ctx.clip();
+  text(SJ.brand, W / 2, H / 2 + 80 + (1 - eOutCubic(prog(lt, 0.3, 0.8))) * 120, { weight: 600, size: 110, align: 'center', color: INK, ls: -2 }); ctx.restore();
+  riseText('북촌 삼청동 · 미슐랭 맛집', W / 2, H / 2 + 160, prog(lt, 0.8, 1.2), { weight: 600, size: 34, align: 'center', color: INK });
+  riseText(`${SJ.addr} · ${SJ.tel}`, W / 2, H / 2 + 210, prog(lt, 1.0, 1.4), { weight: 500, size: 24, align: 'center', color: MUTE });
+}
+const SCENES = [[T.intro, sIntro], [T.s1, s1], [T.s2, s2], [T.s3, s3], [T.s4, s4], [T.s5, s5], [T.logo, sLogo]];
+window.render = t => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.globalCompositeOperation = 'source-over';
+  for (const [[a, b], fn] of SCENES) if (t >= a && t < b) { fn(t - a, t, b - a); break; }
+  Object.values(T).slice(1).forEach(([a]) => { const k = 1 - clamp(Math.abs(t - a) / 0.15); if (k > 0) { ctx.fillStyle = `rgba(255,255,255,${k * 0.7})`; ctx.fillRect(0, 0, W, H); } });
+  if (t > DUR - 0.4) { ctx.fillStyle = `rgba(255,255,255,${(t - DUR + 0.4) / 0.4})`; ctx.fillRect(0, 0, W, H); }
+};
+</script></body></html>

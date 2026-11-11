@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>삼청동수제비 · 레퍼런스 9 (퀴즈)</title>
+<style>html,body{margin:0;background:#000}canvas{display:block;max-width:100vw;max-height:100vh;margin:auto}</style></head>
+<body><canvas id="c"></canvas>
+<script>window.CONF = { w: 1080, h: 1920, dur: 15 };</script>
+<script src="../_lib/lib.js"></script>
+<script>
+/* 레퍼런스 9 문법(퀴즈 앱): 자줏빛 햇살 무늬 · 큰 명조 제목 · 사진 문제 카드 + 초 세기 · 키보드로 답 쓰기 · 네 갈래 고르기 + 색종이 · 기울어진 알록달록 카드 벽 · 순위표 → 리뷰판 · 사진 스티커와 로고 */
+const PLUM = '#3a0d2a', PLUM2 = '#4d1438', GOLD = '#F8D58A', CREAM = '#FBF3E8', ORANGE = '#F4B266';
+const T = { a: [0, 2.0], b: [2.0, 4.6], c: [4.6, 6.4], d: [6.4, 8.6], e: [8.6, 10.6], f: [10.6, 12.6], g: [12.6, 15] };
+const SER = (size, color, o = {}) => ({ fam: FAM.serif, weight: 700, size, color, ...o });
+function burst(t, a = PLUM, b = PLUM2) { sunburst(W / 2, H * 0.4, 36, a, b, t * 0.08); }
+function sA(lt, t) {
+  burst(t);
+  const k1 = eOutBack(prog(lt, 0.05, 0.45)), k2 = eOutBack(prog(lt, 0.55, 0.9)), k3 = eOutBack(prog(lt, 0.9, 1.3));
+  ctx.save(); ctx.translate(W / 2, 640); ctx.scale(k1, k1); text('수제비', 0, 0, SER(200, GOLD, { align: 'center', shadow: 'rgba(0,0,0,0.35)', shadowBlur: 20 })); ctx.restore();
+  ctx.save(); ctx.translate(W / 2, 830); ctx.scale(k2, k2); text('아니면', 0, 0, SER(90, '#f7c9df', { align: 'center' })); ctx.restore();
+  ctx.save(); ctx.translate(W / 2, 1080); ctx.scale(k3, k3); text('감자전 ?', 0, 0, SER(200, GOLD, { align: 'center', shadow: 'rgba(0,0,0,0.35)', shadowBlur: 20 })); ctx.restore();
+}
+function qCard(lt, t, y0, sec) {
+  photoCard(IMG.pot, W / 2, y0 + 250, 880, 520, { r: 40, rot: -0.02, border: 10, borderColor: '#fff', after: (w, h) => { fillRR(-w / 2 + 30, h / 2 - 90, 280, 64, 32, ORANGE); text('항아리 수제비', -w / 2 + 170, h / 2 - 46, { weight: 800, size: 30, align: 'center', color: PLUM }); } });
+  shadowed(() => fillRR(110, y0 + 520, 860, 420, 40, '#fff'), 'rgba(0,0,0,0.25)', 40, 16);
+  text(String(sec), 170, y0 + 700, SER(150, '#1b1b1b'));
+  ctx.save(); ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(170 + measure(String(sec), SER(150)) + 40, y0 + 590, 18, 0, TAU); ctx.stroke(); ctx.restore();
+  fillRR(170, y0 + 760, 740, 6, 3, '#eee'); fillRR(170, y0 + 760, 740 * (sec / 10), 6, 3, '#1b1b1b');
+  text('# 1 / 3', 170, y0 + 820, { weight: 600, size: 30, color: '#999' });
+  text(typed('수제비 국물은 무슨 육수?', prog(lt, 0.6, 1.4)), 170, y0 + 885, SER(50, '#1b1b1b'));
+}
+function sB(lt, t) {
+  ctx.fillStyle = CREAM; ctx.fillRect(0, 0, W, H); glow(W / 2, H / 2, 900, 'rgba(244,178,102,0.25)');
+  text('한 문제.', W / 2, 230, SER(110, '#1b1b1b', { align: 'center', alpha: prog(lt, 0, 0.3) }));
+  const sec = Math.max(1, 10 - Math.floor(lt * 2.4));
+  const k = eOutBack(prog(lt, 0.1, 0.6)); ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(k, k); ctx.translate(-W / 2, -H / 2); qCard(lt, t, 360, sec); ctx.restore();
+  const pk = eOutBack(prog(lt, 1.4, 1.8)); ctx.save(); ctx.translate(W / 2, 1460); ctx.scale(pk, pk); fillRR(-250, -46, 120, 70, 14, '#1b1b1b'); text(`${sec}초`, -190, 2, { weight: 800, size: 38, align: 'center' }); text('안에 맞혀 보세요.', 60, 2, { weight: 700, size: 40, align: 'center', color: '#1b1b1b' }); ctx.restore();
+}
+function keyboard(y, t, pressed) {
+  shadowed(() => fillRR(80, y, W - 160, 470, 36, '#d6d4d8'), 'rgba(0,0,0,0.2)', 30, 10);
+  const rows = ['ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ', 'ㅁㄴㅇㄹㅎㅗㅓㅏㅣ', 'ㅋㅌㅊㅍㅠㅜㅡ'];
+  rows.forEach((r, ri) => [...r].forEach((c, ci) => {
+    const n = r.length, kw = 76, x = W / 2 - (n * (kw + 10)) / 2 + ci * (kw + 10), yy = y + 30 + ri * 106, on = c === pressed;
+    fillRR(x, yy, kw, 92, 12, on ? '#fff' : '#f9f8fa'); text(c, x + kw / 2, yy + 60, { weight: 600, size: 38, align: 'center', color: '#222' });
+    if (on) { fillRR(x - 12, yy - 110, kw + 24, 110, 16, '#fff'); text(c, x + kw / 2, yy - 38, { weight: 600, size: 56, align: 'center', color: '#222' }); }
+  }));
+  fillRR(260, y + 360, W - 520, 80, 14, '#f9f8fa');
+}
+function sC(lt, t) {
+  ctx.fillStyle = ORANGE; ctx.fillRect(0, 0, W, H); glow(W / 2, 400, 800, 'rgba(255,240,210,0.6)');
+  text('정답 쓰기', W / 2, 300, SER(130, '#2a0b1e', { align: 'center' }));
+  text('보기 없이, 직접 써 보세요.', W / 2, 390, { weight: 700, size: 40, align: 'center', color: '#2a0b1e' });
+  shadowed(() => fillRR(110, 560, W - 220, 130, 30, '#fff'), 'rgba(0,0,0,0.15)', 30, 10); rr(110, 560, W - 220, 130, 30); ctx.strokeStyle = '#2a0b1e'; ctx.lineWidth = 5; ctx.stroke();
+  const ans = '멸치 육수', s = typed(ans, prog(lt, 0.2, 1.2)); text(s, 160, 646, { weight: 600, size: 50, color: '#1b1b1b' }); if (lt < 1.3) caret(160 + measure(s, { weight: 600, size: 50 }), 646, 50, t, '#1b1b1b');
+  const keys = 'ㅁㅕㄹㅊㅣㅇㅠㄱㅅㅜ'; keyboard(1100, t, lt < 1.25 ? keys[Math.min(keys.length - 1, Math.floor(prog(lt, 0.2, 1.2) * keys.length))] : '');
+  const ok = eOutBack(prog(lt, 1.25, 1.55)); if (ok > 0) { ctx.save(); ctx.translate(W - 230, 625); ctx.scale(ok, ok); fillRR(-90, -42, 180, 84, 42, '#2f9e57'); text('정답!', 0, 16, { weight: 800, size: 40, align: 'center' }); ctx.restore(); }
+  text('수제비 · 멸치 육수 · 얇은 반죽', W / 2, 800, { weight: 700, size: 40, align: 'center', color: '#2a0b1e', alpha: prog(lt, 1.3, 1.6) });
+}
+function sD(lt, t) {
+  sunburst(W / 2, H * 0.3, 36, '#5a1640', '#4a1036', t * 0.08);
+  text('고르기', W / 2, 330, SER(150, GOLD, { align: 'center' }));
+  text('# 2 / 3', W / 2, 430, { weight: 600, size: 34, align: 'center', color: '#f7c9df' });
+  text('가게에서 가장 가까운 역은?', W / 2, 640, SER(64, '#fff', { align: 'center', alpha: prog(lt, 0.05, 0.3) }));
+  const ch = ['경복궁역', '안국역', '종각역', '광화문역'];
+  const pick = prog(lt, 1.0, 1.2);
+  ch.forEach((s, i) => {
+    const k = eOutBack(prog(lt, 0.2 + i * 0.1, 0.5 + i * 0.1)); const x = W / 2 + ((i % 2) ? 220 : -220), y = 860 + Math.floor(i / 2) * 230, ok = i === 1 && pick > 0, no = i !== 1 && pick > 0;
+    ctx.save(); ctx.translate(x, y); ctx.scale(k * (ok ? 1 + 0.08 * Math.sin(pick * Math.PI) : 1), k); ctx.globalAlpha *= no ? 0.45 : 1;
+    shadowed(() => fillRR(-200, -80, 400, 160, 36, ok ? '#38d26e' : 'rgba(255,255,255,0.16)'), 'rgba(0,0,0,0.3)', 30, 10);
+    rr(-200, -80, 400, 160, 36); ctx.strokeStyle = ok ? '#fff' : 'rgba(255,255,255,0.35)'; ctx.lineWidth = 4; ctx.stroke();
+    text(s, 0, 18, { weight: 800, size: 52, align: 'center', color: '#fff' }); ctx.restore();
+  });
+  text(SJ.subway, W / 2, 1420, { weight: 700, size: 42, align: 'center', color: GOLD, alpha: prog(lt, 1.2, 1.5) });
+  const pk = eOutBack(prog(lt, 1.3, 1.7)); ctx.save(); ctx.translate(W / 2, 1640); ctx.rotate(-0.04); ctx.scale(pk, pk); fillRR(-230, -70, 460, 140, 70, GOLD); text('+1 그릇', 0, 26, { weight: 900, size: 80, align: 'center', color: '#2a0b1e', fam: FAM.black }); ctx.restore();
+  confetti(t, T.d[0] + 1.05, W * 0.7, 1050, 90, [GOLD, '#fff', '#ff6fae', '#38d26e'], { speed: 1300, size: 18 });
+}
+function sE(lt, t) {
+  ctx.fillStyle = '#f3e7f0'; ctx.fillRect(0, 0, W, H);
+  const cards = [['수제비', '#cfe9b8', 'spoon'], ['감자전', '#f6c88e', 'jeon'], ['쭈꾸미', '#f3b7cf', 'jjuk'], ['김치', '#bcd3f5', 'kimchi'], ['항아리', '#f6e08e', 'pot'], ['가게', '#d8c6f2', 'store'], ['호박', '#f6c88e', ''], ['당근', '#cfe9b8', ''], ['멸치 육수', '#bcd3f5', 'spoon'], ['김가루', '#f3b7cf', ''], ['바지락', '#f6e08e', ''], ['부추', '#d8c6f2', '']];
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-0.22); const sh = lt * 120;
+  for (let r = -3; r <= 3; r++) for (let c = -2; c <= 2; c++) {
+    const i = ((r + 3) * 5 + c + 2) % cards.length, [s, col, key] = cards[i], x = c * 330 + (r % 2) * 60, y = r * 400 - sh * (c % 2 ? 1 : -1);
+    shadowed(() => fillRR(x - 150, y - 180, 300, 360, 30, col), 'rgba(0,0,0,0.15)', 20, 8);
+    if (key) photoCard(IMG[key], x, y - 40, 230, 200, { r: 20, shadow: false });
+    else { ctx.save(); ctx.globalAlpha = 0.25; text(s.slice(0, 1), x, y + 20, SER(200, '#2a0b1e', { align: 'center' })); ctx.restore(); }
+    text(s, x - 120, y + 140, { weight: 800, size: 36, color: '#2a0b1e' });
+  }
+  ctx.restore();
+  const k = eOutBack(prog(lt, 0.2, 0.6)); ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(k, k); ctx.rotate(-0.03);
+  shadowed(() => fillRR(-400, -150, 800, 300, 40, '#fff'), 'rgba(0,0,0,0.3)', 40, 16); rr(-400, -150, 800, 300, 40); ctx.strokeStyle = '#2a0b1e'; ctx.lineWidth = 6; ctx.stroke();
+  text('메뉴가', 0, -20, SER(90, '#1b1b1b', { align: 'center' })); text('한가득.', 0, 90, SER(90, '#9b1f5c', { align: 'center' })); ctx.restore();
+}
+function sF(lt, t) {
+  burst(t);
+  text('오늘도,', W / 2, 380, SER(100, '#fff', { align: 'center', alpha: prog(lt, 0, 0.3) }));
+  text('리뷰가 말하는 맛.', W / 2, 500, SER(100, GOLD, { align: 'center', alpha: prog(lt, 0.1, 0.4) }));
+  const k = eOutExpo(prog(lt, 0.2, 0.8));
+  shadowed(() => fillRR(90, 640 + (1 - k) * 200, W - 180, 900, 40, '#fff'), 'rgba(0,0,0,0.3)', 40, 16);
+  [['spoon', 0], ['jeon', 2], ['pot', 1], ['kimchi', 4], ['store', 6]].forEach(([key, ri], i) => {
+    const kk = eOutCubic(prog(lt, 0.5 + i * 0.12, 0.8 + i * 0.12)); const y = 700 + i * 166 + (1 - k) * 200;
+    let q = SJ.reviews[ri]; if ([...q].length > 17) q = [...q].slice(0, 16).join('') + '…';
+    ctx.save(); ctx.globalAlpha = kk; if (i === 0) fillRR(110, y - 10, W - 220, 150, 24, '#ffe4b8');
+    text('“', 150, y + 100, SER(90, '#9b1f5c'));
+    photoCard(IMG[key], 260, y + 65, 110, 110, { r: 55, shadow: false });
+    text(q, 340, y + 70, fit(q, { weight: 700, size: 38, color: '#1b1b1b' }, 600)); text('방문자 리뷰', 340, y + 118, { weight: 600, size: 26, color: '#999' });
+    ctx.restore();
+  });
+}
+function sG(lt, t) {
+  ctx.fillStyle = ORANGE; ctx.fillRect(0, 0, W, H); glow(W / 2, H / 2, 900, 'rgba(255,240,210,0.7)');
+  [['pot', 170, 280, -0.2], ['spoon', 540, 190, 0.08], ['jeon', 910, 300, 0.18], ['jjuk', 170, 1650, 0.14], ['store', 540, 1730, -0.06], ['kimchi', 910, 1640, -0.16]].forEach(([key, x, y, r], i) => {
+    const k = eOutBack(prog(lt, 0.05 * i, 0.4 + 0.05 * i)); photoCard(IMG[key], x, y + Math.sin(t * 2 + i) * 10, 230, 230, { r: 115, rot: r + Math.sin(t + i) * 0.05, s: k, border: 8, borderColor: '#fff' });
+  });
+  const k = eOutBack(prog(lt, 0.2, 0.6)); ctx.save(); ctx.translate(W / 2, 620); ctx.scale(k, k); ctx.rotate(t * 0.3);
+  ctx.fillStyle = '#4a1036'; ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * TAU / 8, r = i % 2 ? 40 : 140; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(W / 2, 630); bowlIcon(0, 10, 0.55 * k, GOLD, 8); ctx.restore();
+  text(SJ.brand, W / 2, 920, SER(130, '#2a0b1e', { align: 'center', alpha: prog(lt, 0.3, 0.6) }));
+  text('수제비 아니면 감자전?', W / 2, 1040, { weight: 700, size: 52, align: 'center', color: '#2a0b1e', alpha: prog(lt, 0.5, 0.8) });
+  text('둘 다 드셔 보세요.', W / 2, 1110, { weight: 700, size: 52, align: 'center', color: '#2a0b1e', alpha: prog(lt, 0.6, 0.9) });
+  const pk = eOutBack(prog(lt, 0.8, 1.2)); ctx.save(); ctx.translate(W / 2, 1290); ctx.scale(pk, pk); fillRR(-360, -50, 720, 100, 50, '#2a0b1e'); text(SJ.addr, 0, 14, { weight: 700, size: 38, align: 'center', color: '#fff' }); ctx.restore();
+  text(`미슐랭 맛집 · ${SJ.tel}`, W / 2, 1400, { weight: 700, size: 34, align: 'center', color: '#2a0b1e', alpha: prog(lt, 1.0, 1.4) });
+  confetti(t, T.g[0] + 0.3, W / 2, 620, 70, ['#2a0b1e', '#fff', '#ff6fae'], { speed: 1000, size: 16, life: 2.0 });
+}
+const SCENES = [[T.a, sA], [T.b, sB], [T.c, sC], [T.d, sD], [T.e, sE], [T.f, sF], [T.g, sG]];
+window.render = t => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.globalCompositeOperation = 'source-over';
+  for (const [[a, b], fn] of SCENES) if (t >= a && t < b) { fn(t - a, t, b - a); break; }
+  Object.values(T).slice(1).forEach(([a]) => { const k = 1 - clamp(Math.abs(t - a) / 0.12); if (k > 0) { ctx.fillStyle = `rgba(255,255,255,${k * 0.6})`; ctx.fillRect(0, 0, W, H); } });
+  if (t > DUR - 0.4) { ctx.fillStyle = `rgba(0,0,0,${(t - DUR + 0.4) / 0.4})`; ctx.fillRect(0, 0, W, H); }
+  grain(t, 0.04);
+};
+</script></body></html>

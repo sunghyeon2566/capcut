@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>삼청동수제비 · 레퍼런스 3 (유리)</title>
+<style>html,body{margin:0;background:#000}canvas{display:block;max-width:100vw;max-height:100vh;margin:auto}</style></head>
+<body><canvas id="c"></canvas>
+<script>window.CONF = { w: 1080, h: 1920, dur: 30 };</script>
+<script src="../_lib/lib.js"></script>
+<script>
+/* 레퍼런스 3 문법: 청록 · 파랑 · 보라가 흐르는 바탕 · 젖빛 유리 카드 · 검색 목록 · 입력창 · 패널 네 칸 · 사진 격자 · 알림과 말풍선 · 밤 시계 · 로고 */
+const T = { a: [0, 4.5], b: [4.5, 8.5], c: [8.5, 12], d: [12, 15.5], e: [15.5, 18.5], f: [18.5, 24.5], g: [24.5, 27.5], h: [27.5, 30] };
+const INK = '#0f1c26', TEAL = '#38d6e8';
+function sky(t, mood = 0) {   // 흐르는 그라데이션 + 흐린 빛 덩어리
+  const g = ctx.createLinearGradient(0, 0, W * 0.4, H);
+  g.addColorStop(0, mood ? '#122438' : '#3fc9db'); g.addColorStop(0.55, mood ? '#1b2a4a' : '#4a8fd6'); g.addColorStop(1, mood ? '#0c1222' : '#6a63c9');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  [[0.2, 0.25, '#7ff3ff'], [0.85, 0.5, '#a58bff'], [0.4, 0.85, '#53b6ff']].forEach(([x, y, c], i) => {
+    glow(W * (x + 0.08 * Math.sin(t * 0.3 + i)), H * (y + 0.05 * Math.cos(t * 0.25 + i * 2)), 620, c + (mood ? '33' : '88'));
+  });
+}
+const card = (x, y, w, h, r, a, content, dark) => glass(x, y, w, h, r, { alpha: a, fill: dark ? 'rgba(18,30,44,0.78)' : 'rgba(255,255,255,0.22)', content, shadowColor: 'rgba(10,20,40,0.25)' });
+const T1 = (s, x, y, size, o = {}) => text(s, x, y, { weight: o.w ?? 700, size, color: o.c ?? '#fff', align: o.a, alpha: o.alpha, fam: o.fam });
+
+function sA(lt, t) {
+  sky(t);
+  // 프로필 알약
+  const k = eOutBack(prog(lt, 0.1, 0.6));
+  ctx.save(); ctx.translate(W / 2, 250); ctx.scale(k, k); ctx.translate(-W / 2, -250);
+  card(150, 190, 780, 120, 60, 1, () => {
+    photoCard(IMG.pot, 220, 250, 76, 76, { r: 38, shadow: false });
+    T1('@삼청동수제비', 280, 245, 34, { c: INK, w: 800 }); T1('북촌 삼청동 · 미슐랭 맛집', 280, 284, 24, { c: 'rgba(15,28,38,0.6)', w: 600 });
+    T1('영업', 860, 238, 20, { c: 'rgba(15,28,38,0.55)', a: 'right', w: 600 }); T1('~20:00', 860, 278, 30, { c: INK, a: 'right', w: 800 });
+  });
+  ctx.restore();
+  '월화수목금토일'.split('').forEach((d, i) => {
+    const kk = eOutBack(prog(lt, 0.5 + i * 0.07, 0.85 + i * 0.07)); if (kk <= 0) return;
+    const x = 255 + i * 95, y = 365;
+    ctx.save(); ctx.translate(x, y); ctx.scale(kk, kk); fillRR(-30, -30, 60, 60, 30, i === 2 ? TEAL : 'rgba(255,255,255,0.9)'); T1(d, 0, 10, 26, { c: i === 2 ? '#fff' : INK, a: 'center', w: 800 }); ctx.restore();
+  });
+  // 기울어진 메뉴 카드 위로 지나가는 유리 구슬(돋보기)
+  ctx.save(); ctx.translate(W / 2, H * 0.6); ctx.rotate(-0.38);
+  ['항아리 수제비', '감자전', '쭈꾸미', '김치', '수제비'].forEach((m, i) => {
+    const y = -420 + i * 200 + (lt * 40) % 200 - 100;
+    card(-560, y, 1120, 160, 30, 0.9, () => { photoCard(IMG[SJ.menu.find(x => x[0] === m)?.[2] || 'pot'], -440, y + 80, 120, 120, { r: 22, shadow: false }); T1(m, -350, y + 95, 48, { w: 800 }); });
+  });
+  ctx.restore();
+  const bx = W / 2 + Math.sin(lt * 0.9) * 120, by = H * 0.6 + Math.cos(lt * 0.7) * 60, br = 230;
+  ctx.save(); ctx.beginPath(); ctx.arc(bx, by, br, 0, TAU); ctx.clip();
+  cover(IMG.pot, bx - br, by - br, br * 2, br * 2, 1.3, 0.66, 0.5); ctx.restore();
+  ctx.save(); const rg = ctx.createRadialGradient(bx - 70, by - 90, 20, bx, by, br); rg.addColorStop(0, 'rgba(255,255,255,0.55)'); rg.addColorStop(0.4, 'rgba(255,255,255,0.05)'); rg.addColorStop(1, 'rgba(255,255,255,0.35)');
+  ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(bx, by, br, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 4; ctx.stroke(); ctx.restore();
+  fillRR(bx + 100, by - 190, 110, 46, 23, '#2ee6a0'); T1('대표', bx + 155, by - 158, 24, { a: 'center', w: 800 });
+  card(W / 2 - 210, H - 300, 420, 120, 30, prog(lt, 1.2, 1.6), () => { T1('오늘의 한 그릇', W / 2 - 180, H - 252, 22, { c: 'rgba(255,255,255,0.75)', w: 600 }); T1('항아리 수제비', W / 2 - 180, H - 208, 40, { w: 800 }); }, true);
+}
+function sB(lt, t) {
+  sky(t);
+  T1('삼청동수제비  메뉴', W / 2, 200, 40, { a: 'center', w: 800, alpha: prog(lt, 0, 0.4) });
+  text('한 그릇', 60, 420, { weight: 800, size: 230, color: 'rgba(255,255,255,0.12)' });
+  const k = eOutExpo(prog(lt, 0.1, 0.7)), x = 70, y = 520 + (1 - k) * 80, w = 650, h = 720;
+  const sel = Math.min(4, Math.floor(prog(lt, 0.9, 3.4) * 5));
+  card(x, y, w, h, 34, k, () => {
+    fillRR(x + 24, y + 24, w - 48, 74, 20, 'rgba(255,255,255,0.08)'); ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x + 58, y + 58, 13, 0, TAU); ctx.moveTo(x + 67, y + 67); ctx.lineTo(x + 78, y + 78); ctx.stroke(); ctx.restore(); T1(typed('메뉴 찾기...', prog(lt, 0.4, 1.0)), x + 96, y + 72, 30, { c: 'rgba(255,255,255,0.7)', w: 500 });
+    T1('방문 리뷰에 나온 메뉴', x + 32, y + 140, 22, { c: 'rgba(255,255,255,0.5)', w: 600 });
+    SJ.menu.forEach(([m, d], i) => {
+      const yy = y + 170 + i * 104;
+      if (i === sel) fillRR(x + 18, yy, w - 36, 92, 18, 'rgba(56,214,232,0.28)');
+      T1(m, x + 44, yy + 58, 36, { w: 700 }); T1(d.split(' · ')[0], x + w - 40, yy + 58, 24, { c: 'rgba(255,255,255,0.55)', a: 'right', w: 500 });
+    });
+  }, true);
+  const key = SJ.menu[sel][2];
+  photoCard(IMG[key], 860, 860, 380, 560, { r: 30, rot: 0.06, s: eOutBack(prog(lt, 0.6, 1.1)), border: 4, borderColor: 'rgba(255,255,255,0.8)' });
+}
+function sC(lt, t) {
+  sky(t);
+  T1('줄 서서 먹는 이유,', 80, 300, 70, { w: 800, alpha: prog(lt, 0, 0.4) });
+  T1('하나씩 담아 볼까요.', 80, 390, 70, { w: 800, c: '#e6fbff', alpha: prog(lt, 0.15, 0.55) });
+  const q = '삼청동 수제비 맛집 알려줘';
+  card(70, 520, W - 140, 120, 60, prog(lt, 0.2, 0.5), () => {
+    ctx.save(); ctx.fillStyle = TEAL; ctx.translate(132, 584); ctx.rotate(Math.PI / 4); ctx.fillRect(-10, -10, 20, 20); ctx.restore(); T1(typed(q, prog(lt, 0.4, 1.6)), 175, 596, 36, { c: INK, w: 600 });
+    if (lt < 1.7) caret(175 + measure(typed(q, prog(lt, 0.4, 1.6)), { weight: 600, size: 36 }), 596, 36, t, INK);
+    fillRR(W - 190, 545, 70, 70, 35, TEAL); T1('↑', W - 155, 594, 36, { a: 'center', w: 800 });
+  });
+  const keys = ['spoon', 'jeon', 'jjuk', 'kimchi', 'pot', 'store', 'spoon'];
+  '월화수목금토일'.split('').forEach((d, i) => {
+    const x = 80 + i * 134, y = 760, kk = eOutBack(prog(lt, 1.8 + i * 0.12, 2.2 + i * 0.12));
+    card(x, y, 118, 260, 20, 0.8, () => {}, false);
+    if (kk > 0) photoCard(IMG[keys[i]], x + 59, y + 110, 108, 200, { r: 16, s: kk, shadow: false });
+    T1(d, x + 59, y + 300, 26, { a: 'center', w: 700, c: 'rgba(255,255,255,0.8)' });
+  });
+  card(80, 1150, W - 160, 180, 30, prog(lt, 2.6, 3.0), () => {
+    T1('“양도 항아리 가득 나오고', 120, 1225, 38, { w: 700 }); T1('깨끗하게 비웠음:)” — 방문 리뷰', 120, 1285, 34, { w: 600, c: 'rgba(255,255,255,0.8)' });
+  }, true);
+}
+function sD(lt, t) {
+  sky(t, 1);
+  T1('삼청동수제비', W / 2, 250, 38, { a: 'center', w: 800, alpha: prog(lt, 0, 0.4) });
+  const tiles = [['재료', '바지락 · 호박 · 부추', '당근 · 김가루'], ['육수', '멸치 육수', '깊고 진하게'], ['반죽', '얇은 수제비', '쫄깃한 식감'], ['곁들임', '김치 · 감자전', '노릇노릇 바삭']];
+  tiles.forEach(([a, b, c], i) => {
+    const kk = eOutExpo(prog(lt, 0.15 + i * 0.15, 0.7 + i * 0.15));
+    const x = 70 + (i % 2) * 480, y = 420 + Math.floor(i / 2) * 520 + (1 - kk) * 60;
+    card(x, y, 460, 480, 32, kk, () => {
+      fillRR(x + 34, y + 44, 12, 34, 6, TEAL); T1(a, x + 60, y + 72, 36, { w: 800 });
+      if (i === 1) { for (let j = 0; j < 22; j++) { const hh = 30 + 90 * Math.abs(Math.sin(j * 0.9 + t * 4)); fillRR(x + 40 + j * 18, y + 230 - hh / 2, 10, hh, 5, TEAL); } }
+      else photoCard(IMG[['kimchi', 'pot', 'spoon', 'jeon'][i]], x + 230, y + 230, 390, 200, { r: 20, shadow: false });
+      T1(b, x + 34, y + 390, 36, { w: 700 }); T1(c, x + 34, y + 440, 28, { w: 500, c: 'rgba(255,255,255,0.65)' });
+    }, true);
+  });
+  const ck = eOutBack(prog(lt, 0.9, 1.4));
+  ctx.save(); ctx.translate(W / 2, 940); ctx.scale(ck, ck); fillRR(-70, -70, 140, 140, 70, '#0d1824'); ctx.strokeStyle = TEAL; ctx.lineWidth = 4; rr(-70, -70, 140, 140, 70); ctx.stroke(); bowlIcon(0, 6, 0.85, '#fff', 6); ctx.restore();
+}
+function sE(lt, t, d) {
+  sky(t, 1);
+  const z = lerp(1.6, 0.85, eInOutCubic(prog(lt, 0, d)));
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.rotate(-0.08);
+  const keys = ['pot', 'spoon', 'jeon', 'jjuk', 'kimchi', 'store'];
+  for (let r = -5; r <= 5; r++) for (let c = -3; c <= 3; c++) {
+    const i = (r * 7 + c + 100), key = keys[i % keys.length];
+    photoCard(IMG[key], c * 250, r * 330, 230, 310, { r: 22, shadow: false, z: 1.1 + hash(i) * 0.4, fx: hash(i + 2), alpha: 0.95 });
+    fillRR(c * 250 - 100, r * 330 + 120, 200, 10, 5, 'rgba(255,255,255,0.35)'); fillRR(c * 250 - 100, r * 330 + 120, 200 * hash(i * 3), 10, 5, TEAL);
+  }
+  ctx.restore();
+  card(W / 2 - 330, H / 2 - 110, 660, 220, 40, prog(lt, 0.6, 1.0), () => { T1('수제비 · 감자전 · 쭈꾸미', W / 2, H / 2 - 20, 42, { a: 'center', w: 800 }); T1('방문 리뷰에 나온 메뉴', W / 2, H / 2 + 50, 30, { a: 'center', w: 600, c: 'rgba(255,255,255,0.75)' }); }, true);
+}
+function bubble(x, y, w, s, k, mine, sub) {
+  if (k <= 0) return;
+  const lines = s.split('\n'), h = 70 + lines.length * 52 + (sub ? 40 : 0);
+  ctx.save(); ctx.globalAlpha = clamp(k * 2); ctx.translate(0, (1 - eOutBack(k)) * 40);
+  card(x, y, w, h, 34, 1, () => {
+    lines.forEach((l, i) => T1(l, x + 36, y + 70 + i * 52, 38, { c: mine ? INK : '#fff', w: 600 }));
+    if (sub) T1(sub, x + 36, y + h - 28, 26, { c: mine ? 'rgba(15,28,38,0.55)' : 'rgba(255,255,255,0.6)', w: 600 });
+  }, !mine);
+  if (!mine) { ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(x - 34, y + h - 30, 22, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
+function sF(lt, t) {
+  sky(t);
+  photoCard(IMG.pot, 260, 470, 380, 560, { r: 30, border: 3, borderColor: 'rgba(255,255,255,0.7)', s: eOutBack(prog(lt, 0, 0.5)),
+    after: (w, h) => { fillRR(-w / 2 + 18, -h / 2 + 18, 210, 46, 23, 'rgba(0,0,0,0.55)'); ctx.fillStyle = '#ff4d5a'; ctx.beginPath(); ctx.arc(-w / 2 + 44, -h / 2 + 41, 8, 0, TAU); ctx.fill(); T1('영업 중', -w / 2 + 64, -h / 2 + 51, 26, { w: 700 }); } });
+  card(510, 220, 500, 250, 36, prog(lt, 0.2, 0.6), () => { T1('~20:00', 550, 360, 110, { c: INK, w: 600, fam: FAM.pre }); T1('오늘 영업 종료까지', 556, 420, 30, { c: 'rgba(15,28,38,0.6)', w: 600 }); });
+  card(510, 520, 500, 240, 30, prog(lt, 0.4, 0.8), () => {
+    T1('삼청동수제비 · 오늘', 540, 570, 26, { c: 'rgba(255,255,255,0.75)', w: 600 });
+    [['#a78bfa', '반죽 빚기'], ['#34d399', '멸치 육수'], ['#fb923c', '항아리에 담기'], ['#38d6e8', '상에 올리기']].forEach(([c, s], i) => {
+      const kk = prog(lt, 0.7 + i * 0.25, 0.9 + i * 0.25); ctx.save(); ctx.globalAlpha = kk; ctx.fillStyle = c; ctx.beginPath(); ctx.arc(552, 620 + i * 40, 7, 0, TAU); ctx.fill(); T1(s, 575, 630 + i * 40, 28, { w: 600 }); ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(958, 620 + i * 40); ctx.lineTo(966, 628 + i * 40); ctx.lineTo(980, 610 + i * 40); ctx.stroke(); ctx.restore();
+    });
+  }, true);
+  bubble(120, 900, 640, '오늘 점심 어디 가?', prog(lt, 1.4, 1.8), true);
+  bubble(240, 1080, 760, '삼청동수제비!\n“수제비 국물 미쳤어요~~”', prog(lt, 2.2, 2.6), false, '방문 리뷰');
+  bubble(120, 1350, 700, '줄 서 있는데…?', prog(lt, 3.2, 3.6), true);
+  bubble(240, 1510, 780, '“줄 서는데 충분한\n명분이 있다!!”', prog(lt, 4.0, 4.4), false, '방문 리뷰');
+}
+function sG(lt, t) {
+  sky(t, 1);
+  for (let i = 0; i < 80; i++) { ctx.fillStyle = `rgba(255,255,255,${0.2 + hash(i) * 0.5})`; ctx.fillRect(hash(i * 3) * W, hash(i * 7) * H * 0.7, 2, 2); }
+  T1('삼청동수제비', W / 2, 220, 36, { a: 'center', w: 700, c: 'rgba(255,255,255,0.8)' });
+  T1('20:00', 90, 470, 170, { w: 600, alpha: prog(lt, 0, 0.4) }); T1('오늘의 마지막 한 그릇까지', 96, 540, 34, { w: 600, c: 'rgba(255,255,255,0.6)', alpha: prog(lt, 0.2, 0.6) });
+  ctx.save(); ctx.translate(W - 220, 400); ctx.fillStyle = '#f8f6e8'; ctx.shadowColor = 'rgba(255,255,230,0.6)'; ctx.shadowBlur = 40; ctx.beginPath(); ctx.arc(0, 0, 80, 0, TAU); ctx.arc(38, -24, 72, 0, TAU, true); ctx.fill('evenodd'); ctx.restore();
+  const k = eOutCubic(prog(lt, 0.3, 1.6));
+  ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(W / 2, 1020, 290, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = TEAL; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(W / 2, 1020, 290, -Math.PI / 2, -Math.PI / 2 + TAU * k); ctx.stroke(); ctx.restore();
+  T1('안국역', W / 2, 1000, 70, { a: 'center', w: 800 }); T1('1번 출구', W / 2, 1080, 56, { a: 'center', w: 700, c: '#bff6ff' });
+  card(90, 1450, W - 180, 110, 30, prog(lt, 1.0, 1.4), () => T1('주소   ' + SJ.addr, 130, 1520, 36, { w: 600 }), true);
+  card(90, 1590, W - 180, 110, 30, prog(lt, 1.3, 1.7), () => T1('전화   ' + SJ.tel, 130, 1660, 36, { w: 600 }), true);
+}
+function sH(lt, t) {
+  sky(t, 0);
+  ctx.save(); ctx.filter = 'blur(6px) brightness(0.8)';
+  const keys = ['pot', 'spoon', 'jeon', 'jjuk', 'kimchi', 'store'];
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 4; c++) photoCard(IMG[keys[(r * 4 + c) % 6]], 135 + c * 270, 140 + r * 290 - lt * 30, 250, 270, { r: 18, shadow: false, alpha: 0.55 });
+  ctx.restore();
+  ctx.fillStyle = 'rgba(30,110,160,0.35)'; ctx.fillRect(0, 0, W, H);
+  const k = eOutBack(prog(lt, 0.1, 0.6));
+  ctx.save(); ctx.translate(W / 2 - 400, H / 2 - 30); ctx.scale(k, k); fillRR(-62, -62, 124, 124, 62, '#0d1824'); bowlIcon(0, 6, 0.75, '#fff', 6); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(W / 2 - 315, 0, 760 * eOutCubic(prog(lt, 0.4, 1.0)), H); ctx.clip();
+  T1('삼청동수제비', W / 2 - 315, H / 2 + 5, 100, { w: 800 }); ctx.restore();
+  T1('북촌 삼청동 · 미슐랭 맛집', W / 2, H / 2 + 120, 40, { a: 'center', w: 600, alpha: prog(lt, 0.8, 1.2) });
+  const pk = eOutBack(prog(lt, 1.0, 1.5)); ctx.save(); ctx.translate(W / 2, H / 2 + 230); ctx.scale(pk, pk);
+  fillRR(-260, -45, 520, 90, 45, '#fff'); T1(SJ.addr, 0, 12, 32, { a: 'center', c: INK, w: 800 }); ctx.restore();
+  T1(SJ.tel, W / 2, H / 2 + 350, 30, { a: 'center', fam: FAM.mono, w: 400, c: 'rgba(255,255,255,0.85)', alpha: prog(lt, 1.3, 1.7) });
+}
+const SCENES = [[T.a, sA], [T.b, sB], [T.c, sC], [T.d, sD], [T.e, sE], [T.f, sF], [T.g, sG], [T.h, sH]];
+window.render = t => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.globalCompositeOperation = 'source-over';
+  for (const [[a, b], fn] of SCENES) if (t >= a && t < b) { fn(t - a, t, b - a); break; }
+  Object.values(T).slice(1).forEach(([a]) => { const k = 1 - clamp(Math.abs(t - a) / 0.22); if (k > 0) { ctx.save(); ctx.globalAlpha = k * 0.5; ctx.filter = `blur(${(k * 14).toFixed(1)}px)`; ctx.drawImage(cv, 0, 0); ctx.restore(); } });
+  if (t < 0.4) { ctx.fillStyle = `rgba(255,255,255,${1 - t / 0.4})`; ctx.fillRect(0, 0, W, H); }
+  if (t > DUR - 0.6) { ctx.fillStyle = `rgba(0,0,0,${(t - DUR + 0.6) / 0.6})`; ctx.fillRect(0, 0, W, H); }
+  grain(t, 0.04);
+};
+</script></body></html>

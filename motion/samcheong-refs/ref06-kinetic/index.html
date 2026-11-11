@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>삼청동수제비 · 레퍼런스 6 (색 블록 글자)</title>
+<style>html,body{margin:0;background:#000}canvas{display:block;max-width:100vw;max-height:100vh;margin:auto}</style></head>
+<body><canvas id="c"></canvas>
+<script>window.CONF = { w: 1920, h: 1080, dur: 15 };</script>
+<script src="../_lib/lib.js"></script>
+<script>
+/* 레퍼런스 6 문법(쇼릴): 위 작은 머리글 · 색 블록 화면마다 거대한 글자 + 외곽선 메아리 · 점 · 색종이 사각 · 사선으로 흐르는 글줄 · 필름 띠 · 얼룩이 모여 로고 */
+const PUR = '#5B3CF5', LIM = '#D6F53A', BLK = '#121212', CRM = '#F1EEE6', ORG = '#FF5A36';
+const CUTS = [0, 0.9, 1.9, 2.8, 3.8, 4.7, 5.6, 6.6, 8.5, 9.3, 11.2, 12.2, 15];
+const BIG = (size, color, o = {}) => ({ fam: FAM.black, weight: 900, size, color, ls: -4, ...o });
+function hud(t, dark) {
+  const c = dark ? CRM : BLK;
+  text('삼청동수제비', 64, 72, { weight: 800, size: 22, ls: 2, color: c });
+  text(`BUKCHON · SEOUL · ${String(Math.floor(t * 24)).padStart(4, '0')}`, W - 64, 72, { weight: 800, size: 22, ls: 2, align: 'right', color: dark ? LIM : c });
+}
+function echo(s, cx, cy, o, lt, color) {   // 외곽선 메아리 글자 (크게 · 옆으로 밀림)
+  ctx.save(); ctx.globalAlpha = 0.5;
+  [-1, 1].forEach(d => text(s, cx + d * (220 + 80 * lt), cy, { ...o, size: o.size * 1.18, color: 'none', stroke: color, strokeW: 2, align: 'center' }));
+  text(s, cx, cy, { ...o, size: o.size * 1.18, color: 'none', stroke: color, strokeW: 2, align: 'center' });
+  ctx.restore();
+}
+function popIn(lt) { return lerp(0.86, 1, eOutBack(prog(lt, 0, 0.35))); }
+function scaled(lt, fn) { const s = popIn(lt); ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(s, s); ctx.translate(-W / 2, -H / 2); fn(); ctx.restore(); }
+
+function c0(lt, t) { ctx.fillStyle = BLK; ctx.fillRect(0, 0, W, H); const r = 10 + 30 * eOutBack(prog(lt, 0.5, 0.85)); ctx.fillStyle = CRM; ctx.beginPath(); ctx.arc(W / 2, H / 2, r, 0, TAU); ctx.fill(); hud(t, 1); }
+function c1(lt, t) {
+  ctx.fillStyle = PUR; ctx.fillRect(0, 0, W, H);
+  echo('수제비', W / 2, H / 2 + 120, BIG(330), lt, 'rgba(241,238,230,0.75)');
+  scaled(lt, () => text('수제비', W / 2, H / 2 + 120, BIG(330, CRM, { align: 'center' })));
+  hud(t, 1);
+}
+function c2(lt, t) {
+  ctx.fillStyle = LIM; ctx.fillRect(0, 0, W, H);
+  echo('감자전', W / 2 + 60, H / 2 + 120, BIG(340), lt, 'rgba(18,18,18,0.7)');
+  const x = lerp(W / 2 + 140, W / 2 - 20, eOutCubic(prog(lt, 0, 0.8)));
+  text('감자전', x, H / 2 + 120, BIG(340, BLK, { align: 'center' }));
+  hud(t, 0);
+}
+function c3(lt, t) {
+  ctx.fillStyle = BLK; ctx.fillRect(0, 0, W, H);
+  riseText('그냥 한 그릇이', 260, H / 2 - 30, prog(lt, 0.05, 0.4), BIG(120, CRM, { ls: -2 }));
+  riseText('아닙니다.', 260, H / 2 + 110, prog(lt, 0.2, 0.55), BIG(120, CRM, { ls: -2 }));
+  hud(t, 1);
+}
+function c4(lt, t) {
+  ctx.fillStyle = CRM; ctx.fillRect(0, 0, W, H);
+  const o = BIG(130, BLK, { ls: -2 }), a = '줄 서서 ', b = '먹는';
+  riseText(a, 260, H / 2 - 20, prog(lt, 0, 0.3), o);
+  riseText(b, 260 + measure(a, o), H / 2 - 20, prog(lt, 0.12, 0.42), { ...o, color: ORG });
+  ctx.save(); ctx.beginPath(); ctx.rect(0, H / 2 + 10, W, 200); ctx.clip();
+  text('한 그릇.', 260, H / 2 + 140 + (1 - eOutCubic(prog(lt, 0.3, 0.75))) * 160, o); ctx.restore();
+  hud(t, 0);
+}
+const DOTS = [[-3, -1, BLK, 18], [-1, -1, BLK, 22], [1, -1, PUR, 20], [3, -1, ORG, 12], [-4, 0, LIM, 10], [-2, 0, BLK, 18], [0, 0, PUR, 34], [2, 0, ORG, 34], [4, 0, LIM, 18], [-3, 1, PUR, 10], [-1, 1, ORG, 20], [1, 1, LIM, 20], [3, 1, BLK, 10]];
+function c5(lt, t) {
+  ctx.fillStyle = CRM; ctx.fillRect(0, 0, W, H);
+  DOTS.forEach(([x, y, c, r], i) => { const k = eOutBack(prog(lt, 0.03 * i, 0.3 + 0.03 * i)); ctx.fillStyle = c; ctx.beginPath(); ctx.arc(W / 2 + x * 110 + Math.sin(t * 3 + i) * 6, H / 2 + y * 110, r * k, 0, TAU); ctx.fill(); });
+  hud(t, 0);
+}
+function c6(lt, t) {
+  ctx.fillStyle = CRM; ctx.fillRect(0, 0, W, H);
+  const cols = [PUR, LIM, ORG, BLK], k = prog(lt, 0, 0.5), out = prog(lt, 0.45, 0.9);
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 15; c++) {
+    const i = r * 15 + c, s = (24 + hash(i) * 26) * eOutBack(clamp(k * 2 - hash(i * 3))) * (1 - out * (0.6 + 0.4 * hash(i * 5)));
+    if (s <= 1) continue;
+    ctx.save(); ctx.translate(90 + c * 124, 120 + r * 140); ctx.rotate(hash(i * 7) * 0.8 + t * (hash(i) - 0.5)); ctx.fillStyle = cols[i % 4]; ctx.fillRect(-s / 2, -s / 2, s, s); ctx.restore();
+  }
+  const o = BIG(170, lerp(0, 1, out) > 0.5 ? BLK : 'rgba(18,18,18,0.35)', { ls: -2 });
+  const a = '수제비 ', x = '×', b = ' 미슐랭';
+  const wa = measure(a, o), wx = measure(x, o), wb = measure(b, o), x0 = W / 2 - (wa + wx + wb) / 2;
+  text(a, x0, H / 2 + 60, o); text(x, x0 + wa, H / 2 + 60, { ...o, color: ORG }); text(b, x0 + wa + wx, H / 2 + 60, o);
+  hud(t, 0);
+}
+function c7(lt, t) {
+  ctx.fillStyle = PUR; ctx.fillRect(0, 0, W, H);
+  const words = '항아리 수제비 • 감자전 • 쭈꾸미 • 멸치 육수 • 미슐랭 맛집 • ';
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-0.2);
+  for (let r = -4; r <= 4; r++) {
+    const filled = r % 2 === 0, o = BIG(120, filled ? (r % 4 === 0 ? CRM : LIM) : 'none', { ls: -2, stroke: filled ? null : 'rgba(241,238,230,0.8)', strokeW: 2 });
+    const w = measure(words, o), sp = (r % 2 ? -1 : 1) * 320, off = ((lt * sp + r * 300) % w + w) % w;
+    for (let k = -2; k <= 2; k++) text(words, -off + k * w - W, r * 150 + 40, o);
+  }
+  ctx.restore(); hud(t, 1);
+}
+function c8(lt, t) { ctx.fillStyle = BLK; ctx.fillRect(0, 0, W, H); hud(t, 1); }
+const STRIP = [['photo', 'pot'], ['char', '삼', PUR], ['char', '청', ORG], ['photo', 'jeon'], ['char', '동', LIM], ['char', '수', CRM], ['photo', 'jjuk'], ['char', '제', PUR], ['char', '비', ORG], ['photo', 'spoon']];
+function c9(lt, t) {
+  ctx.fillStyle = BLK; ctx.fillRect(0, 0, W, H);
+  const y = H / 2 - 100, h = 200, tw = 220, gap = 26;
+  ctx.fillStyle = '#1d1d1d'; ctx.fillRect(0, y - 40, W, h + 80);
+  for (let i = 0; i < 40; i++) { const x = (i * 64 - lt * 300) % (W + 64); fillRR(x, y - 30, 30, 16, 4, '#000'); fillRR(x, y + h + 14, 30, 16, 4, '#000'); }
+  const shift = lerp(260, -380, eInOutCubic(prog(lt, 0, 1.9)));
+  STRIP.forEach(([kind, v, c], i) => {
+    const x = 220 + i * (tw + gap) + shift, k = eOutBack(prog(lt, 0.05 * i, 0.3 + 0.05 * i));
+    ctx.save(); ctx.translate(x + tw / 2, y + h / 2); ctx.scale(k, k);
+    if (kind === 'photo') { ctx.beginPath(); ctx.rect(-tw / 2, -h / 2, tw, h); ctx.clip(); cover(IMG[v], -tw / 2, -h / 2, tw, h, 1.2); }
+    else { ctx.fillStyle = c; ctx.fillRect(-tw / 2, -h / 2, tw, h); text(v, 0, 54, BIG(150, c === CRM || c === LIM ? BLK : CRM, { align: 'center', ls: 0 })); }
+    ctx.restore();
+    text(String(1220 + i), x + 10, y + h - 10, { fam: FAM.mono, weight: 400, size: 14, color: 'rgba(255,255,255,0.5)' });
+  });
+  text('한 그릇  한 그릇', W / 2, y - 90, { weight: 800, size: 26, ls: 6, align: 'center', color: CRM, alpha: prog(lt, 0.2, 0.5) });
+  riseText('재료 하나하나에, 정성을.', W / 2, y + h + 150, prog(lt, 0.6, 1.0), { weight: 600, size: 46, align: 'center', color: CRM });
+  hud(t, 1);
+}
+function blob(cx, cy, r, t, seed) { ctx.beginPath(); for (let a = 0; a <= TAU + 0.01; a += 0.2) { const rr2 = r * (1 + 0.18 * Math.sin(a * 3 + t * 4 + seed) + 0.1 * Math.cos(a * 5 - t * 3)); const x = cx + Math.cos(a) * rr2, y = cy + Math.sin(a) * rr2; a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.fill(); }
+function c10(lt, t) {
+  ctx.fillStyle = CRM; ctx.fillRect(0, 0, W, H);
+  const k = eInOutCubic(prog(lt, 0, 1.0));
+  ctx.fillStyle = BLK;
+  [[-300, -200, 18], [-120, 160, 26], [180, -60, 30], [320, 220, 14], [40, -260, 12]].forEach(([x, y, r], i) => blob(W / 2 + x * (1 - k), H / 2 + y * (1 - k), lerp(r, 60, k), t, i));
+  hud(t, 0);
+}
+function c11(lt, t) {
+  ctx.fillStyle = CRM; ctx.fillRect(0, 0, W, H);
+  const k = eOutBack(prog(lt, 0, 0.5)), mv = eInOutCubic(prog(lt, 0.4, 0.9));
+  const ix = lerp(W / 2, W / 2 - 430, mv), iy = H / 2 - 30;
+  ctx.save(); ctx.translate(ix, iy); ctx.scale(k, k); fillRR(-70, -70, 140, 140, 30, BLK); bowlIcon(0, 6, 0.85, CRM, 7); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(ix + 100, 0, 1100 * eOutCubic(prog(lt, 0.6, 1.2)), H); ctx.clip();
+  text(SJ.brand, ix + 120, iy + 44, { weight: 600, size: 128, color: BLK, ls: -2 }); ctx.restore();
+  text(SJ.addr, W / 2, iy + 170, { weight: 700, size: 36, align: 'center', color: BLK, alpha: prog(lt, 1.1, 1.5) });
+  text(`미슐랭 맛집  ·  ${SJ.tel}`, W / 2, iy + 230, { weight: 800, size: 24, ls: 6, align: 'center', color: ORG, alpha: prog(lt, 1.3, 1.7) });
+  hud(t, 0);
+}
+const SC = [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11];
+window.render = t => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < SC.length; i++) if (t >= CUTS[i] && t < CUTS[i + 1]) { SC[i](t - CUTS[i], t, CUTS[i + 1] - CUTS[i]); break; }
+  if (t > DUR - 0.4) { ctx.fillStyle = `rgba(241,238,230,${(t - DUR + 0.4) / 0.4})`; ctx.fillRect(0, 0, W, H); }
+  grain(t, 0.04);
+};
+</script></body></html>
