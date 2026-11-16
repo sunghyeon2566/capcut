@@ -1,0 +1,4 @@
+out/sound.wav
+out/*.log
+out/still_*
+__pycache__/
