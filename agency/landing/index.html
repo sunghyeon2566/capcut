@@ -1,0 +1,744 @@
+<title>우리가게 광고영상</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="장비 · AI 구독료 · 대행 견적 걱정 없이. 2026년 12월 한 달만 우리 가게 광고영상 1편 무료.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 가게 간판(노란 형광 · 굵은 간판체) + 촬영 모니터(어두운 화면 틀 · REC 점) + 영수증(비용 이야기). 휴대폰에서 위에서 아래로 읽는 긴 한 줄 흐름 */
+:root {
+  --paper: #F3F4F6; --panel: #FFFFFF; --ink: #15171C; --muted: #5B6170; --line: #E1E4EA;
+  --sign: #FFC929; --sign-ink: #1A1500; --rec: #E2412E; --screen: #101319; --ok: #1F9D61; --receipt: #FFFDF6;
+  --display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --body: "IBM Plex Sans KR", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1116; --panel: #171A21; --ink: #EDEFF3; --muted: #9AA1AE; --line: #2A2F39;
+  --sign: #FFCB33; --sign-ink: #1A1500; --rec: #F0553F; --screen: #07080B; --ok: #3CC584; --receipt: #1D1F24; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0F1116; --panel: #171A21; --ink: #EDEFF3; --muted: #9AA1AE; --line: #2A2F39;
+  --sign: #FFCB33; --sign-ink: #1A1500; --rec: #F0553F; --screen: #07080B; --ok: #3CC584; --receipt: #1D1F24; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.7; word-break: keep-all; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.narrow { max-width: 780px }
+h1, h2, h3 { text-wrap: balance; margin: 0 }
+p { margin: 0 }
+a { color: inherit }
+.mono { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase }
+.hl { background: linear-gradient(transparent 52%, var(--sign) 52%, var(--sign) 92%, transparent 92%); padding: 0 .08em }
+.red { color: var(--rec) }
+:focus-visible { outline: 3px solid var(--sign); outline-offset: 2px; border-radius: 6px }
+
+.sample-bar { background: var(--ink); color: var(--paper); font-size: 13px; text-align: center; padding-block: 7px }
+
+/* 머리말 */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line) }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper) }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 22px; text-decoration: none; white-space: nowrap }
+.logo .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--rec); box-shadow: 0 0 0 4px color-mix(in srgb, var(--rec) 22%, transparent); animation: rec 1.6s ease-in-out infinite }
+@keyframes rec { 50% { opacity: .35 } }
+.top nav { display: flex; gap: 22px; font-size: 15px; font-weight: 600 }
+.top nav a { text-decoration: none; color: var(--muted) }
+.top nav a:hover { color: var(--ink) }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 24px; border-radius: 999px; font-weight: 700; font-size: 17px; text-decoration: none; border: 2px solid transparent; cursor: pointer; font-family: var(--body); text-align: center }
+.btn-sign { background: var(--sign); color: var(--sign-ink); box-shadow: 0 2px 0 color-mix(in srgb, var(--sign) 60%, #000) }
+.btn-sign:hover { filter: brightness(1.04) }
+.btn-line { background: transparent; color: var(--ink); border-color: var(--ink) }
+.btn-sm { min-height: 40px; font-size: 15px; padding: 0 16px }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px }
+
+/* 섹션 공통 */
+section.block { padding-block: 72px }
+.band { background: var(--panel); border-block: 1px solid var(--line) }
+.kicker { display: inline-block; font-weight: 700; font-size: 15px; color: var(--rec); margin-bottom: 10px }
+.h2 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 4.6vw, 50px); line-height: 1.2 }
+.lede { margin-top: 16px; font-size: 19px; color: var(--muted); max-width: 38em }
+.prose p + p { margin-top: 14px }
+.prose { font-size: 18px }
+
+/* ① 첫 화면: 돈 이야기로 시작 */
+.hero { padding-block: 48px 64px }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 44px; align-items: center }
+.hero .kicker { font-size: 16px }
+.hero h1 { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 7vw, 76px); line-height: 1.12; letter-spacing: -.01em }
+.hero p.lead { margin-top: 22px; font-size: 19px; color: var(--muted); max-width: 32em }
+.hero p.lead b { color: var(--ink) }
+.offer { margin-top: 26px; display: inline-flex; align-items: center; gap: 12px; padding: 12px 18px 12px 12px; border-radius: 16px; background: var(--panel); border: 2px dashed var(--rec) }
+.offer b { font-size: 18px }
+.offer .stamp { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--rec); color: #fff; font-family: var(--display); font-size: 18px; line-height: 1.05; text-align: center; transform: rotate(-8deg) }
+.offer small { display: block; color: var(--muted); font-size: 14px }
+.monitors { position: relative; min-height: 420px }
+.mon { position: relative; background: var(--screen); border-radius: 18px; padding: 10px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.45) }
+.mon video { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; background: #000 }
+.mon .tag { position: absolute; left: 18px; top: 18px; display: flex; align-items: center; gap: 8px; color: #fff; background: rgba(0,0,0,.55); padding: 4px 10px; border-radius: 999px }
+.mon .tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--rec); animation: rec 1.6s infinite }
+.mon .cap { position: absolute; right: 16px; bottom: -14px; background: var(--sign); color: var(--sign-ink); font-weight: 700; font-size: 14px; padding: 5px 12px; border-radius: 999px }
+.mon.wide { width: 88%; aspect-ratio: 16 / 9.6; max-width: 100% }
+.mon.tall { position: absolute; right: 0; bottom: -20px; width: 34%; aspect-ratio: 9 / 16.6; border-radius: 26px; padding: 8px; border: 3px solid #2B2F38 }
+.mon.tall video { border-radius: 18px }
+
+/* ② 영수증 */
+.cost { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .95fr); gap: 48px; align-items: start }
+.receipt { position: relative; background: var(--receipt); color: var(--ink); padding: 28px 26px 34px; font-family: var(--mono); font-size: 15px; box-shadow: 0 18px 40px -24px rgba(0,0,0,.35); transform: rotate(1.2deg); border: 1px solid var(--line) }
+.receipt::after { content: ""; position: absolute; left: 0; right: 0; bottom: -12px; height: 12px; background: radial-gradient(circle at 8px 0, var(--receipt) 8px, transparent 8.5px) 0 0 / 16px 12px repeat-x }
+.receipt h3 { font-family: var(--body); font-size: 18px; text-align: center; margin-bottom: 4px }
+.receipt .sub { text-align: center; color: var(--muted); font-size: 12px; margin-bottom: 16px }
+.receipt .line { display: flex; justify-content: space-between; gap: 12px; padding-block: 8px; border-bottom: 1px dashed var(--line) }
+.receipt .line span:first-child { font-family: var(--body); font-weight: 600 }
+.receipt .line span:last-child { color: var(--muted); text-align: right; white-space: nowrap }
+.receipt .total { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 2px solid var(--ink); font-family: var(--body); font-weight: 700; font-size: 17px }
+.receipt .total span:last-child { color: var(--rec) }
+.receipt .foot { margin-top: 14px; text-align: center; color: var(--muted); font-size: 12px }
+
+/* ③ 속마음 말풍선 */
+.worry { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; align-items: center }
+.bubbles { display: grid; gap: 12px }
+.bubble { max-width: 92%; padding: 14px 18px; border-radius: 18px 18px 18px 4px; background: var(--paper); border: 1px solid var(--line); font-size: 17px; font-weight: 600 }
+.bubble:nth-child(even) { justify-self: end; border-radius: 18px 18px 4px 18px }
+.bubble.last { background: var(--ink); color: var(--paper); border-color: var(--ink) }
+.calm { margin-top: 22px; padding: 18px 20px; border-left: 4px solid var(--sign); background: var(--paper); font-size: 18px }
+
+/* ④ 순서를 바꿨어요 */
+.turn { text-align: center }
+.turn .big { font-family: var(--display); font-weight: 400; font-size: clamp(36px, 6vw, 68px); line-height: 1.15 }
+.turn .big s { text-decoration-thickness: 6px; text-decoration-color: var(--rec); color: var(--muted) }
+.promise3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 36px; text-align: left }
+.promise3 > div { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px }
+.promise3 h3 { font-size: 20px; margin-bottom: 6px }
+.promise3 p { color: var(--muted) }
+
+/* ⑤ 얻는 것 */
+.gain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink) }
+.gain > div { padding: 26px 22px 28px 0; border-bottom: 1px solid var(--line); min-width: 0 }
+.gain > div:not(:nth-child(3n+1)) { padding-left: 22px; border-left: 1px solid var(--line) }
+.gain .num { font-family: var(--display); font-size: 44px; line-height: 1; color: var(--ink) }
+.gain .num em { font-style: normal; background: linear-gradient(transparent 55%, var(--sign) 55%) }
+.gain h3 { font-size: 19px; margin: 10px 0 6px }
+.gain p { color: var(--muted); font-size: 16px }
+
+/* ⑥ 비교표 */
+.table-wrap { overflow-x: auto; border: 2px solid var(--ink); border-radius: 18px; background: var(--panel) }
+table.cmp { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 16px }
+.cmp th, .cmp td { padding: 16px 18px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line) }
+.cmp thead th { font-size: 15px; color: var(--muted); font-weight: 700 }
+.cmp thead th.us { background: var(--sign); color: var(--sign-ink) }
+.cmp td.us { background: color-mix(in srgb, var(--sign) 16%, var(--panel)); font-weight: 700 }
+.cmp tbody th { width: 18%; white-space: nowrap }
+.cmp tr:last-child th, .cmp tr:last-child td { border-bottom: 0 }
+.fine { margin-top: 12px; font-size: 14px; color: var(--muted) }
+
+/* ⑦ 안심 약속 */
+.trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+.trust > div { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; padding: 20px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line) }
+.trust .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: #fff; font-weight: 700 }
+.trust h3 { font-size: 18px; margin-bottom: 4px }
+.trust p { color: var(--muted); font-size: 16px }
+
+/* ⑧ 업종별 영상 */
+.ind { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.25fr) minmax(0, .45fr); gap: 22px; align-items: center; padding-block: 34px; border-top: 1px solid var(--line) }
+.ind:first-of-type { border-top: 0 }
+.ind .tagline { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; background: var(--sign); color: var(--sign-ink); margin-bottom: 10px }
+.ind h3 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1.2 }
+.ind p { margin-top: 10px; color: var(--muted) }
+.ind ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); font-size: 16px }
+.ind .who { margin-top: 12px; font-size: 14px; color: var(--muted) }
+.clip { position: relative; background: var(--screen); border-radius: 14px; overflow: hidden }
+.clip.h { aspect-ratio: 16 / 9 }
+.clip.v { aspect-ratio: 9 / 16 }
+.clip video { width: 100%; height: 100%; object-fit: cover; display: block }
+.clip .ratio { position: absolute; left: 10px; top: 10px; color: #fff; background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 6px }
+.clip .play { position: absolute; inset: 0; display: grid; place-items: center; background: transparent; border: 0; cursor: pointer }
+.clip .play span { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; color: #111; font-size: 20px }
+.clip.playing .play span { opacity: 0 }
+.looks { margin-top: 30px; padding: 22px; border-radius: 16px; background: var(--paper); border: 1px dashed var(--line) }
+.looks b { display: block; margin-bottom: 10px }
+.looks div { display: flex; flex-wrap: wrap; gap: 6px }
+.looks span { font-size: 14px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line) }
+
+/* ⑨ 영상 한 편으로 */
+.uses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px }
+.uses > div { padding: 20px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line) }
+.uses .mono { color: var(--rec) }
+.uses h3 { font-size: 19px; margin: 6px 0 6px }
+.uses p { color: var(--muted); font-size: 16px }
+
+/* ⑩ 받으시는 것 */
+.box { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center }
+.inbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
+.inbox li { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 14px 18px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line) }
+.inbox li b { font-size: 17px }
+.inbox li span { color: var(--muted); font-size: 15px; text-align: right }
+
+/* ⑪ 12월 이벤트 */
+.ticket { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); border-radius: 22px; overflow: hidden; border: 2px solid var(--ink); background: var(--panel) }
+.ticket .left { background: var(--sign); color: var(--sign-ink); padding: 34px 30px; position: relative }
+.ticket .left::after { content: ""; position: absolute; right: -1px; top: 18px; bottom: 18px; border-right: 3px dashed var(--ink) }
+.ticket .left .mono { opacity: .75 }
+.ticket .left h3 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 4.6vw, 52px); line-height: 1.12; margin-top: 10px }
+.ticket .left p { margin-top: 14px; font-weight: 600 }
+.ticket dl { margin: 0; padding: 26px 30px; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px 22px; align-content: center }
+.ticket dt { font-weight: 700 }
+.ticket dd { margin: 0; color: var(--muted) }
+.why-free { margin-top: 22px; padding: 18px 22px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line) }
+.why-free b { display: block; margin-bottom: 4px }
+.why-free p { color: var(--muted) }
+
+/* ⑫ 진행 순서 */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; counter-reset: s }
+.steps li { counter-increment: s; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0 }
+.steps li::before { content: counter(s, decimal-leading-zero); font-family: var(--mono); font-size: 13px; color: var(--rec); display: block; margin-bottom: 8px }
+.steps h3 { font-size: 19px; margin-bottom: 6px }
+.steps p { color: var(--muted); font-size: 15px }
+
+/* ⑬ 신청서 */
+.apply { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 40px; align-items: start }
+.apply aside p { color: var(--muted); margin-top: 12px }
+.prep { margin-top: 18px; padding: 18px 20px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line) }
+.prep b { display: block; margin-bottom: 6px }
+.prep ul { margin: 0; padding-left: 20px; color: var(--muted) }
+.partner { display: inline-flex; gap: 8px; align-items: center; margin-top: 16px; padding: 6px 12px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 14px }
+.card { background: var(--panel); border: 2px solid var(--ink); border-radius: 20px; padding: 26px; box-shadow: 8px 8px 0 var(--sign) }
+form.card { display: grid; gap: 16px }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+.field { display: grid; gap: 6px; min-width: 0 }
+.field label, .field legend { font-weight: 700; font-size: 15px }
+.req { color: var(--rec) }
+.field input, .field select, .field textarea { width: 100%; min-height: 50px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); font: 400 17px var(--body) }
+.field textarea { min-height: 92px; resize: vertical }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--ink); outline: none }
+fieldset.field { border: 0; padding: 0; margin: 0 }
+.choice { display: flex; flex-wrap: wrap; gap: 8px }
+.choice label { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--line); cursor: pointer; font-weight: 600; font-size: 15px }
+.choice input { accent-color: var(--ink); width: 18px; height: 18px }
+.consent { border-radius: 12px; border: 1px solid var(--line); background: var(--paper); padding: 14px 16px; font-size: 14px; color: var(--muted) }
+.consent table { width: 100%; border-collapse: collapse; margin: 8px 0 }
+.consent th, .consent td { text-align: left; vertical-align: top; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line) }
+.consent th { white-space: nowrap; color: var(--ink); font-weight: 600 }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; color: var(--ink); cursor: pointer }
+.check input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--ink); flex: none }
+.err { color: var(--rec); font-size: 14px; font-weight: 600; min-height: 1em }
+.done { text-align: center; display: grid; gap: 14px; justify-items: center; padding: 30px 22px }
+.done .big { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: #fff; font-size: 34px }
+.done h3 { font-family: var(--display); font-weight: 400; font-size: 32px }
+.done p { color: var(--muted) }
+.done ul { text-align: left; color: var(--muted); margin: 0; padding-left: 20px }
+.note { font-size: 13px; color: var(--muted); background: var(--paper); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px }
+
+/* ⑭ 자주 묻는 질문 */
+.faq { display: grid; gap: 10px }
+.faq details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 18px }
+.faq summary { cursor: pointer; font-weight: 700; padding-block: 14px; list-style: none; display: flex; justify-content: space-between; gap: 12px }
+.faq summary::-webkit-details-marker { display: none }
+.faq summary::after { content: "+"; font-family: var(--mono); color: var(--muted) }
+.faq details[open] summary::after { content: "–" }
+.faq p { margin: 0 0 16px; color: var(--muted) }
+
+/* ⑮ 마지막 */
+.last { background: var(--ink); color: var(--paper); text-align: center }
+.last .h2 { color: var(--paper) }
+.last p { color: color-mix(in srgb, var(--paper) 75%, var(--ink)); margin-top: 14px; font-size: 18px }
+.last .cta-row { justify-content: center }
+.last .btn-line { color: var(--paper); border-color: var(--paper) }
+
+footer { padding-block: 40px 120px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line) }
+footer .wrap { display: grid; gap: 6px }
+footer b { color: var(--ink) }
+
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: none; gap: 8px; padding: 10px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line) }
+.dock .btn { flex: 1; min-height: 50px; font-size: 16px; padding: 0 12px }
+
+@media (max-width: 900px) {
+  .hero .wrap, .apply, .ticket, .cost, .worry, .box { grid-template-columns: minmax(0, 1fr) }
+  .monitors { min-height: 0; padding-bottom: 40px }
+  .ticket .left::after { display: none }
+  .steps, .promise3, .uses { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .gain { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .gain > div, .gain > div:not(:nth-child(3n+1)) { padding: 22px 18px 24px 0; border-left: 0 }
+  .gain > div:nth-child(even) { padding-left: 18px; border-left: 1px solid var(--line) }
+  .ind { grid-template-columns: minmax(0, 1.4fr) minmax(0, .6fr) }
+  .ind > div:first-child { grid-column: 1 / -1 }
+  .top nav { display: none }
+  .receipt { transform: none }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px }
+  section.block { padding-block: 56px }
+  .hero { padding-block: 28px 44px }
+  .steps, .row2, .promise3, .uses, .trust, .gain { grid-template-columns: minmax(0, 1fr) }
+  .gain > div, .gain > div:nth-child(even) { padding: 20px 0; border-left: 0 }
+  .mon.wide { width: 100% }
+  .mon.tall { width: 40%; right: -4px; bottom: -40px }
+  .card { padding: 20px; box-shadow: 5px 5px 0 var(--sign) }
+  .ticket dl { grid-template-columns: minmax(0, 1fr); gap: 4px }
+  .ticket dd { margin-bottom: 10px }
+  .dock { display: flex }
+  .top .btn { display: none }
+  .inbox li { flex-direction: column; gap: 2px }
+  .inbox li span { text-align: left }
+}
+@media (prefers-reduced-motion: reduce) { .logo .dot, .mon .tag i { animation: none } }
+</style>
+
+<div class="sample-bar" id="sampleBar" hidden>샘플 화면이에요 · 신청 내용은 저장되지 않아요</div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="dot" aria-hidden="true"></span><span id="brandName">우리가게 광고영상</span></a>
+    <nav aria-label="바로가기">
+      <a href="#cost">왜 부담일까</a><a href="#samples">실제 영상</a><a href="#event">12월 무료</a><a href="#faq">자주 묻는 질문</a>
+    </nav>
+    <a class="btn btn-sign btn-sm" href="#apply">무료 신청</a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ① 돈 이야기로 시작 -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="kicker">사장님, 솔직하게 말씀드릴게요</span>
+        <h1>광고영상,<br><span class="hl">결국 돈 문제</span>죠.</h1>
+        <p class="lead">잘 만든 영상 한 편이 손님을 부른다는 건 다들 아세요. 그런데 막상 만들려고 하면 <b>장비값, AI 프로그램 구독료, 대행 견적</b>부터 걱정이 앞서죠. 그래서 순서를 바꿨어요. <b>돈은 나중 이야기, 결과부터 먼저</b> 보여 드릴게요.</p>
+        <div class="offer">
+          <div class="stamp" aria-hidden="true">12월<br>무료</div>
+          <div><b>2026년 12월 한 달만, 광고영상 1편 무료</b><small>신청서만 쓰시면 1:1 오픈채팅방에서 자세히 알려 드려요</small></div>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-sign" href="#apply">무료로 먼저 받아 보기</a>
+          <a class="btn btn-line" href="#cost">왜 부담인지 먼저 보기</a>
+        </div>
+      </div>
+      <div class="monitors" aria-label="실제로 만든 예시 영상">
+        <div class="mon wide">
+          <video src="v/samcheong-promo.mp4" poster="v/samcheong-promo.jpg" muted loop playsinline autoplay preload="metadata"></video>
+          <span class="tag mono"><i></i>REC · 16:9</span>
+          <span class="cap">가로 영상 · 유튜브 · 매장 TV</span>
+        </div>
+        <div class="mon tall">
+          <video src="v/cafe-pop.mp4" poster="v/cafe-pop.jpg" muted loop playsinline autoplay preload="metadata"></video>
+          <span class="cap">세로 · 릴스 · 쇼츠</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② 직접 만들면 드는 돈 -->
+  <section class="block band" id="cost">
+    <div class="wrap cost">
+      <div>
+        <span class="kicker">직접 만들어 보려고 하면</span>
+        <h2 class="h2">퀄리티 좋은 영상 한 편,<br>뭐가 이렇게 많이 들까요?</h2>
+        <div class="lede prose">
+          <p>요즘 광고영상은 AI로 쉽게 만든다고들 하죠. 그런데 알아보면 영상 만드는 AI, 이미지 만드는 AI, 목소리 넣는 AI, 편집 프로그램이 다 따로예요. 하나하나 <b>매달 구독료</b>가 붙고, 무료로 쓰면 워터마크가 찍히거나 화질이 떨어져요.</p>
+          <p>촬영을 하려면 카메라, 조명, 마이크, 삼각대부터 필요해요. 장비만 갖춰도 <b>수십만 원은 금방</b>이고, 쓰는 법을 배우는 데 또 시간이 들어요.</p>
+          <p>무엇보다 사장님 시간은 가게에 있어야 하잖아요. 영업 끝나고 밤마다 프로그램을 붙잡고 있을 수는 없으니까요.</p>
+        </div>
+      </div>
+      <div class="receipt" aria-label="광고영상을 직접 만들 때 드는 비용 영수증">
+        <h3>광고영상 직접 만들기</h3>
+        <div class="sub">영수증 · 사장님 가게</div>
+        <div class="line"><span>카메라 · 조명 · 마이크 · 삼각대</span><span>장비 구입</span></div>
+        <div class="line"><span>AI 영상 만들기 프로그램</span><span>매달 구독</span></div>
+        <div class="line"><span>AI 이미지 · 목소리 프로그램</span><span>매달 구독</span></div>
+        <div class="line"><span>편집 프로그램</span><span>매달 구독</span></div>
+        <div class="line"><span>음악 · 글꼴 사용료</span><span>따로 확인</span></div>
+        <div class="line"><span>배우는 시간</span><span>몇 주</span></div>
+        <div class="line"><span>한 편 만드는 시간</span><span>밤샘</span></div>
+        <div class="total"><span>합계</span><span>돈 + 시간 + 영업 지장</span></div>
+        <div class="foot">* 무료로 받는 우리 가게 첫 영상은 0원</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 대행을 알아보면 -->
+  <section class="block">
+    <div class="wrap worry">
+      <div>
+        <span class="kicker">그래서 대행을 알아보면</span>
+        <h2 class="h2">견적서를 받아도<br>선뜻 용기가 안 나죠</h2>
+        <div class="lede prose">
+          <p>업체마다 금액이 제각각이고, 그 금액에 무엇이 들어 있는지 설명을 들어도 잘 모르겠어요. 모르는 분야라서 물어보기도 망설여지고요.</p>
+        </div>
+        <div class="calm">사장님 잘못이 아니에요. 처음 알아보면 누구나 그래요. 그래서 저희는 <b>먼저 만들어 보여 드리는 방법</b>을 골랐어요.</div>
+      </div>
+      <div class="bubbles" aria-label="대행을 알아볼 때 드는 생각">
+        <div class="bubble">견적이 왜 이 금액이지? 다른 데는 또 다르던데…</div>
+        <div class="bubble">이 금액에 뭐가 들어 있는 거야? 수정은 몇 번까지?</div>
+        <div class="bubble">돈부터 보냈는데 연락이 안 되면 어떡하지?</div>
+        <div class="bubble">다 만들었는데 우리 가게랑 안 어울리면 그 돈은?</div>
+        <div class="bubble last">잘 모르니까… 왠지 당할 것 같아.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 순서를 바꿨어요 -->
+  <section class="block band">
+    <div class="wrap turn">
+      <span class="kicker">그래서 이렇게 바꿨어요</span>
+      <p class="big"><s>돈 먼저</s>가 아니라<br><span class="hl">결과 먼저.</span></p>
+      <p class="lede" style="margin-inline:auto">12월 한 달 동안은 우리 가게 광고영상 한 편을 무료로 먼저 만들어 드려요. 영상을 직접 보시고, 써 보시고, 그다음에 판단하세요.</p>
+      <div class="promise3">
+        <div><h3>먼저 만들어 드려요</h3><p>돈을 내기 전에 우리 가게 영상이 어떻게 나오는지 먼저 확인하실 수 있어요.</p></div>
+        <div><h3>무엇을 드리는지 미리 알려 드려요</h3><p>받으시는 영상과 내용은 이 페이지에 다 적어 두었어요. 숨은 내용이 없어요.</p></div>
+        <div><h3>1:1로 바로 물어보세요</h3><p>진행하는 동안 궁금한 건 오픈채팅방에서 바로 물어보시면 돼요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 사장님이 얻는 것 -->
+  <section class="block">
+    <div class="wrap">
+      <span class="kicker">사장님이 얻는 것</span>
+      <h2 class="h2">드는 건 줄이고,<br>가게에 남는 건 늘렸어요</h2>
+      <p class="lede">영상은 가게 대신 하루 종일 일하는 홍보 직원이에요. 한 번 만들어 두면 여러 곳에 올려 계속 쓸 수 있어요.</p>
+      <div class="gain" style="margin-top:32px">
+        <div><div class="num"><em>0원</em></div><h3>장비값 · 구독료</h3><p>카메라도, AI 프로그램 구독도 필요 없어요. 12월 첫 영상은 제작비도 0원이에요.</p></div>
+        <div><div class="num"><em>0번</em></div><h3>촬영</h3><p>지금 가진 가게 사진, 메뉴판, 손님 리뷰로 만들어요. 가게 문을 닫을 필요가 없어요.</p></div>
+        <div><div class="num"><em>0시간</em></div><h3>영상 공부</h3><p>프로그램을 배우실 필요가 없어요. 자료만 보내 주시면 나머지는 저희가 해요.</p></div>
+        <div><div class="num"><em>2</em>가지</div><h3>가로 + 세로</h3><p>한 번 신청으로 유튜브 · 매장 TV용 가로 영상과 릴스 · 쇼츠용 세로 영상을 함께 받아요.</p></div>
+        <div><div class="num"><em>27</em>가지</div><h3>업종에 맞는 모양</h3><p>음식점 · 카페 · 미용실 · 학원 · 상품 소개에 맞춰 만든 영상 모양 가운데 어울리는 것을 골라요.</p></div>
+        <div><div class="num"><em>1:1</em></div><h3>오픈채팅 상담</h3><p>모르는 건 그때그때 물어보세요. 사장님 가게 이야기를 듣고 맞춰서 만들어요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 비교 -->
+  <section class="block band">
+    <div class="wrap">
+      <span class="kicker">한눈에 비교해 보세요</span>
+      <h2 class="h2">세 가지 방법, 무엇이 다를까요</h2>
+      <div class="table-wrap" style="margin-top:28px">
+        <table class="cmp">
+          <thead><tr><th scope="col"></th><th scope="col">직접 만들기</th><th scope="col">일반 대행 맡기기</th><th scope="col" class="us">12월 무료 신청</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">처음 드는 돈</th><td>장비 구입 · 프로그램 구독료</td><td>견적 금액 (먼저 결제하는 경우가 많아요)</td><td class="us">0원</td></tr>
+            <tr><th scope="row">준비할 것</th><td>촬영 · 편집 공부</td><td>미팅 · 촬영 일정 맞추기</td><td class="us">가진 사진 · 메뉴 · 리뷰</td></tr>
+            <tr><th scope="row">결과 확인</th><td>다 만들어 봐야 알아요</td><td>계약하고 나서 알아요</td><td class="us">무료로 먼저 받아 봐요</td></tr>
+            <tr><th scope="row">걸리는 시간</th><td>배우는 시간 + 만드는 시간</td><td>업체 일정에 따라 달라요</td><td class="us">자료를 받고 일정을 알려 드려요</td></tr>
+            <tr><th scope="row">마음의 부담</th><td>잘 만들 수 있을까?</td><td>이 금액이 맞나?</td><td class="us">부담 없이 결과부터</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fine">대행 업체마다 조건은 다를 수 있어요. 처음 알아보시는 사장님이 흔히 겪는 경우를 정리했어요.</p>
+    </div>
+  </section>
+
+  <!-- ⑦ 안심 약속 -->
+  <section class="block">
+    <div class="wrap">
+      <span class="kicker">사기 걱정, 이렇게 없앴어요</span>
+      <h2 class="h2">모르면 당할 것 같은 느낌,<br>여기서는 들지 않게</h2>
+      <p class="lede">처음 맡기는 일이 불안한 건 당연해요. 그래서 처음부터 약속을 정해 두었어요.</p>
+      <div class="trust" style="margin-top:28px">
+        <div><span class="ic">✓</span><div><h3>돈을 먼저 받지 않아요</h3><p>12월 무료 영상은 결제가 아예 없어요. 카드 번호도, 계좌 이체도 묻지 않아요.</p></div></div>
+        <div><span class="ic">✓</span><div><h3>실제로 만든 영상을 보여 드려요</h3><p>아래 영상들은 실제 가게 자료로 만든 영상이에요. 어떤 결과가 나오는지 미리 보세요.</p></div></div>
+        <div><span class="ic">✓</span><div><h3>무엇을 드리는지 적어 두었어요</h3><p>가로 · 세로 영상 파일, 나레이션과 배경음악까지 받으시는 것을 이 페이지에 그대로 적었어요.</p></div></div>
+        <div><span class="ic">✓</span><div><h3>진행 과정을 1:1로 공유해요</h3><p>오픈채팅방에서 지금 어디까지 왔는지 언제든 물어보실 수 있어요.</p></div></div>
+        <div><span class="ic">✓</span><div><h3>개인정보는 꼭 필요한 것만</h3><p>연락에 필요한 정보만 받고, 요청하시면 바로 지워 드려요.</p></div></div>
+        <div><span class="ic">✓</span><div><h3>언제든 그만두셔도 돼요</h3><p>진행하다 마음이 바뀌셔도 괜찮아요. 아무 비용도, 불이익도 없어요.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑧ 업종별 실제 영상 -->
+  <section class="block band" id="samples">
+    <div class="wrap">
+      <span class="kicker">실제로 만든 영상</span>
+      <h2 class="h2">우리 업종은 이렇게 나와요</h2>
+      <p class="lede">가게에서 보내 주신 사진과 리뷰로 만든 영상이에요. 업종마다 손님이 궁금해하는 것이 달라서, 담는 내용도 다르게 만들어요.</p>
+      <div id="industries" style="margin-top:12px"></div>
+      <div class="looks"><b>같은 사진으로도 이런 모양을 골라 만들 수 있어요 (27가지)</b>
+        <div id="looks"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 영상 한 편으로 할 수 있는 일 -->
+  <section class="block">
+    <div class="wrap">
+      <span class="kicker">영상 한 편으로 할 수 있는 일</span>
+      <h2 class="h2">한 번 만들면,<br>여러 곳에서 계속 일해요</h2>
+      <p class="lede">손님은 가게에 오기 전에 휴대폰으로 먼저 가게를 봐요. 그 순간 보여 줄 영상이 있으면 달라져요.</p>
+      <div class="uses" style="margin-top:28px">
+        <div><span class="mono">Naver Place</span><h3>네이버 플레이스 · 블로그</h3><p>가게를 검색한 손님에게 사진 대신 움직이는 소개를 보여 줘요.</p></div>
+        <div><span class="mono">Instagram</span><h3>인스타그램 릴스</h3><p>세로 영상을 그대로 올려 동네 손님에게 가게를 알려요.</p></div>
+        <div><span class="mono">YouTube</span><h3>유튜브 쇼츠 · 채널</h3><p>세로 영상은 쇼츠로, 가로 영상은 가게 소개 영상으로 올려요.</p></div>
+        <div><span class="mono">KakaoTalk</span><h3>카카오톡 채널 소식</h3><p>단골손님에게 신메뉴나 소식을 영상으로 보내요.</p></div>
+        <div><span class="mono">Daangn</span><h3>당근 비즈프로필</h3><p>가까운 동네 이웃에게 가게 소식을 알려요.</p></div>
+        <div><span class="mono">In store</span><h3>매장 TV · 모니터</h3><p>가로 영상을 가게 화면에 틀어 기다리는 손님에게 메뉴를 알려요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑩ 받으시는 것 -->
+  <section class="block band">
+    <div class="wrap box">
+      <div>
+        <span class="kicker">받으시는 것</span>
+        <h2 class="h2">무엇을 드리는지<br>미리 다 보여 드려요</h2>
+        <p class="lede">12월 무료 영상 1편에 들어가는 내용이에요. 자세한 조건은 오픈채팅방에서 한 번 더 확인해 드려요.</p>
+      </div>
+      <ul class="inbox">
+        <li><b>가로 영상 (16:9)</b><span>유튜브 · 네이버 · 매장 TV용</span></li>
+        <li><b>세로 영상 (9:16)</b><span>인스타그램 릴스 · 유튜브 쇼츠용</span></li>
+        <li><b>가게 소개 나레이션</b><span>원하시면 넣어 드려요</span></li>
+        <li><b>배경음악</b><span>영상 분위기에 맞춰서</span></li>
+        <li><b>가게 정보 마무리 화면</b><span>가게 이름 · 전화 · 주소</span></li>
+        <li><b>영상 길이</b><span>50초 안팎</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ⑪ 12월 무료 -->
+  <section class="block" id="event">
+    <div class="wrap">
+      <div class="ticket">
+        <div class="left">
+          <span class="mono">Free Ticket · 2026.12</span>
+          <h3>12월 한 달만<br>광고영상 1편 무료</h3>
+          <p>신청서를 쓰신 분께 1:1 오픈채팅방에서 자세히 안내해 드려요.</p>
+        </div>
+        <dl>
+          <dt>신청 기간</dt><dd>2026년 12월 1일 ~ 12월 31일</dd>
+          <dt>드리는 것</dt><dd>우리 가게 광고영상 1편 (가로 · 세로 두 가지 비율)</dd>
+          <dt>신청 방법</dt><dd>아래 신청서 작성 → 1:1 오픈채팅방 입장 → 사진과 자료 보내기</dd>
+          <dt>안내</dt><dd>한 가게(사업자)당 1편이에요. 자세한 조건과 일정은 오픈채팅방에서 알려 드려요.</dd>
+        </dl>
+      </div>
+      <div class="why-free"><b>왜 무료로 해 드리나요?</b><p>처음 맡기는 일은 누구나 불안하니까요. 12월 한 달은 더 많은 사장님께 말 대신 결과로 먼저 보여 드리려고 해요.</p></div>
+    </div>
+  </section>
+
+  <!-- ⑫ 진행 순서 -->
+  <section class="block band" id="how">
+    <div class="wrap">
+      <span class="kicker">진행 순서</span>
+      <h2 class="h2">신청부터 영상까지 네 단계</h2>
+      <ol class="steps" style="margin-top:28px">
+        <li><h3>신청서 쓰기</h3><p>가게 이름과 연락처, 업종을 적어 주세요. 1분이면 충분해요.</p></li>
+        <li><h3>1:1 오픈채팅 입장</h3><p>신청 후 나오는 버튼으로 채팅방에 들어오시면 자세히 안내해 드려요.</p></li>
+        <li><h3>자료 보내기</h3><p>가게 사진, 메뉴 · 가격, 리뷰 캡처, 주소와 영업시간을 채팅방으로 보내 주세요.</p></li>
+        <li><h3>영상 받기</h3><p>완성된 영상을 확인하시고 가로 · 세로 영상 파일을 받아 바로 올리시면 돼요.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ⑬ 신청서 -->
+  <section class="block" id="apply">
+    <div class="wrap apply">
+      <aside>
+        <span class="kicker">1분이면 끝나요</span>
+        <h2 class="h2">12월 무료 영상<br>신청서</h2>
+        <p>신청서를 보내시면 1:1 오픈채팅방 입장 버튼이 나와요. 채팅방에서 자료를 받고 제작 일정을 알려 드려요.</p>
+        <div class="prep"><b>미리 준비하면 좋아요</b>
+          <ul><li>가게 사진 5~10장 (음식 · 매장 · 간판)</li><li>메뉴판이나 가격표</li><li>손님 리뷰 캡처 2~3개</li><li>주소 · 전화번호 · 영업시간</li></ul>
+        </div>
+        <div class="partner" id="partnerChip" hidden>담당 · <b id="partnerName"></b></div>
+      </aside>
+
+      <div>
+        <form class="card" id="applyForm" novalidate>
+          <input type="hidden" id="f-partner" name="partner" value="">
+          <div class="row2">
+            <div class="field"><label for="f-shop">가게 이름 <span class="req">*</span></label><input id="f-shop" name="shop" autocomplete="organization" placeholder="예) 우리동네 국숫집" required></div>
+            <div class="field"><label for="f-name">신청하시는 분 <span class="req">*</span></label><input id="f-name" name="name" autocomplete="name" placeholder="예) 홍길동" required></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="f-phone">휴대폰 번호 <span class="req">*</span></label><input id="f-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" required></div>
+            <div class="field"><label for="f-area">지역</label><input id="f-area" name="area" placeholder="예) 경기 평택시"></div>
+          </div>
+          <div class="field"><label for="f-type">업종 <span class="req">*</span></label>
+            <select id="f-type" name="type" required>
+              <option value="">골라 주세요</option><option value="음식점">음식점</option><option value="카페 · 베이커리">카페 · 베이커리</option><option value="미용실 · 뷰티">미용실 · 뷰티</option><option value="학원 · 교육 · 협회">학원 · 교육 · 협회</option><option value="상품 · 쇼핑몰">상품 · 쇼핑몰</option><option value="기타">기타</option>
+            </select>
+          </div>
+          <fieldset class="field"><legend>받고 싶은 영상</legend>
+            <div class="choice">
+              <label><input type="radio" name="ratio" value="가로 + 세로" checked> 가로 + 세로</label>
+              <label><input type="radio" name="ratio" value="세로만"> 세로만 (릴스 · 쇼츠)</label>
+              <label><input type="radio" name="ratio" value="가로만"> 가로만 (유튜브 · TV)</label>
+            </div>
+          </fieldset>
+          <div class="field"><label for="f-memo">영상으로 알리고 싶은 것</label><textarea id="f-memo" name="memo" placeholder="예) 신메뉴를 알리고 싶어요 / 점심 손님을 늘리고 싶어요"></textarea></div>
+          <div class="consent">
+            <b>개인정보 수집 · 이용 안내</b>
+            <table>
+              <tr><th>수집 항목</th><td>가게 이름, 이름, 휴대폰 번호, 지역, 업종</td></tr>
+              <tr><th>이용 목적</th><td>무료 영상 제작 신청 확인과 상담 연락</td></tr>
+              <tr><th>보관 기간</th><td>신청일로부터 1년 (요청하시면 바로 지워요)</td></tr>
+            </table>
+            동의하지 않으셔도 되지만, 그 경우 신청을 받을 수 없어요.
+          </div>
+          <label class="check"><input type="checkbox" id="f-agree" name="agree"> <span>개인정보 수집 · 이용에 동의해요 <b class="req">(필수)</b></span></label>
+          <label class="check"><input type="checkbox" id="f-mkt" name="marketing"> <span>새 소식과 혜택을 문자로 받을래요 (선택)</span></label>
+          <div class="err" id="formErr" role="alert"></div>
+          <button class="btn btn-sign" type="submit" id="submitBtn">무료 영상 신청하기</button>
+        </form>
+        <div class="card done" id="doneBox" hidden>
+          <div class="big" aria-hidden="true">✓</div>
+          <h3 id="doneTitle">신청서를 받았어요</h3>
+          <p>아래 버튼으로 1:1 오픈채팅방에 들어와 주세요.<br>자세한 내용과 일정을 안내해 드려요.</p>
+          <a class="btn btn-sign chat-link" href="#apply" target="_blank" rel="noopener">1:1 오픈채팅방 들어가기</a>
+          <ul><li>가게 사진 5~10장</li><li>메뉴판이나 가격표</li><li>손님 리뷰 캡처 2~3개</li><li>주소 · 전화번호 · 영업시간</li></ul>
+          <p class="note" id="doneNote" hidden></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑭ 자주 묻는 질문 -->
+  <section class="block band" id="faq">
+    <div class="wrap narrow">
+      <span class="kicker">자주 묻는 질문</span>
+      <h2 class="h2" style="margin-bottom:24px">궁금한 점을 모았어요</h2>
+      <div class="faq">
+        <details><summary>정말 무료인가요? 나중에 돈을 달라고 하지 않나요?</summary><p>2026년 12월에 신청하신 가게에 한해 광고영상 1편을 무료로 만들어 드려요. 무료 영상에 대해서는 결제를 요구하지 않아요. 영상을 더 만들고 싶으실 때만, 원하시면 그때 안내해 드려요.</p></details>
+        <details><summary>왜 무료로 해 주시나요?</summary><p>처음 맡기는 일은 누구나 불안하니까요. 12월 한 달은 더 많은 사장님께 말 대신 결과로 먼저 보여 드리려고 무료로 진행해요.</p></details>
+        <details><summary>무엇을 준비하면 되나요?</summary><p>가게 사진 5~10장, 메뉴판이나 가격표, 손님 리뷰 캡처 2~3개, 주소 · 전화번호 · 영업시간이면 충분해요. 사진이 적어도 상담하면서 함께 정리해 드려요.</p></details>
+        <details><summary>촬영하러 오시나요?</summary><p>촬영 없이 보내 주신 사진과 자료로 만들어요. 그래서 가게 영업에 지장이 없어요.</p></details>
+        <details><summary>영상은 얼마나 걸리나요?</summary><p>자료를 받은 뒤 제작 일정을 오픈채팅방에서 알려 드려요. 신청이 몰리면 신청하신 순서대로 진행해요.</p></details>
+        <details><summary>만든 영상은 어디에 쓸 수 있나요?</summary><p>우리 가게 홍보에 자유롭게 쓰시면 돼요. 인스타그램 릴스, 유튜브 쇼츠, 네이버 플레이스와 블로그, 카카오톡 채널, 당근 비즈프로필, 매장 TV에 바로 올릴 수 있어요.</p></details>
+        <details><summary>마음에 안 들면 어떡하나요?</summary><p>오픈채팅방에서 확인하시면서 원하시는 방향을 말씀해 주세요. 수정 범위와 방법은 진행할 때 함께 정해요. 진행하다 그만두셔도 비용은 없어요.</p></details>
+        <details><summary>사진을 잘 못 찍었는데 괜찮을까요?</summary><p>휴대폰으로 찍은 사진이면 충분해요. 밝게 나온 사진 위주로 골라서 영상에 맞게 배치해 드려요.</p></details>
+        <details><summary>제 개인정보는 어떻게 쓰이나요?</summary><p>신청 확인과 상담 연락에만 써요. 신청일로부터 1년 동안 보관하고, 요청하시면 바로 지워 드려요.</p></details>
+        <details><summary>업종이 목록에 없는데 신청할 수 있나요?</summary><p>네, 업종에서 '기타'를 고르시고 하고 싶은 말에 업종을 적어 주세요. 오픈채팅방에서 맞는 방법을 알려 드려요.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑮ 마지막 한 번 더 -->
+  <section class="block last">
+    <div class="wrap narrow">
+      <h2 class="h2">고민은 결과를 보고 해도 늦지 않아요</h2>
+      <p>장비도, 구독료도, 견적 걱정도 없이 우리 가게 광고영상을 먼저 받아 보세요. 12월 한 달만이에요.</p>
+      <div class="cta-row">
+        <a class="btn btn-sign" href="#apply">12월 무료 신청하기</a>
+        <a class="btn btn-line chat-link" href="#apply" target="_blank" rel="noopener">1:1 오픈채팅으로 먼저 물어보기</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <b id="footBrand">우리가게 광고영상</b>
+    <span id="footBiz">사업자 정보 준비 중</span>
+    <span>© 2026 · 예시 영상 속 가게 사진과 이름은 각 가게의 것이에요.</span>
+  </div>
+</footer>
+
+<div class="dock">
+  <a class="btn btn-line chat-link" href="#apply" target="_blank" rel="noopener">카톡 상담</a>
+  <a class="btn btn-sign" href="#apply">12월 무료 신청</a>
+</div>
+
+<script>
+/* ── 설정: 여기만 바꾸면 돼요 ─────────────────────────────
+   brand    : 대행사 이름
+   chat     : 1:1 오픈채팅방 링크 (https://open.kakao.com/o/...)
+   endpoint : 신청서를 받을 구글 시트 주소(Apps Script 웹 앱). 비어 있으면 샘플 화면
+   business : 사업자 정보 한 줄 (상호 · 대표 · 사업자등록번호 · 연락처 · 이메일)
+   partners : 파트너마다 주소 끝에 ?p=아이디 (또는 #p-아이디)를 붙여 나눠 줘요 */
+const CONFIG = {
+  brand: "우리가게 광고영상",
+  chat: "",
+  endpoint: "",
+  business: "",
+  partners: {
+    demo: { name: "예시 파트너 김OO", chat: "" },
+  },
+};
+
+const INDUSTRIES = [
+  { tag: "음식점", title: "음식점이라면", text: "대표 메뉴와 손님 리뷰를 한 편에 담아, 처음 보는 손님도 '여기 한번 가 볼까' 하게 만들어요.", list: ["대표 메뉴 · 가격", "손님 리뷰 한 줄", "주차 · 찾아오는 길"], who: "삼청동수제비", h: "samcheong-promo", v: "sj-ref09-quiz" },
+  { tag: "카페", title: "카페라면", text: "커피와 디저트, 매장 분위기를 보여 줘서 '오늘은 저기서 쉬어 가자'는 마음이 들게 해요.", list: ["신메뉴 · 시그니처", "매장 분위기 · 좌석", "이벤트 · 할인 안내"], who: "페이지온커피 (파주)", h: "cafe-poster", v: "cafe-pop" },
+  { tag: "미용실", title: "미용실이라면", text: "시술 전후 사진과 가격표를 보기 쉽게 정리해서, 예약 전에 궁금한 것을 영상이 먼저 답해요.", list: ["시술 전후 사진", "가격 · 시술 메뉴", "휴무일 · 예약 안내"], who: "유얼빈 헤어 (경산)", h: "salon-wall", v: "salon-caption" },
+  { tag: "학원 · 협회", title: "학원 · 협회라면", text: "강사진과 수업 과정을 한눈에 보여 줘서, 상담 전에 믿음이 먼저 생기게 해요.", list: ["강사진 소개", "수업 과정 · 일정", "상담 · 등록 안내"], who: "한국콘텐츠능률협회", h: "kcma-reel", v: "kcma-gold" },
+  { tag: "상품 소개", title: "상품을 판다면", text: "원산지, 인증, 먹는 방법까지 차근차근 보여 줘서 사진만으로는 전하기 어려운 내용을 전해요.", list: ["원산지 · 인증", "상품 특징 · 먹는 법", "주문 · 연락처"], who: "숲속우산 참송이버섯", h: "mush-paper", v: "mush-glass" },
+];
+const LOOKS = ["종이 공예", "휴대폰 화면", "퀴즈", "유리 카드", "네온", "큰 글자", "색 블록", "흰 바탕 단계", "숯빛 빨강", "팝 컬러", "포스터", "잡지 크롬", "파스텔 앱", "떠 있는 화면", "빛 알갱이", "하얀 일정표", "보라 자막", "링크 한 장", "웹사이트 모음", "밤하늘 앱", "사진 카드 벽", "손그림 칠판", "금빛 숫자", "흑백 글자", "로고 등장", "화면 카드", "쇼릴"];
+const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* 파트너: ?p=아이디 또는 #p-아이디 */
+function partnerId() {
+  let id = "";
+  try { id = new URLSearchParams(location.search).get("p") || ""; } catch (e) {}
+  const m = (location.hash || "").match(/^#p-([A-Za-z0-9-]+)$/);
+  if (!id && m) id = m[1];
+  return CONFIG.partners[id] ? id : "";
+}
+const PID = partnerId(), P = PID ? CONFIG.partners[PID] : null;
+const CHAT = (P && P.chat) || CONFIG.chat;
+
+document.getElementById("brandName").textContent = CONFIG.brand;
+document.getElementById("footBrand").textContent = CONFIG.brand;
+if (CONFIG.business) document.getElementById("footBiz").textContent = CONFIG.business;
+document.getElementById("f-partner").value = PID || "본사";
+if (P) { document.getElementById("partnerName").textContent = P.name; document.getElementById("partnerChip").hidden = false; }
+if (!CONFIG.endpoint) document.getElementById("sampleBar").hidden = false;
+document.querySelectorAll(".chat-link").forEach(a => { if (CHAT) a.href = CHAT; else { a.removeAttribute("target"); a.href = "#apply"; } });
+
+/* 업종별 영상 */
+const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+  const v = e.target.querySelector("video"); if (!v || reduce) return;
+  if (e.isIntersecting) v.play().then(() => e.target.classList.add("playing")).catch(() => {});
+  else { v.pause(); e.target.classList.remove("playing"); }
+}), { threshold: 0.55 }) : null;
+function clip(file, r, label) {
+  const el = document.createElement("div"); el.className = "clip " + r;
+  const v = document.createElement("video"); v.src = "v/" + file + ".mp4"; v.poster = "v/" + file + ".jpg"; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "none"; v.setAttribute("aria-label", label);
+  const ra = document.createElement("span"); ra.className = "ratio mono"; ra.textContent = r === "v" ? "9:16 세로" : "16:9 가로";
+  const pb = document.createElement("button"); pb.className = "play"; pb.type = "button"; pb.setAttribute("aria-label", label + " 재생 · 멈춤"); pb.innerHTML = "<span>▶</span>";
+  pb.addEventListener("click", () => { if (v.paused) v.play().then(() => el.classList.add("playing")).catch(() => {}); else { v.pause(); el.classList.remove("playing"); } });
+  el.append(v, ra, pb); if (io) io.observe(el); return el;
+}
+document.getElementById("industries").replaceChildren(...INDUSTRIES.map(it => {
+  const row = document.createElement("div"); row.className = "ind";
+  const txt = document.createElement("div");
+  const tg = document.createElement("span"); tg.className = "tagline"; tg.textContent = it.tag;
+  const h = document.createElement("h3"); h.textContent = it.title;
+  const p = document.createElement("p"); p.textContent = it.text;
+  const ul = document.createElement("ul"); it.list.forEach(s => { const li = document.createElement("li"); li.textContent = s; ul.append(li); });
+  const who = document.createElement("p"); who.className = "who"; who.textContent = "예시 · " + it.who;
+  txt.append(tg, h, p, ul, who);
+  row.append(txt, clip(it.h, "h", it.who + " 가로 영상"), clip(it.v, "v", it.who + " 세로 영상"));
+  return row;
+}));
+document.getElementById("looks").replaceChildren(...LOOKS.map(s => { const sp = document.createElement("span"); sp.textContent = s; return sp; }));
+if (reduce) document.querySelectorAll(".mon video").forEach(v => { v.removeAttribute("autoplay"); v.pause(); });
+
+/* 신청서 */
+const form = document.getElementById("applyForm"), err = document.getElementById("formErr"), phoneEl = document.getElementById("f-phone");
+phoneEl.addEventListener("input", () => {
+  const d = phoneEl.value.replace(/\D/g, "").slice(0, 11);
+  phoneEl.value = d.length > 7 ? `${d.slice(0, 3)}-${d.slice(3, d.length - 4)}-${d.slice(-4)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d;
+});
+form.addEventListener("submit", async e => {
+  e.preventDefault(); err.textContent = "";
+  const fd = new FormData(form), get = k => String(fd.get(k) || "").trim();
+  if (!get("shop")) { err.textContent = "가게 이름을 적어 주세요."; return document.getElementById("f-shop").focus(); }
+  if (!get("name")) { err.textContent = "신청하시는 분 이름을 적어 주세요."; return document.getElementById("f-name").focus(); }
+  if (!/^01[016789]-?\d{3,4}-?\d{4}$/.test(get("phone"))) { err.textContent = "휴대폰 번호를 010-0000-0000 처럼 적어 주세요."; return phoneEl.focus(); }
+  if (!get("type")) { err.textContent = "업종을 골라 주세요."; return document.getElementById("f-type").focus(); }
+  if (!document.getElementById("f-agree").checked) { err.textContent = "개인정보 수집 · 이용에 동의해 주셔야 신청할 수 있어요."; return document.getElementById("f-agree").focus(); }
+  const data = { time: new Date().toISOString(), partner: get("partner"), shop: get("shop"), name: get("name"), phone: get("phone"), area: get("area"), type: get("type"), ratio: get("ratio"), memo: get("memo"), marketing: document.getElementById("f-mkt").checked ? "동의" : "", page: location.href.split("#")[0] };
+  const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.textContent = "보내는 중…";
+  let saved = false;
+  if (CONFIG.endpoint) {
+    try { await fetch(CONFIG.endpoint, { method: "POST", mode: "no-cors", body: new URLSearchParams(data) }); saved = true; }
+    catch (x) { btn.disabled = false; btn.textContent = "무료 영상 신청하기"; err.textContent = "인터넷 연결이 불안정해요. 잠시 뒤 다시 눌러 주세요."; return; }
+  }
+  form.hidden = true; document.getElementById("doneBox").hidden = false;
+  const note = document.getElementById("doneNote"), msgs = [];
+  if (!saved) { document.getElementById("doneTitle").textContent = "샘플 접수 화면이에요"; msgs.push("지금은 샘플이라 신청 내용이 저장되지 않아요. 구글 시트를 연결하면 실제로 접수돼요."); }
+  if (!CHAT) msgs.push("오픈채팅방 링크를 넣으면 위 버튼이 바로 채팅방으로 연결돼요.");
+  if (msgs.length) { note.hidden = false; note.textContent = msgs.join(" "); }
+  document.getElementById("doneBox").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+});
+</script>
