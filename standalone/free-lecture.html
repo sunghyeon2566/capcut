@@ -74,7 +74,8 @@
   .foot a { color: var(--fg); border-bottom: 1px solid var(--line); }
 
   /* 랜딩 */
-  .landing { max-width: 860px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  .landing { max-width: 860px; margin: 0 auto; padding-block: 28px 0; display: flex; flex-direction: column; gap: 22px; }
+  .hero-img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 20px; }
   .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 12px; }
   .back { background: none; border: 0; color: var(--muted); font-size: 17px; cursor: pointer; padding: 6px 0; }
   .back:hover { color: var(--fg); }
@@ -107,30 +108,14 @@
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 
-<!-- 처음 화면 -->
-<main id="home" class="wrap">
+<!-- 한 페이지: 대표 이미지 → 특강 소개 이미지 → 소개 영상 → 줌 참여 -->
+<main class="landing">
   <div class="brand"><b>딥마크온 클래스</b><span>시니어 유튜브 수익화</span></div>
 
-  <div class="intro">
-    <video id="intro-video" src="media/intro.mp4" poster="media/intro-poster.jpg" autoplay muted loop playsinline controls preload="metadata"></video>
-    <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
-  </div>
+  <img class="hero-img" src="media/free-top.jpg" alt="무료특강: 모든 롱폼, 클릭 한 번으로 뚝딱! 롱폼 영상 자동화 프로그램 드디어 완성" width="1774" height="887">
 
   <div class="when"><span>무료 특강</span><b>11월 24일 (화) 저녁 8시</b><small>줌(Zoom) 온라인 · 신청서 없이 바로 참여</small></div>
 
-  <button type="button" class="thumb" id="open-landing" aria-label="무료 특강 소개 보기">
-    <img src="media/free-thumb.jpg" alt="무료 특강 유튜브 1개월 챌린지 · 감동민담 · 야담 · 설화" width="966" height="483">
-    <span class="label">이미지 · 나레이션 · 컷편집을 클릭 한 번으로, 무료 특강에서 공개합니다</span>
-    <span class="click">클릭
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-  </button>
-
-  <p class="foot">딥마크온 클래스 · <a href="https://deep-mark-on.kr/" target="_blank" rel="noopener">deep-mark-on.kr</a></p>
-</main>
-
-<!-- 특강 소개 랜딩 -->
-<section id="landing" class="landing" hidden>
-  <div class="top"><button type="button" class="back" id="close-landing">← 처음 화면으로</button></div>
   <div class="imgs">
     <img src="media/free-01.png" alt="며칠을 붙잡고 만든 영상, 조회수는 고작 몇십 회">
     <img src="media/free-02.png" alt="이런 마음, 한 번쯤 드셨죠?" loading="lazy">
@@ -142,13 +127,21 @@
     <img src="media/free-08.png" alt="이번 특강에서 가져가실 것, 이미 결과가 나오고 있습니다" loading="lazy">
     <img src="media/free-09.png" alt="부담 갖지 마세요, 듣기만 하셔도 충분합니다" loading="lazy">
   </div>
+
+  <div class="intro">
+    <video id="intro-video" src="media/intro.mp4" poster="media/intro-poster.jpg" muted loop playsinline controls preload="metadata"></video>
+    <button type="button" class="sound" id="sound-on">🔊 소리 켜고 처음부터 보기</button>
+  </div>
+
   <div class="end">
     <p><b>11월 24일 (화) 저녁 8시</b><br>신청서 없이 버튼 한 번이면 특강에 참여하실 수 있어요.</p>
     <a class="join" data-zoom href="#">🎥 특강 바로 참여하기</a>
     <small>버튼을 누르면 줌(Zoom)으로 바로 연결됩니다</small>
   </div>
   <div class="bar"><a class="join" data-zoom href="#">🎥 특강 바로 참여하기</a></div>
-</section>
+
+  <p class="foot">딥마크온 클래스 · <a href="https://deep-mark-on.kr/" target="_blank" rel="noopener">deep-mark-on.kr</a></p>
+</main>
 
 <script>
   // 줌 링크 — 여기만 바꾸면 참여 버튼 주소가 바뀝니다
@@ -159,16 +152,6 @@
     a.target = "_blank";
     a.rel = "noopener";
   });
-
-  const home = document.getElementById("home");
-  const landing = document.getElementById("landing");
-  function show(name) {
-    home.hidden = name !== "home";
-    landing.hidden = name !== "landing";
-    window.scrollTo(0, 0);
-  }
-  document.getElementById("open-landing").addEventListener("click", function () { show("landing"); });
-  document.getElementById("close-landing").addEventListener("click", function () { show("home"); });
 
   // 맨 아래 큰 참여 버튼이 보이면 하단 고정 버튼은 숨김
   const bar = document.querySelector(".bar");
@@ -192,6 +175,4 @@
   // 아이폰에서도 누르는 순간(:active) 효과가 보이도록
   document.addEventListener("touchstart", function () {}, { passive: true });
 
-  // 링크 끝에 #landing 을 붙이면 특강 소개부터 열립니다
-  if (location.hash === "#landing") show("landing");
 </script>
