@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>롱폼 자동화 특강 썸네일</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@700;900&display=swap">
+<style>
+  /* 960×480 (가로 8 : 세로 4) 썸네일 — 왼쪽 3D 입체 문구, 오른쪽 기울어진 프로그램 화면 + 3D 클릭 버튼 */
+  :root {
+    --ink: #0a1230;
+    --deep: #101c4a;
+    --blue: #2b7bff;
+    --cyan: #3ee6ff;
+    --gold: #ffd23f;
+    --gold-dark: #b07b00;
+    --red: #ff3b3b;
+    --white: #ffffff;
+    --display: "Black Han Sans", "Noto Sans KR", sans-serif;
+    --body: "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #000; }
+  .thumb {
+    position: relative; width: 960px; height: 480px; overflow: hidden; font-family: var(--body); color: var(--white);
+    background:
+      radial-gradient(circle at 78% 40%, rgba(62, 230, 255, .35), transparent 45%),
+      radial-gradient(circle at 15% 90%, rgba(43, 123, 255, .45), transparent 50%),
+      linear-gradient(135deg, #060b24 0%, var(--deep) 55%, #1a0f4a 100%);
+  }
+  /* 바닥 격자: 3D 공간감 */
+  .floor {
+    position: absolute; left: -20%; right: -20%; bottom: -60px; height: 260px;
+    background-image:
+      linear-gradient(rgba(62, 230, 255, .35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(62, 230, 255, .35) 1px, transparent 1px);
+    background-size: 48px 48px;
+    transform: perspective(500px) rotateX(62deg); transform-origin: bottom;
+    mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+  }
+
+  /* 왼쪽 문구 */
+  .left { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); width: 520px; display: flex; flex-direction: column; gap: 16px; }
+  .badges { display: flex; gap: 10px; align-items: center; }
+  .free {
+    background: linear-gradient(180deg, #ff6a6a, var(--red)); padding: 6px 16px; border-radius: 999px;
+    font-weight: 900; font-size: 20px; box-shadow: 0 5px 0 #a51919, 0 10px 20px rgba(0,0,0,.4);
+  }
+  .date {
+    background: var(--white); color: var(--ink); padding: 6px 16px; border-radius: 999px; font-weight: 900; font-size: 20px;
+    box-shadow: 0 5px 0 #9fb1d9, 0 10px 20px rgba(0,0,0,.4);
+  }
+  .t3d { font-family: var(--display); line-height: 1.02; letter-spacing: -0.01em; }
+  .l1 {
+    font-size: 44px; color: var(--white); white-space: nowrap;
+    text-shadow: 0 1px 0 #c9d6f5, 0 2px 0 #b3c4ee, 0 3px 0 #9db2e6, 0 4px 0 #879fdd, 0 5px 0 #6f8ad2, 0 6px 0 #5b77c6,
+      0 12px 18px rgba(0,0,0,.55);
+  }
+  .l2 {
+    font-size: 104px; color: var(--gold);
+    text-shadow: 0 1px 0 #f2c22a, 0 2px 0 #e6b31c, 0 3px 0 #d9a512, 0 4px 0 #cc970a, 0 5px 0 #bf8a04, 0 6px 0 var(--gold-dark),
+      0 7px 0 #a06f00, 0 8px 0 #8f6200, 0 16px 24px rgba(0,0,0,.6);
+  }
+  .l3 {
+    font-size: 62px; color: var(--white);
+    text-shadow: 0 1px 0 #c9d6f5, 0 2px 0 #b3c4ee, 0 3px 0 #9db2e6, 0 4px 0 #879fdd, 0 5px 0 #6f8ad2, 0 6px 0 #5b77c6,
+      0 12px 18px rgba(0,0,0,.55);
+  }
+  .l3 em { font-style: normal; color: var(--cyan);
+    text-shadow: 0 1px 0 #2ccbe3, 0 2px 0 #20b3ca, 0 3px 0 #179cb1, 0 4px 0 #0f8598, 0 5px 0 #0a6f80, 0 6px 0 #065a68, 0 12px 18px rgba(0,0,0,.55); }
+  .sub {
+    margin-top: 8px; align-self: flex-start; background: rgba(10, 18, 48, .75); border: 2px solid rgba(62, 230, 255, .6);
+    border-radius: 14px; padding: 8px 16px; font-weight: 900; font-size: 22px; backdrop-filter: blur(4px);
+  }
+  .sub b { color: var(--gold); }
+
+  /* 오른쪽 3D 화면 */
+  .stage { position: absolute; right: 18px; top: 46px; width: 390px; height: 380px; perspective: 900px; }
+  .screen {
+    position: absolute; inset: 0 0 60px 0; border-radius: 18px; padding: 18px 18px 16px;
+    background: linear-gradient(160deg, #17245e, #0c1540); border: 3px solid rgba(62, 230, 255, .7);
+    transform: rotateY(-22deg) rotateX(8deg); transform-style: preserve-3d;
+    box-shadow: -20px 30px 50px rgba(0,0,0,.6), 0 0 40px rgba(62, 230, 255, .35);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .bar { display: flex; gap: 6px; }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+  .bar i:nth-child(2) { background: #febc2e; } .bar i:nth-child(3) { background: #28c840; }
+  .bar span { margin-left: 8px; font-size: 13px; font-weight: 700; color: #a9bcef; }
+  .tile {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #dfe8ff); color: var(--ink);
+    box-shadow: 0 6px 0 #8aa1db, 0 12px 18px rgba(0,0,0,.35);
+    font-weight: 900; font-size: 21px; transform: translateZ(30px);
+  }
+  .tile .ic { font-size: 26px; }
+  .tile .ok { margin-left: auto; background: #18c964; color: #fff; border-radius: 999px; font-size: 14px; padding: 3px 10px; }
+
+  /* 3D 클릭 버튼 */
+  .click {
+    position: absolute; left: 70px; bottom: 6px; width: 250px; height: 76px; border-radius: 999px;
+    background: linear-gradient(180deg, #ffe27a, var(--gold) 55%, #f0b400);
+    box-shadow: 0 10px 0 var(--gold-dark), 0 22px 30px rgba(0,0,0,.6), 0 0 40px rgba(255, 210, 63, .55);
+    display: grid; place-items: center; font-family: var(--display); font-size: 40px; color: var(--ink);
+    transform: rotateX(18deg);
+  }
+  .hand { position: absolute; right: 30px; bottom: -18px; font-size: 72px; transform: rotate(-12deg); filter: drop-shadow(0 8px 8px rgba(0,0,0,.5)); }
+  .ring { position: absolute; left: 195px; bottom: 36px; width: 120px; height: 120px; border-radius: 50%; border: 4px solid rgba(255,255,255,.65); transform: translate(-50%, 50%) rotateX(60deg); }
+  .spark { position: absolute; color: var(--gold); font-size: 30px; text-shadow: 0 0 12px rgba(255,210,63,.9); }
+</style>
+</head>
+<body>
+<div class="thumb" id="thumb">
+  <div class="floor"></div>
+
+  <div class="left">
+    <div class="badges"><span class="free">무료 특강</span><span class="date">11월 24일 (화) 저녁 8시</span></div>
+    <div class="t3d l1">이미지 · 나레이션 · 컷편집</div>
+    <div class="t3d l2">클릭 한 번!</div>
+    <div class="t3d l3">롱폼 영상 <em>자동 완성</em></div>
+    <div class="sub">누구나 <b>1시간 안에 1시간짜리</b> 영상 · 수익화까지</div>
+  </div>
+
+  <div class="stage">
+    <div class="screen">
+      <div class="bar"><i></i><i></i><i></i><span>롱폼 영상 자동화 프로그램</span></div>
+      <div class="tile"><span class="ic">🖼️</span>이미지 자동 생성<span class="ok">완료</span></div>
+      <div class="tile"><span class="ic">🎙️</span>나레이션 자동 제작<span class="ok">완료</span></div>
+      <div class="tile"><span class="ic">✂️</span>컷편집 자동 완성<span class="ok">완료</span></div>
+    </div>
+    <div class="ring"></div>
+    <div class="click">CLICK</div>
+    <div class="hand">👆</div>
+    <span class="spark" style="left:40px;bottom:96px">✦</span>
+    <span class="spark" style="left:330px;bottom:110px;font-size:22px">✦</span>
+  </div>
+</div>
+</body>
+</html>
